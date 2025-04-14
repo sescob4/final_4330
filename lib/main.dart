@@ -8,6 +8,7 @@ void main() {
 //Aaron Aucoin
 // Courtney
 //Huarong Teng
+//Quinn Farnet
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
