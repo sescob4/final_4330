@@ -4,7 +4,12 @@ import 'card_picker_page.dart';
 void main() {
   runApp(const MyApp());
 }
-
+//Dylan Peterson
+//Sebastian Escobar-mesa
+//Aaron Aucoin
+// Courtney
+//Huarong Teng
+//Quinn Farnet
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
