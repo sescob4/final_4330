@@ -47,6 +47,8 @@ class DefaultFirebaseOptions {
     projectId: 'project-d7d3a',
     authDomain: 'project-d7d3a.firebaseapp.com',
     storageBucket: 'project-d7d3a.firebasestorage.app',
+    databaseURL: 'https://project-d7d3a-default-rtdb.firebaseio.com/'
+
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -55,8 +57,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '113598733750',
     projectId: 'project-d7d3a',
     storageBucket: 'project-d7d3a.firebasestorage.app',
-  );
+    databaseURL: 'https://project-d7d3a-default-rtdb.firebaseio.com/'
 
+  );
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCLJYy4W1isCd5oT2R3s1MlwUMB3ZSxOAY',
     appId: '1:113598733750:ios:0464c78c5d5a2752c13517',
@@ -64,6 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'project-d7d3a',
     storageBucket: 'project-d7d3a.firebasestorage.app',
     iosBundleId: 'com.example.final4330',
+    databaseURL: 'https://project-d7d3a-default-rtdb.firebaseio.com/',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,6 +77,7 @@ class DefaultFirebaseOptions {
     projectId: 'project-d7d3a',
     storageBucket: 'project-d7d3a.firebasestorage.app',
     iosBundleId: 'com.example.final4330',
+    databaseURL: 'https://project-d7d3a-default-rtdb.firebaseio.com/',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -82,5 +87,7 @@ class DefaultFirebaseOptions {
     projectId: 'project-d7d3a',
     authDomain: 'project-d7d3a.firebaseapp.com',
     storageBucket: 'project-d7d3a.firebasestorage.app',
+    databaseURL: 'https://project-d7d3a-default-rtdb.firebaseio.com/',
   );
+
 }

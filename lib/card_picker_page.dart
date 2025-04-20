@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:playing_cards/playing_cards.dart';
 
@@ -19,12 +20,38 @@ class _CardPickerPageState extends State<CardPickerPage> {
 
   PlayingCard? _selectedCard;
 
+  late FirebaseDatabase database;
+  late DatabaseReference reference;
+
+  @override
+  void initState() {
+    super.initState();
+    database = FirebaseDatabase.instance;
+    reference = database.ref().child("cards");
+    readFromDatabase();
+  }
+
+  void writeToDatabase(String card) {
+    reference.push().set({
+      'card': card,
+    });
+  }
+  void readFromDatabase() {
+    reference.onValue.listen((DatabaseEvent event) {
+      final data = event.snapshot.value;
+      print("Snapshot: $data");
+    });
+  }
+
   void _drawCard() {
     final random = Random();
     final card = _customDeck[random.nextInt(_customDeck.length)];
     setState(() {
       _selectedCard = card;
     });
+
+    final cardName = "cardName; 123";//can be removed later
+    writeToDatabase(cardName);//can be removed later
   }
 
   @override

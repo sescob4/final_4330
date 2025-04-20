@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'card_picker_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:firebase_database/firebase_database.dart';
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -11,17 +13,30 @@ Future<void> main() async{
   runApp(const MyApp());
 }
 
+
 //Dylan Peterson
 //Sebastian Escobar-mesa
 //Aaron Aucoin
 // Courtney
 //Huarong Teng
 //Quinn Farnet
+
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final database = FirebaseDatabase.instance;
+    DatabaseReference reference = database.ref();
+
+    void writeToDatabase(String card){
+      reference.set({
+        'current:': card,
+      });
+    }
+
+
     return MaterialApp(
       title: 'Liar\'s Bar',
       theme: ThemeData(
@@ -41,6 +56,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Stack(
         children: [
