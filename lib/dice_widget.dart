@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class DiceRoller extends StatefulWidget {
+  const DiceRoller({super.key});
+
   @override
   _DiceRollerState createState() => _DiceRollerState();
 }
