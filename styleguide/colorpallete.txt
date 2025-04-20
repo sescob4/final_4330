@@ -1,12 +1,8 @@
-Link to pallete - https://coolors.co/palette/0b090a-161a1d-660708-a4161a-ba181b-e5383b-b1a7a6-d3d3d3-f5f3f4-ffffff
+Link to pallete - https://coolors.co/2a1a13-4b2c1c-8c4a2f-c37542-913626-d98236-f5b45d-e6c89c-f3e8d0-3c7a78
 Colors
-  0B090A
-  161A1D
-  660708
-  A4161A
-  BA181B
-  E5383B
-  B1A7A6
-  D3D3D3
-  F5F3F4
-  FFFFFF
+Charcoal - 2A1A13
+Browns - 4B2C1C, 8C4A2F, C37542
+Red - 913626
+Golds/Tans - D98236, F5B45D, E6C89C
+Offwhite - F3E8D0
+Teal - 3C7A78
