@@ -94,4 +94,18 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
   assets:
+  #background:
     - assets/main.jpg
+    - assets/emptybar.png
+    - assets/populatedbar.png
+    - assets/in.jpg
+  #roles:
+    - assets/bartenderonly.png
+    - assets/cowboy.png
+    - assets/gal.png
+    - assets/lawman.png
+    - assets/outlaw.png
+
+  #music:
+
+

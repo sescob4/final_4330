@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'card_picker_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'screens/instruction.dart';
 import 'package:firebase_database/firebase_database.dart';
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,7 +71,7 @@ class HomePage extends StatelessWidget {
           // Dark Overlay
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Color.fromRGBO(19, 19, 19, 0.482),
             ),
           ),
           // Content
@@ -106,7 +107,7 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 20),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.brown.shade900.withOpacity(0.8),
+                      color: Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: Colors.amber.shade800,
@@ -114,7 +115,7 @@ class HomePage extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Color.fromRGBO(0, 0, 0, 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
@@ -155,10 +156,10 @@ class HomePage extends StatelessWidget {
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () {
-                            // to instruction screen
-
-
-
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context)=> const Instruction()),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:Colors.amber, 
