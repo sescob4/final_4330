@@ -48,7 +48,7 @@ class GameSelectionPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Dice_page()),
+                    MaterialPageRoute(builder: (context) => const DicePage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
