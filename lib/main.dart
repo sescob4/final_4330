@@ -5,7 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/instruction.dart';
 import 'package:firebase_database/firebase_database.dart';
-Future<void> main() async{
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -14,14 +15,12 @@ Future<void> main() async{
   runApp(const MyApp());
 }
 
-
 //Dylan Peterson
 //Sebastian Escobar-mesa
 //Aaron Aucoin
 // Courtney
 //Huarong Teng
 //Quinn Farnet
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -31,12 +30,11 @@ class MyApp extends StatelessWidget {
     final database = FirebaseDatabase.instance;
     DatabaseReference reference = database.ref();
 
-    void writeToDatabase(String card){
+    void writeToDatabase(String card) {
       reference.set({
         'current:': card,
       });
     }
-
 
     return MaterialApp(
       title: 'Liar\'s Bar',
@@ -57,7 +55,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         children: [
@@ -85,7 +82,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 50,
                       fontWeight: FontWeight.bold,
-                      color:Colors.amber,
+                      color: Colors.amber,
                       shadows: [
                         Shadow(
                           blurRadius: 10.0,
@@ -131,7 +128,8 @@ class HomePage extends StatelessWidget {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const CardPickerPage()),
+                              MaterialPageRoute(
+                                  builder: (context) => const CardPickerPage()),
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -158,11 +156,12 @@ class HomePage extends StatelessWidget {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context)=> const Instruction()),
+                              MaterialPageRoute(
+                                  builder: (context) => const Instruction()),
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:Colors.amber, 
+                            backgroundColor: Colors.amber,
                             foregroundColor: Colors.brown.shade800,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 50,

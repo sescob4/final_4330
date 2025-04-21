@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  flutter_svg: ^2.0.7
   playing_cards: ^0.4.1+11
 
   # The following adds the Cupertino Icons font to your application.
@@ -102,9 +102,10 @@ flutter:
   #roles:
     - assets/bartenderonly.png
     - assets/cowboy.png
-    - assets/gal.png
+    - assets/galexport.png
     - assets/lawman.png
     - assets/outlaw.png
+
 
   #music:
 
