@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'screens/game_selection_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,11 +5,19 @@ import 'firebase_options.dart';
 import 'screens/instruction.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+// ───── Connectivity imports (comment in when ready) ─────
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'screens/lobby.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // ───── Perform anonymous sign‑in (uncomment when ready) ─────
+//  await FirebaseAuth.instance.signInAnonymously();
 
   runApp(const MyApp());
 }
@@ -45,7 +52,9 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const HomePage(),  // <-- UI entry unchanged
+      // To launch the connectivity lobby instead, uncomment below:
+      // home: const LobbyScreen(),
     );
   }
 }
@@ -68,7 +77,7 @@ class HomePage extends StatelessWidget {
           // Dark Overlay
           Positioned.fill(
             child: Container(
-              color: Color.fromRGBO(19, 19, 19, 0.482),
+              color: const Color.fromRGBO(19, 19, 19, 0.482),
             ),
           ),
           // Content
@@ -104,17 +113,17 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 20),
                   Container(
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(33, 17, 0, 0.8),
+                      color: const Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: Colors.amber.shade800,
                         width: 2,
                       ),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Color.fromRGBO(0, 0, 0, 0.3),
                           blurRadius: 10,
-                          offset: const Offset(0, 5),
+                          offset: Offset(0, 5),
                         ),
                       ],
                     ),
