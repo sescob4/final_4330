@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'widgets/dice_face.dart';
 
 class Dice_page extends StatefulWidget {
   const Dice_page({super.key});
@@ -8,14 +9,37 @@ class Dice_page extends StatefulWidget {
   State<Dice_page> createState() => _DiceRollerPageState();
 }
 
-class _DiceRollerPageState extends State<Dice_page> {
-  List<int> diceValues = [];
+class _DiceRollerPageState extends State<Dice_page>
+    with SingleTickerProviderStateMixin {
+  int diceValue = 1;
+  final random = Random();
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   void rollDice() {
-    final random = Random();
+    _controller.forward(from: 0);
     setState(() {
-      diceValues = List.generate(5, (_) => random.nextInt(6) + 1);
+      diceValue = random.nextInt(6) + 1;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -23,64 +47,29 @@ class _DiceRollerPageState extends State<Dice_page> {
     return Scaffold(
       backgroundColor: Colors.brown.shade900,
       appBar: AppBar(
-        title: const Text("Dice Roller"),
+        title: const Text("Dice Game"),
         backgroundColor: Colors.brown.shade700,
       ),
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 30.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Just take the space it needs
-              children: [
-                // Dice Display
-                Wrap(
-                  spacing: 16,
-                  children: diceValues.map((value) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade200,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        value.toString(),
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Roll Button
-                ElevatedButton(
-                  onPressed: rollDice,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.brown.shade900,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 20),
-                  ),
-                  child: const Text(
-                    "Roll Dice",
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-              ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ScaleTransition(
+              scale: _animation,
+              child: DiceFace(value: diceValue),
             ),
-          ),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: rollDice,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.brown.shade900,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+              ),
+              child: const Text("Roll Dice", style: TextStyle(fontSize: 20)),
+            ),
+          ],
         ),
       ),
     );

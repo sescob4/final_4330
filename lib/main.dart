@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'card_picker_page.dart';
+import 'screens/game_selection_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/instruction.dart';
@@ -129,7 +129,7 @@ class HomePage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const CardPickerPage()),
+                                  builder: (context) => const GameSelectionPage()),
                             );
                           },
                           style: ElevatedButton.styleFrom(
