@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:playing_cards/playing_cards.dart';
+import 'dice_page.dart';
 
 class CardPickerPage extends StatefulWidget {
   const CardPickerPage({super.key});
@@ -36,6 +37,7 @@ class _CardPickerPageState extends State<CardPickerPage> {
       'card': card,
     });
   }
+
   void readFromDatabase() {
     reference.onValue.listen((DatabaseEvent event) {
       final data = event.snapshot.value;
@@ -50,8 +52,8 @@ class _CardPickerPageState extends State<CardPickerPage> {
       _selectedCard = card;
     });
 
-    final cardName = "cardName; 123";//can be removed later
-    writeToDatabase(cardName);//can be removed later
+    final cardName = "cardName; 123"; //can be removed later
+    writeToDatabase(cardName); //can be removed later
   }
 
   @override
@@ -85,6 +87,16 @@ class _CardPickerPageState extends State<CardPickerPage> {
             ElevatedButton(
               onPressed: _drawCard,
               child: const Text("Draw Card"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const Dice_page()),
+                );
+              },
+              child: const Text("Dice Page"),
             ),
           ],
         ),
