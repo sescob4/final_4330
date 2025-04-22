@@ -12,12 +12,19 @@ import 'package:firebase_database/firebase_database.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') {
+      rethrow;
+    }
+  }
 
   // ───── Perform anonymous sign‑in (uncomment when ready) ─────
-//  await FirebaseAuth.instance.signInAnonymously();
+  // await FirebaseAuth.instance.signInAnonymously();
 
   runApp(const MyApp());
 }
@@ -39,7 +46,7 @@ class MyApp extends StatelessWidget {
 
     void writeToDatabase(String card) {
       reference.set({
-        'current:': card,
+        'current': card,
       });
     }
 
@@ -138,7 +145,8 @@ class HomePage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const GameSelectionPage()),
+                                builder: (context) => const GameSelectionPage(),
+                              ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -166,7 +174,8 @@ class HomePage extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Instruction()),
+                                builder: (context) => const Instruction(),
+                              ),
                             );
                           },
                           style: ElevatedButton.styleFrom(
