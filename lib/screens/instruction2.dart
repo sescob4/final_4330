@@ -10,6 +10,12 @@ class Instruction2 extends StatelessWidget {
       backgroundColor: const Color.fromARGB(255, 50, 31, 28),
       body: Stack(
         children: [
+          Image.asset(
+            'assets/in.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -88,17 +94,17 @@ class Instruction2 extends StatelessWidget {
                           const SizedBox(height: 20),
                           _buildInstructionSection(
                             "The Basic",
-                            "A classic twist on Liar's Dice! Guess right, and everyone else pays the price.",
+                            "A classic twist on Liar's Dice! Roll your dice in secret and make bold claims about the total. Challenge others' claims or raise the stakes. The art of deception is your greatest weapon.",
                           ),
                           const SizedBox(height: 20),
                           _buildInstructionSection(
                             "The Stakes",
-                            "In this classic version, aside from calling a bluff or raising the bet, there's another option: If you believe the previous player's guess about the dice count is exactly right you say 'Spot On!' ",
+                            "In this classic version, aside from calling a bluff or raising the bet, there's another option: If you believe the previous player's guess about the dice count is exactly right you say 'Spot On!' The tension rises with each round.",
                           ),
                           const SizedBox(height: 20),
                           _buildInstructionSection(
                             "Victory",
-                            "If you are right, everyone else drinks a bottle of poison. Otherwise, you drink!                                                                             ",
+                            "If you are right, everyone else drinks a bottle of poison. Otherwise, you drink! Master the balance of truth and deception to outlast your opponents and claim victory in this game of chance.",
                           ),
                         ],
                       ),
@@ -120,7 +126,7 @@ class Instruction2 extends StatelessWidget {
         color: Color.fromRGBO(0, 0, 0, 0.3),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color:Colors.amber,
+          color: Colors.amber,
           width: 1,
         ),
         boxShadow: [

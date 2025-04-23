@@ -78,14 +78,8 @@ class HomePage extends StatelessWidget {
           // Background Image
           Positioned.fill(
             child: Image.asset(
-              'assets/main.jpg',
+              'assets/main2.png',
               fit: BoxFit.cover,
-            ),
-          ),
-          // Dark Overlay
-          Positioned.fill(
-            child: Container(
-              color: const Color.fromRGBO(19, 19, 19, 0.482),
             ),
           ),
           // Content
