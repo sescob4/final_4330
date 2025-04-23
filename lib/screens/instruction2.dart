@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:final_4330/screens/instruction2.dart';
 
-//need to add design later
-class Instruction extends StatelessWidget {
-  const Instruction({super.key});
+//basic layout, need to add design later
+class Instruction2 extends StatelessWidget {
+  const Instruction2({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +23,7 @@ class Instruction extends StatelessWidget {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Text(
-                        "Welcome to Liar's Deck",
+                        "Welcome to Liar's Dice",
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -88,47 +87,20 @@ class Instruction extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           _buildInstructionSection(
-                            "The Basics",
-                            "A twisted game of cards where every bluff could be your last! Play a card and claim its value. Be careful, your opponents might call your bluff!",
+                            "The Basic",
+                            "A classic twist on Liar's Dice! Guess right, and everyone else pays the price.",
                           ),
                           const SizedBox(height: 20),
                           _buildInstructionSection(
                             "The Stakes",
-                            "Get caught lying, and you'll play Russian Roulette. Survive the one bullet out of 6 rounds, or it's game over.",
+                            "In this classic version, aside from calling a bluff or raising the bet, there's another option: If you believe the previous player's guess about the dice count is exactly right you say 'Spot On!' ",
                           ),
                           const SizedBox(height: 20),
                           _buildInstructionSection(
                             "Victory",
-                            "Outlast everyone at the table to win. Will you dare to deceive?                                                                             ",
+                            "If you are right, everyone else drinks a bottle of poison. Otherwise, you drink!                                                                             ",
                           ),
                         ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 30),
-                  child: ElevatedButton(                 
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Instruction2()),
-                    );
-                  },
-
-                  child: const Text(
-                    "Next",
-                    style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
                       ),
                     ),
                   ),
