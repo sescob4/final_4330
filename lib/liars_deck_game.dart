@@ -71,7 +71,9 @@ class LiarsDeckGameState {
       ...List.generate(2, (_) => DeckCard(CardType.joker)),
     ]..shuffle(rng);
 
-    for (final p in players) p.hand.clear();
+    for (final p in players) {
+      p.hand.clear();
+    }
     for (var i = 0; i < cardsPerPlayer; i++) {
       for (final p in players.where((pl) => !pl.eliminated)) {
         p.hand.add(deck.removeLast());
@@ -92,14 +94,18 @@ class LiarsDeckGameState {
   }
 
   int _nextAlive(int idx) {
-    while (players[idx].eliminated) idx = (idx + 1) % players.length;
+    while (players[idx].eliminated) {
+      idx = (idx + 1) % players.length;
+    }
     return idx;
   }
 
   bool isHumanTurn() => !players[currentPlayer].isAI && !roundOver;
 
   String playCards(Player p, List<DeckCard> cards) {
-    for (final c in cards) p.hand.remove(c);
+    for (final c in cards) {
+      p.hand.remove(c);
+    }
     tableCards    = List.of(cards);
     lastPlayerIdx = players.indexOf(p);
     final msg =

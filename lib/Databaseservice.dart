@@ -4,6 +4,6 @@ class DatabaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
 
   Future<void> writeCardPutDown(String card, String user, String gameID) async {
-    await _db.child("Deck/" + gameID);
+    _db.child("Deck/$gameID");
   }
 }

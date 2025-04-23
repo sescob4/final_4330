@@ -121,7 +121,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
       bidQuantity = bidQuantity ?? 1;
     }
 
-    _addLog('You bet ${bidQuantity} × ${bidFace}');
+    _addLog('You bet $bidQuantity × $bidFace');
     _showBetControls = false;
 
     // Advance to next alive player
@@ -151,8 +151,11 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
 
   void _cpuAction() {
     final shouldCall = bidQuantity != null && _rand.nextInt(4) == 0;
-    if (shouldCall) _handleCpuCall();
-    else            _handleCpuBet();
+    if (shouldCall) {
+      _handleCpuCall();
+    } else {
+      _handleCpuBet();
+    }
   }
 
   void _handleCpuCall() {
@@ -186,7 +189,9 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
 
   void _resolveCall(int caller) {
     final counts = <int,int>{};
-    for (var hand in allDice) for (var v in hand) counts[v] = (counts[v] ?? 0) + 1;
+    for (var hand in allDice) for (var v in hand) {
+      counts[v] = (counts[v] ?? 0) + 1;
+    }
     final qty    = bidQuantity!;
     final face   = bidFace!;
     final actual = counts[face] ?? 0;
@@ -372,8 +377,11 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
               label: '${curr.toInt()}',
               onChanged: (v) {
                 setState(() {
-                  if (_betRaiseQuantity) _tempQty  = v.toInt();
-                  else                    _tempFace = v.toInt();
+                  if (_betRaiseQuantity) {
+                    _tempQty  = v.toInt();
+                  } else {
+                    _tempFace = v.toInt();
+                  }
                 });
               },
             ),
@@ -418,8 +426,8 @@ class PlayerArea extends StatelessWidget {
     required this.isCurrent,
     this.diceValues,
     this.small = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -450,7 +458,7 @@ class PlayerArea extends StatelessWidget {
 }
 
 class CoveredDice extends StatelessWidget {
-  const CoveredDice({Key? key}) : super(key: key);
+  const CoveredDice({super.key});
 
   @override
   Widget build(BuildContext context) => Container(
