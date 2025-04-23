@@ -31,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use the same background as the HomePage
       body: Stack(
         children: [
           Positioned.fill(

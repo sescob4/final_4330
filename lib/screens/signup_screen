@@ -23,7 +23,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Save the additional user data to Firestore.
+      //save user data to Firestore.
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -43,7 +43,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Consistent background used across your app.
       body: Stack(
         children: [
           Positioned.fill(

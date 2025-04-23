@@ -22,9 +22,6 @@ Future<void> main() async {
     }
   }
 
-  // Uncomment if you wish to sign in anonymously when needed.
-  // await FirebaseAuth.instance.signInAnonymously();
-
   runApp(const MyApp());
 }
 
