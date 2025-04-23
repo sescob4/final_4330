@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/card_picker_page.dart';
+import '../liars_deck_game.dart';
 import '/dice_page.dart';
 
 class GameSelectionPage extends StatelessWidget {
@@ -29,7 +29,7 @@ class GameSelectionPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const CardPickerPage()),
+                        builder: (context) => const LiarsDeckGamePage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

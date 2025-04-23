@@ -106,6 +106,13 @@ flutter:
     - assets/lawman.png
     - assets/outlaw.png
 
+  #cards:
+    - assets/queen.svg
+    - assets/king.svg
+    - assets/jack.svg
+    - assets/ace.svg
+    - assets/joker.svg
+    - assets/cardback.svg
 
   #music:
 
