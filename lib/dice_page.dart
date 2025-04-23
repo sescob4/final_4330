@@ -14,24 +14,29 @@ class DicePage extends StatefulWidget {
   State<DicePage> createState() => _DicePageState();
 }
 
-class _DicePageState extends State<DicePage>
-    with SingleTickerProviderStateMixin {
+class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin {
   // ────────────────────────────────────────────────────────────────────────────
   // State fields
   late List<List<int>> allDice;
-  late List<bool> alive;
-  int turnIndex = 0;       // 0 = You, 1–4 = CPUs
-  bool hasRolled = false;  // User may roll only once per turn
-  int? bidQuantity;
-  int? bidFace;
+  late List<bool>   alive;
+  int       turnIndex       = 0;       // 0 = You, 1–4 = CPUs
+  bool      hasRolled       = false;   // user may roll only once per turn
+  int?      bidQuantity;
+  int?      bidFace;
 
-  final Random _rand = Random();
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  // Inline bet UI
+  bool      _showBetControls    = false;
+  bool      _betRaiseQuantity   = true;
+  late int  _tempQty;
+  late int  _tempFace;
+
+  final Random               _rand            = Random();
+  late AnimationController   _controller;
+  late Animation<double>     _animation;
 
   // history log
-  final List<String> history = [];
-  final ScrollController _scrollController = ScrollController();
+  final List<String>         history         = [];
+  final ScrollController     _scrollController = ScrollController();
 
   // ────────────────────────────────────────────────────────────────────────────
   @override
@@ -56,18 +61,18 @@ class _DicePageState extends State<DicePage>
   }
 
   void _initGameState() {
-    allDice = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
-    alive = List.filled(numPlayers, true);
-    turnIndex = 0;
-    hasRolled = false;
-    bidQuantity = null;
-    bidFace = null;
+    allDice      = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
+    alive        = List.filled(numPlayers, true);
+    turnIndex    = 0;
+    hasRolled    = false;
+    bidQuantity  = null;
+    bidFace      = null;
+    _showBetControls = false;
     history.clear();
   }
 
   void _addLog(String entry) {
     history.add(entry);
-    // scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
@@ -91,22 +96,34 @@ class _DicePageState extends State<DicePage>
     _addLog('You rolled: ${allDice[0].join(', ')}');
   }
 
-  Future<void> _userBet() async {
+  void _userBet() {
     if (turnIndex != 0 || !hasRolled) return;
-    final result = await showDialog<_Bid>(
-      context: context,
-      builder: (_) => _BetDialog(
-        oldQuantity: bidQuantity ?? 0,
-        oldFace: bidFace ?? 1,
-      ),
-    );
-    if (result == null) return;
     setState(() {
-      bidQuantity = result.quantity;
-      bidFace = result.face;
+      // show inline controls
+      _showBetControls  = true;
+      _betRaiseQuantity = true;
+      _tempQty          = (bidQuantity ?? 0) + 1;
+      _tempFace         = (bidFace     ?? 1) + 1;
     });
-    _addLog('You bet ${bidQuantity!} × ${bidFace!}');
+  }
+
+  void _confirmBet() {
+    setState(() {
+      if (_betRaiseQuantity) {
+        bidQuantity = _tempQty;
+      } else {
+        bidFace     = _tempFace;
+      }
+      _addLog('You bet ${bidQuantity!} × ${bidFace!}');
+      _showBetControls = false;
+    });
     _nextTurn();
+  }
+
+  void _cancelBet() {
+    setState(() {
+      _showBetControls = false;
+    });
   }
 
   void _userCall() {
@@ -115,140 +132,102 @@ class _DicePageState extends State<DicePage>
     _resolveCall(0);
   }
 
-// ────────────────────────────────────────────────────────────────────────────
-// CPU actions
+  // ────────────────────────────────────────────────────────────────────────────
+  // CPU actions
 
-/// Called when it’s a CPU’s turn: 1-in-4 chance to call, otherwise bet.
-void _cpuAction() {
-  final shouldCall = bidQuantity != null && _rand.nextInt(4) == 0;
-  if (shouldCall) {
-    _handleCpuCall();
-  } else {
-    _handleCpuBet();
-  }
-}
-
-/// Handles the CPU calling the bluff.
-void _handleCpuCall() {
-  final cpuIdx = turnIndex + 1; // human=0, so CPU # is +1
-  _addLog('CPU $cpuIdx calls bluff');
-  _resolveCall(turnIndex);
-}
-
-/// Handles the CPU making a bet (always raises either qty or face by ≥1).
-/// If face is already at max (6), it will raise quantity instead.
-void _handleCpuBet() {
-  final cpuIdx  = turnIndex + 1;
-  final oldQty  = bidQuantity ?? 0;
-  final oldFace = bidFace     ?? 1;
-
-  // Randomly pick whether to raise quantity or face
-  bool raiseQty = _rand.nextBool();
-
-  // If we picked "raise face" but face is already maxed out, force quantity
-  if (!raiseQty && oldFace >= 6) {
-    raiseQty = true;
+  void _cpuAction() {
+    final shouldCall = bidQuantity != null && _rand.nextInt(4) == 0;
+    if (shouldCall) {
+      _handleCpuCall();
+    } else {
+      _handleCpuBet();
+    }
   }
 
-  // Compute the new bid values
-  final newQty  = raiseQty
-      ? oldQty + 1       // always at least +1
-      : oldQty;          // unchanged
-  final newFace = raiseQty
-      ? oldFace         // unchanged
-      : (oldFace < 6 ? oldFace + 1 : 6);
+  void _handleCpuCall() {
+    final cpuIdx = turnIndex + 1;
+    _addLog('CPU $cpuIdx calls bluff');
+    _resolveCall(turnIndex);
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (alive[0] && hasRolled) _nextTurn();
+    });
+  }
 
-  // Commit to state
-  setState(() {
-    bidQuantity = newQty;
-    bidFace     = newFace;
-  });
+  void _handleCpuBet() {
+    final cpuIdx  = turnIndex + 1;
+    final oldQty  = bidQuantity ?? 0;
+    final oldFace = bidFace     ?? 1;
 
-  // Log it, show a SnackBar, then advance turn
-  final msg = 'CPU $cpuIdx bets $newQty × $newFace';
-  _addLog(msg);
-  ScaffoldMessenger.of(context)
+    bool raiseQty = _rand.nextBool();
+    if (!raiseQty && oldFace >= 6) raiseQty = true;
+
+    final newQty  = raiseQty ? oldQty + 1 : oldQty;
+    final newFace = raiseQty ? oldFace : min(oldFace + 1, 6);
+
+    setState(() {
+      bidQuantity = newQty;
+      bidFace     = newFace;
+    });
+
+    final msg = 'CPU $cpuIdx bets $newQty × $newFace';
+    _addLog(msg);
+    ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(msg)))
       .closed
       .then((_) => _nextTurn());
-}
-
-/// Geometrically increases the quantity by 1, then
-/// with 1/(inc+1) chance continues raising further.
-int _generateRaisedQuantity(int currentQty) {
-  var qty = currentQty;
-  var inc = 1;
-  while (_rand.nextInt(inc + 1) == 0) {
-    qty++;
-    inc++;
   }
-  return qty;
-}
- // ────────────────────────────────────────────────────────────────────────────
-  /// Resolve a bluff call by [caller].
-void _resolveCall(int caller) {
-  // Count all dice on board
-  final counts = <int,int>{};
-  for (var hand in allDice) {
-    for (var v in hand) {
-      counts[v] = (counts[v] ?? 0) + 1;
+
+  // ────────────────────────────────────────────────────────────────────────────
+  void _resolveCall(int caller) {
+    final counts = <int,int>{};
+    for (var hand in allDice) {
+      for (var v in hand) {
+        counts[v] = (counts[v] ?? 0) + 1;
+      }
     }
-  }
+    final qty    = bidQuantity!;
+    final face   = bidFace!;
+    final actual = counts[face] ?? 0;
+    final last   = (turnIndex + numPlayers - 1) % numPlayers;
+    final loser  = actual < qty ? last : caller;
+    final loserName = loser == 0 ? 'You' : 'CPU ${loser + 1}';
 
-  final qty    = bidQuantity!;
-  final face   = bidFace!;
-  final actual = counts[face] ?? 0;
+    final msg = 'Call: needed $qty×$face, found $actual — $loserName out';
+    _addLog(msg);
 
-  // Determine who loses: if actual < qty, last bidder loses; else caller loses
-  final last    = (turnIndex + numPlayers - 1) % numPlayers;
-  final loser   = actual < qty ? last : caller;
-  final loserName = loser == 0 ? 'You' : 'CPU ${loser + 1}';
+    setState(() {
+      alive[loser] = false;
+    });
 
-  // Log the result
-  final msg = 'Call: needed $qty×$face, found $actual — $loserName out';
-  _addLog(msg);
-
-  // Update alive state
-  setState(() {
-    alive[loser] = false;
-  });
-
-  // Show a notification, then only reset the round if a CPU was eliminated
-  ScaffoldMessenger.of(context)
+    ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(msg)))
       .closed
       .then((_) {
-    if (loser != 0) {
-      // CPU eliminated → reset for next round
-      setState(() {
-        hasRolled    = false;
-        bidQuantity  = null;
-        bidFace      = null;
-        turnIndex    = 0;
+        if (loser != 0) {
+          setState(() {
+            hasRolled   = false;
+            bidQuantity = null;
+            bidFace     = null;
+            turnIndex   = 0;
+          });
+        }
       });
-    }
-    // If the user was eliminated (loser == 0), we leave the final state in place.
-  });
-}
+  }
 
   void _nextTurn() {
-  // move to next alive player
-  do {
-    turnIndex = (turnIndex + 1) % numPlayers;
-  } while (!alive[turnIndex]);
+    setState(() {
+      do {
+        turnIndex = (turnIndex + 1) % numPlayers;
+      } while (!alive[turnIndex]);
+    });
 
-  // if we wrapped back to the user and they've already rolled,
-  // prompt them again to Bet or Call
-  if (turnIndex == 0 && hasRolled) {
-    _addLog('Your turn again: Bet or Call');
-    // (the build() already shows Bet/Call controls whenever turnIndex==0 && hasRolled)
+    if (turnIndex == 0 && hasRolled) {
+      _addLog('Your turn again: Bet or Call');
+    }
+    if (turnIndex != 0) {
+      Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+    }
   }
-
-  // if it's a CPU's turn, schedule their action
-  if (turnIndex != 0) {
-    Future.delayed(const Duration(milliseconds: 400), _cpuAction);
-  }
-}
 
   // ────────────────────────────────────────────────────────────────────────────
   @override
@@ -261,7 +240,7 @@ void _resolveCall(int caller) {
       ),
       body: Row(
         children: [
-          // main game area
+          // Main game area
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -269,20 +248,17 @@ void _resolveCall(int caller) {
                 _buildTable(),
                 const SizedBox(height: 16),
                 if (!hasRolled) _buildRollButton(),
-                if (turnIndex == 0 && hasRolled) _buildUserControls(),
+                if (turnIndex == 0 && hasRolled && !_showBetControls) _buildUserControls(),
+                if (_showBetControls) _buildInlineBetControls(),
               ],
             ),
           ),
-
-          // history column
+          // History column
           Container(
             width: 150,
-            margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+            margin: const EdgeInsets.all(8),
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.black38,
-              border: Border.all(color: Colors.white54),
-            ),
+            decoration: BoxDecoration(color: Colors.black38, border: Border.all(color: Colors.white54)),
             child: Scrollbar(
               controller: _scrollController,
               child: ListView.builder(
@@ -290,10 +266,7 @@ void _resolveCall(int caller) {
                 itemCount: history.length,
                 itemBuilder: (_, i) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Text(
-                    history[i],
-                    style: const TextStyle(color: Colors.white, fontSize: 11),
-                  ),
+                  child: Text(history[i], style: const TextStyle(color: Colors.white, fontSize: 11)),
                 ),
               ),
             ),
@@ -309,12 +282,7 @@ void _resolveCall(int caller) {
       height: 350,
       child: Stack(clipBehavior: Clip.none, children: [
         Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Color(0x99795000),
-              shape: BoxShape.circle,
-            ),
-          ),
+          child: Container(decoration: const BoxDecoration(color: Color(0x99795000), shape: BoxShape.circle)),
         ),
         for (var i = 0; i < numPlayers; i++)
           Align(
@@ -348,23 +316,68 @@ void _resolveCall(int caller) {
     return Align(
       alignment: Alignment.center,
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        ElevatedButton(
-          onPressed: _userBet,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.brown.shade900,
-          ),
-          child: const Text('Bet'),
-        ),
+        ElevatedButton(onPressed: _userBet, child: const Text('Bet')),
         const SizedBox(width: 16),
-        ElevatedButton(
-          onPressed: _userCall,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.brown.shade900,
+        ElevatedButton(onPressed: _userCall, child: const Text('Call')),
+      ]),
+    );
+  }
+
+  Widget _buildInlineBetControls() {
+    final minVal     = _betRaiseQuantity ? (bidQuantity ?? 0) + 1 : (bidFace ?? 1) + 1;
+    final maxVal     = _betRaiseQuantity ? dicePerPlayer * numPlayers : 6;
+    final currentVal = _betRaiseQuantity ? _tempQty.toDouble() : _tempFace.toDouble();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.brown.shade800,
+        border: Border.all(color: Colors.amber),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ChoiceChip(
+            label: const Text('Raise Qty'),
+            selected: _betRaiseQuantity,
+            onSelected: (_) => setState(() => _betRaiseQuantity = true),
           ),
-          child: const Text('Call'),
-        ),
+          const SizedBox(width: 12),
+          ChoiceChip(
+            label: const Text('Raise Face'),
+            selected: !_betRaiseQuantity,
+            onSelected: (_) => setState(() => _betRaiseQuantity = false),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        Row(children: [
+          Icon(_betRaiseQuantity ? Icons.format_list_numbered : Icons.looks_one),
+          Expanded(
+            child: Slider(
+              min: minVal.toDouble(),
+              max: maxVal.toDouble(),
+              divisions: maxVal - minVal,
+              value: currentVal.clamp(minVal.toDouble(), maxVal.toDouble()),
+              label: '${currentVal.toInt()}',
+              onChanged: (v) {
+                setState(() {
+                  if (_betRaiseQuantity) {
+                    _tempQty = v.toInt();
+                  } else {
+                    _tempFace = v.toInt();
+                  }
+                });
+              },
+            ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          ElevatedButton(onPressed: _confirmBet, child: const Text('Confirm')),
+          const SizedBox(width: 16),
+          TextButton(onPressed: _cancelBet, child: const Text('Cancel')),
+        ]),
       ]),
     );
   }
@@ -389,20 +402,17 @@ void _resolveCall(int caller) {
   Widget _outBox({required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade700,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(8)),
       child: Text(label, style: const TextStyle(color: Colors.white)),
     );
   }
 }
 
 class PlayerArea extends StatelessWidget {
-  final String name;
-  final bool isCurrent;
+  final String     name;
+  final bool       isCurrent;
   final List<int>? diceValues;
-  final bool small;
+  final bool       small;
 
   const PlayerArea({
     required this.name,
@@ -437,10 +447,7 @@ class PlayerArea extends StatelessWidget {
       children: [
         Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets),
-        ),
+        FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets)),
       ],
     );
   }
@@ -448,90 +455,13 @@ class PlayerArea extends StatelessWidget {
 
 class CoveredDice extends StatelessWidget {
   const CoveredDice({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(6)),
       child: const Center(child: Icon(Icons.help_outline, color: Colors.white)),
-    );
-  }
-}
-
-// Models for betting dialog
-
-class _Bid {
-  final int quantity, face;
-  _Bid(this.quantity, this.face);
-}
-
-class _BetDialog extends StatefulWidget {
-  final int oldQuantity, oldFace;
-  const _BetDialog({required this.oldQuantity, required this.oldFace});
-
-  @override
-  State<_BetDialog> createState() => _BetDialogState();
-}
-
-class _BetDialogState extends State<_BetDialog> {
-  bool raiseQuantity = true;
-  late int newQuantity;
-  late int newFace;
-
-  @override
-  void initState() {
-    super.initState();
-    newQuantity = widget.oldQuantity + 1;
-    newFace = widget.oldFace + 1;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Place your bid'),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        RadioListTile<bool>(
-          title: Text('Raise quantity (was ${widget.oldQuantity})'),
-          value: true,
-          groupValue: raiseQuantity,
-          onChanged: (_) => setState(() => raiseQuantity = true),
-        ),
-        RadioListTile<bool>(
-          title: Text('Raise face (was ${widget.oldFace})'),
-          value: false,
-          groupValue: raiseQuantity,
-          onChanged: (_) => setState(() => raiseQuantity = false),
-        ),
-        if (raiseQuantity)
-          Slider(
-            min: (widget.oldQuantity + 1).toDouble(),
-            max: (dicePerPlayer * numPlayers).toDouble(),
-            divisions: dicePerPlayer * numPlayers - widget.oldQuantity,
-            value: newQuantity.toDouble(),
-            label: '$newQuantity',
-            onChanged: (v) => setState(() => newQuantity = v.toInt()),
-          )
-        else
-          Slider(
-            min: (widget.oldFace + 1).toDouble(),
-            max: 6.0,
-            divisions: 6 - widget.oldFace,
-            value: newFace.toDouble(),
-            label: '$newFace',
-            onChanged: (v) => setState(() => newFace = v.toInt()),
-          ),
-      ]),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: () {
-            final qty = raiseQuantity ? newQuantity : widget.oldQuantity;
-            final face = raiseQuantity ? widget.oldFace : newFace;
-            Navigator.pop(context, _Bid(qty, face));
-          },
-          child: const Text('OK'),
-        ),
-      ],
     );
   }
 }
