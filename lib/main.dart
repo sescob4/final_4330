@@ -22,18 +22,9 @@ Future<void> main() async {
     }
   }
 
-  // ───── Perform anonymous sign‑in (uncomment when ready) ─────
-  // await FirebaseAuth.instance.signInAnonymously();
 
   runApp(const MyApp());
 }
-
-//Dylan Peterson
-//Sebastian Escobar-mesa
-//Aaron Aucoin
-// Courtney
-//Huarong Teng
-//Quinn Farnet
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
