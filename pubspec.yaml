@@ -115,5 +115,8 @@ flutter:
     - assets/cardback.svg
 
   #music:
-
-
+    - assets/sound/background_sound.mp3
+    - assets/sound/fire_bullet.mp3
+    - assets/sound/lose_sound.mp3
+    - assets/sound/win_sound.mp3
+    
