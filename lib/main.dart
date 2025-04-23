@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/instruction.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'screens/roles_screen.dart';
+//import 'screens/roles_screen.dart';
 
 // ───── Connectivity imports (comment in when ready) ─────
 // import 'package:firebase_auth/firebase_auth.dart';
