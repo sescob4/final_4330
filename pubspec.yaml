@@ -98,13 +98,16 @@ flutter:
     - assets/main.jpg
     - assets/emptybar.png
     - assets/populatedbar.png
+    - assets/main2.png
     - assets/in.jpg
+    
   #roles:
     - assets/bartenderonly.png
     - assets/cowboy.png
     - assets/galexport.png
     - assets/lawman.png
     - assets/outlaw.png
+
 
   #cards:
     - assets/queen.svg
