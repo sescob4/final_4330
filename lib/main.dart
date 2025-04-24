@@ -8,6 +8,9 @@ import 'firebase_options.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'audio.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -184,7 +187,11 @@ class HomePage extends StatelessWidget {
                         child: Column(
                           children: [
                             ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                //play background music when enter the bar
+                                await AudioManager().player.setSource(AssetSource('sound/back.mp3'));
+                                await AudioManager().player.setReleaseMode(ReleaseMode.loop);
+                                await AudioManager().player.resume();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

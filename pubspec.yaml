@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   flutter_svg: ^2.0.7
   playing_cards: ^0.4.1+11
+  audioplayers: ^5.2.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -123,4 +124,5 @@ flutter:
     - assets/sound/fire_bullet.mp3
     - assets/sound/lose_sound.mp3
     - assets/sound/win_sound.mp3
+    - assets/sound/back.mp3
     
