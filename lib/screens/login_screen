@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'game_selection_screen.dart';
-import 'lobby_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
 
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/'); 
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false); 
         }
       } on FirebaseAuthException catch (e) {
         setState(() {
@@ -85,10 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
 
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const GameSelectionPage()),
-          );
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
         }
       } on FirebaseAuthException catch (e) {
         setState(() {
@@ -115,10 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInAnonymously();
       
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const GameSelectionPage()),
-        );
+          Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {

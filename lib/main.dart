@@ -60,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => const HomePage(),
+        '/gameselection': (context) => const GameSelectionPage(),
       },
     );
   }
@@ -199,12 +200,7 @@ class HomePage extends StatelessWidget {
                                   await AudioManager().player.setSource(AssetSource('sound/back2.mp3'));
                                   await AudioManager().player.setReleaseMode(ReleaseMode.loop);
                                   await AudioManager().player.resume();
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const GameSelectionPage(),
-                                    ),
-                                  );
+                                  Navigator.pushNamed(context, '/gameselection');
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.amber,
