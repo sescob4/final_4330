@@ -80,7 +80,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // User actions
+  // User actions A lot of work being done
 
   void rollDice() {
     if (turnIndex != 0 || hasRolled) return;
