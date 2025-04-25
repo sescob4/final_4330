@@ -52,9 +52,11 @@ class GameSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.brown.shade900,
       body: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset("assets/table.png", fit: BoxFit.cover),
+          ),
           // Menu button
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
@@ -74,7 +76,7 @@ class GameSelectionPage extends StatelessWidget {
               child: Text(
                 "Choose Your Game",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.amber,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),

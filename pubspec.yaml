@@ -104,6 +104,10 @@ flutter:
     - assets/populatedbar.png
     - assets/main2.png
     - assets/in.jpg
+    - assets/door.png
+    - assets/door1.png
+    - assets/door2.png
+    - assets/table.png
     
   #roles:
     - assets/bartenderonly.png

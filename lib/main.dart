@@ -129,13 +129,11 @@ class HomePage extends StatelessWidget {
                 ),
               ),
 
-              // your existing content
+              // make it center
               SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // title
                         Text(
@@ -159,8 +157,8 @@ class HomePage extends StatelessWidget {
                           child: const Text(
                             'A roll of the dice. A twist of the truth.',
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Color.fromARGB(255, 195, 187, 187),
+                              fontSize: 10,
+                              color: Color.fromARGB(255, 238, 235, 235),
                               fontStyle: FontStyle.italic,
                             ),
                           ),
@@ -174,7 +172,6 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
 
               // logout button in top-right
               if (FirebaseAuth.instance.currentUser != null)
