@@ -47,6 +47,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Liar\'s Bar',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts.pressStart2pTextTheme(), // change the font to match style
         colorScheme: ColorScheme.fromSeed(
@@ -110,59 +111,45 @@ class HomePage extends StatelessWidget {
     return FutureBuilder<String?>(
       future: _getUsername(),
       builder: (context, snapshot) {
-        String appBarTitle = "Liar's Bar";
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          appBarTitle = "Loading...";
-        } else if (snapshot.hasData) {
-          appBarTitle = "Welcome, ${snapshot.data!}";
-        }
+        final title = snapshot.connectionState == ConnectionState.waiting
+            ? "Loading..."
+            : snapshot.hasData
+                ? "Welcome, ${snapshot.data!}"
+                : "Liar's Bar";
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(appBarTitle),
-            actions: [
-              if (FirebaseAuth.instance.currentUser != null)
-                IconButton(
-                  icon: const Icon(Icons.logout),
-                  onPressed: () async {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  },
-                ),
-            ],
-          ),
+          // no appBar
           body: Stack(
             children: [
+              // full-screen background
               Positioned.fill(
                 child: Image.asset(
                   'assets/main2.png',
                   fit: BoxFit.cover,
                 ),
               ),
+
+              // your existing content
               SafeArea(
-                // 1) Wrap in a scroll view
                 child: SingleChildScrollView(
-                  // 2) Add bottom padding so content never bumps the edge
                   padding: const EdgeInsets.only(bottom: 16),
-                  
                   child: Center(
                     child: Column(
-                      // 3) Let the column size itself to its children
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          "Liar's Bar",
-                          style: TextStyle(
-                            fontSize: 50,
+                        // title
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: Colors.amber,
                             shadows: [
                               Shadow(
-                                blurRadius: 10.0,
+                                blurRadius: 10,
                                 color: Colors.black,
-                                offset: Offset(2.0, 2.0),
-                              ),
+                                offset: Offset(2, 2),
+                              )
                             ],
                           ),
                         ),
@@ -181,102 +168,87 @@ class HomePage extends StatelessWidget {
                         const SizedBox(height: 20),
                         ZoomIn(
                           delay: const Duration(milliseconds: 1000),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: const Color.fromRGBO(33, 17, 0, 0.8),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.amber.shade800,
-                                width: 2,
-                              ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color.fromRGBO(0, 0, 0, 0.3),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 40,
-                              vertical: 20,
-                            ),
-                            child: Column(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    await AudioManager()
-                                        .player
-                                        .setSource(AssetSource('sound/back2.mp3'));
-                                    await AudioManager()
-                                        .player
-                                        .setReleaseMode(ReleaseMode.loop);
-                                    await AudioManager().player.resume();
-                                    Navigator.pushNamed(
-                                        context, '/gameselection');
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber,
-                                    foregroundColor: Colors.brown.shade900,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 50,
-                                      vertical: 15,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Enter the Bar',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const Instruction(),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber,
-                                    foregroundColor: Colors.brown.shade800,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 50,
-                                      vertical: 15,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Instructions',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          child: _buildButtons(context),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
+
+              // logout button in top-right
+              if (FirebaseAuth.instance.currentUser != null)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                    ),
+                  ),
+                ),
             ],
           ),
         );
       },
     );
   }
+
+  Widget _buildButtons(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(33, 17, 0, .8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade800, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, .3),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          )
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      child: Column(children: [
+        ElevatedButton(
+          onPressed: () async {
+            await AudioManager().player
+                .setSource(AssetSource('sound/back2.mp3'));
+            await AudioManager().player.setReleaseMode(ReleaseMode.loop);
+            await AudioManager().player.resume();
+            Navigator.pushNamed(context, '/gameselection');
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber,
+            foregroundColor: Colors.brown.shade900,
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+          child: const Text('Enter the Bar',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const Instruction()));
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber,
+            foregroundColor: Colors.brown.shade800,
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+          child: const Text('Instructions',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+      ]),
+    );
+  }
 }
+
