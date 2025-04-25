@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'chatbox.dart';
 
 // MODEL
 enum CardType { ace, jack, queen, king, joker }
@@ -327,9 +328,12 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   Widget _buildTable(BuildContext ctx) {
     final padTop = MediaQuery.of(ctx).padding.top;
     const consoleW = 150.0;
+    const chatboxW = 150.0; // Added this for the chatbox
     return LayoutBuilder(builder: (context, constraints) {
       final radius = constraints.maxWidth * 0.10;
-      final center = Offset(constraints.maxWidth / 2, constraints.maxHeight / 2);
+      final center = Offset(
+          (constraints.maxWidth + chatboxW - consoleW) / 2, 
+          constraints.maxHeight / 2); // Adjusted the center so it is not off
 
       // dynamic offsets
       const cardH = 54.0, cardW = 36.0, gap = 4.0, pad = 4.0;
@@ -342,15 +346,62 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
         children: [
           // Header
           Positioned(
-            left: 0,
+            top: padTop,
+            left: 8,
+            child: IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      // game menu 
+                      showDialog(
+                        context: context,
+                        barrierDismissible: true,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: const Color(0xFF3E2723),
+                          title: const Text('Game Menu', 
+                              style: TextStyle(color: Colors.white)),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton.icon(
+                                icon: const Icon(Icons.play_arrow, color: Colors.white),
+                                label: const Text('Resume', 
+                                    style: TextStyle(color: Colors.white)),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              TextButton.icon(
+                                icon: const Icon(Icons.replay, color: Colors.white),
+                                label: const Text('Restart', 
+                                    style: TextStyle(color: Colors.white)),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _nextRound();
+                                },
+                              ),
+                              TextButton.icon(
+                                icon: const Icon(Icons.home, color: Colors.white),
+                                label: const Text('Main Menu', 
+                                    style: TextStyle(color: Colors.white)),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.pushReplacementNamed(context, '/home');
+                                },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+          ),
+                 // Header (without menu button)
+          Positioned(
+            left: chatboxW + 8, // Adjusting these to adapt to the new chatbox
             right: consoleW + 16,
             top: padTop,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Navigator.maybePop(context)),
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Text('TABLE: ${game.tableType.name.toUpperCase()}S',
@@ -358,6 +409,20 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                           color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
+            ),
+          ),
+          // Left chatbox 
+          Positioned(
+            top: padTop + 40,
+            left: 8,
+            bottom: 100,
+            width: chatboxW,
+            child: Container(
+              decoration: BoxDecoration(
+                  color: Colors.black38, 
+                  border: Border.all(color: Colors.white54)),
+              padding: const EdgeInsets.all(6),
+              // Will implement the chatbox later, just trying to set up the area right now
             ),
           ),
           // Table circle
@@ -381,7 +446,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // AI1 (left)
           Positioned(
-            left: center.dx - radius - 140,
+            left: center.dx - radius - 120, // Changed from 140 to 120
             top: vTop(game.players[1]),
             child: _hand(game.players[1],
                 horizontal: false,
@@ -399,7 +464,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // AI3 (right)
           Positioned(
-            left: constraints.maxWidth - consoleW - 170,
+            left: center.dx + radius + 20, // Moved AI3 left some, was far right after adding chatbox
             top: vTop(game.players[3]),
             child: _hand(game.players[3],
                 horizontal: false,
@@ -449,7 +514,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // Controls
           Positioned(
-            left: 8,
+            left: 8 + chatboxW,
             bottom: 8,
             child: game.roundOver
                 ? ElevatedButton(onPressed: _nextRound, child: const Text('Next Round'))
