@@ -108,6 +108,9 @@ flutter:
     - assets/door1.png
     - assets/door2.png
     - assets/table.png
+    - assets/in2.png
+    - assets/in3.png
+    - assets/ba4.png
     
   #roles:
     - assets/bartenderonly.png

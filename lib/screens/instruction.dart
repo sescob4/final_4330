@@ -12,7 +12,7 @@ class Instruction extends StatelessWidget {
       body: Stack(
         children: [
           Image.asset(
-            'assets/in.jpg',
+            'assets/in3.png',
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

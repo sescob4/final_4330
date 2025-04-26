@@ -12,7 +12,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'screens/audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
-
+import 'screens/roles_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +61,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => const HomePage(),
+        '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
       },
     );
@@ -216,7 +217,8 @@ class HomePage extends StatelessWidget {
                 .setSource(AssetSource('sound/back2.mp3'));
             await AudioManager().player.setReleaseMode(ReleaseMode.loop);
             await AudioManager().player.resume();
-            Navigator.pushNamed(context, '/gameselection');
+            //Navigator.pushNamed(context, '/gameselection');
+            Navigator.pushNamed(context, '/roles');
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.amber,
