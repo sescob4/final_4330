@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
 
-//only initail update, 
-//this page need a full body image for the character display and more UI design
+//needs more UI design
 
 class RolesScreen extends StatelessWidget {
   const RolesScreen({super.key});
 
   final List<Map<String, String>> roles = const [
-    {"name": "Cowboy", "image": "assets/cowboy.png"},
-    {"name": "Girl", "image": "assets/galexport.png"},
-    {"name": "Lawman", "image": "assets/lawman.png"},
-    {"name": "Outlaw", "image": "assets/outlaw.png"},
+    {"name": "Girl", "image": "assets/role1.png"},
+    {"name": "Bartender", "image": "assets/role2.png"},
+    {"name": "Outlaw", "image": "assets/role3.png"},
+    {"name": "Sheriff", "image": "assets/role4.png"},
   ];
 
   @override
@@ -22,7 +21,7 @@ class RolesScreen extends StatelessWidget {
           // Background
           Positioned.fill(
             child: Image.asset(
-              'assets/emptybar.png',
+              'assets/floor.png',
               fit: BoxFit.cover,
             ),
           ),
@@ -79,15 +78,15 @@ class RolesScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black45,
+                                      color:Colors.transparent,
                                       blurRadius: 10,
                                       offset: Offset(4, 4),
                                     ),
                                   ],
                                 ),
                                 child: SizedBox(
-                                  width: 120,
-                                  height: 160,
+                                  width: 140,
+                                  height: 250,
                                   child: Character(role["image"]!),
                                 ),
                               ),
@@ -122,10 +121,11 @@ class Character extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+      return ClipRRect(
+      borderRadius: BorderRadius.circular(20), 
       child: Image.asset(
         imagePath,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
       ),
     );
   }

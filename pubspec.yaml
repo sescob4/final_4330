@@ -110,7 +110,9 @@ flutter:
     - assets/table.png
     - assets/in2.png
     - assets/in3.png
-    - assets/ba4.png
+    - assets/ba4.png    
+    - assets/floor.png
+
     
   #roles:
     - assets/bartenderonly.png
@@ -118,6 +120,11 @@ flutter:
     - assets/galexport.png
     - assets/lawman.png
     - assets/outlaw.png
+    - assets/role1.png
+    - assets/role2.png
+    - assets/role3.png
+    - assets/role4.png
+
 
 
   #cards:
