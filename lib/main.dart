@@ -13,6 +13,7 @@ import 'screens/audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
+import 'screens/user_stats_screen.dart'; // new import
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
+        '/userstats': (context) => const UserStatsScreen(), // new route
       },
     );
   }
@@ -107,38 +109,97 @@ class HomePage extends StatelessWidget {
     return null;
   }
 
+  Widget _buildButtons(BuildContext context) {
+    final AudioPlayer clickPlayer = AudioPlayer();
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(33, 17, 0, .8),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade800, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, .3),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          )
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+      child: Column(children: [
+        ElevatedButton(
+          onPressed: () async {
+            // Play click sound
+            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
+            await AudioManager()
+                .player
+                .setSource(AssetSource('sound/back2.mp3'));
+            await AudioManager().player.setReleaseMode(ReleaseMode.loop);
+            await AudioManager().player.resume();
+            Navigator.pushNamed(context, '/roles');
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber,
+            foregroundColor: Colors.brown.shade900,
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+          child: const Text('Enter the Bar',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () async {
+            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const Instruction()));
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber,
+            foregroundColor: Colors.brown.shade800,
+            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+          child: const Text('Instructions',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
       future: _getUsername(),
       builder: (context, snapshot) {
-        final title = snapshot.connectionState == ConnectionState.waiting
-            ? "Loading..."
-            : snapshot.hasData
-                ? "Welcome, ${snapshot.data!}"
-                : "Liar's Bar";
+        // Use snapshot.data if available; otherwise use a fallback string.
+        final String? username = snapshot.data;
+        final String statsButtonText = (username != null && username.isNotEmpty)
+            ? "Welcome, $username"
+            : "Welcome, User";
+        final String centerTitle =
+            (username != null && username.isNotEmpty) ? "Welcome, $username" : "Liar's Bar";
 
         return Scaffold(
-          // no appBar
           body: Stack(
             children: [
-              // full-screen background
+              // Full-screen background
               Positioned.fill(
                 child: Image.asset(
                   'assets/main2.png',
                   fit: BoxFit.cover,
                 ),
               ),
-
-              // make it center
+              // Main center content
               SafeArea(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // title
+                      // Center title
                       Text(
-                        title,
+                        centerTitle,
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -173,8 +234,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // logout button in top-right
+              // Logout button in the top-right
               if (FirebaseAuth.instance.currentUser != null)
                 SafeArea(
                   child: Align(
@@ -188,71 +248,38 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
+              // Stats button in top-left; always visible for authenticated users
+              if (FirebaseAuth.instance.currentUser != null)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/userstats');
+                        },
+                        child: Text(
+                          statsButtonText,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildButtons(BuildContext context) {
-    final AudioPlayer clickPlayer = AudioPlayer();
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color.fromRGBO(33, 17, 0, .8),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.shade800, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, .3),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-      child: Column(children: [
-        ElevatedButton(
-          onPressed: () async {
-            // Play click sound
-            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
-            await AudioManager()
-                .player
-                .setSource(AssetSource('sound/back2.mp3'));
-            await AudioManager().player.setReleaseMode(ReleaseMode.loop);
-            await AudioManager().player.resume();
-            //Navigator.pushNamed(context, '/gameselection');
-            Navigator.pushNamed(context, '/roles');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.brown.shade900,
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: const Text('Enter the Bar',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        ),
-        const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () async {
-            //Plays click sound
-            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
-            Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const Instruction()));
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.brown.shade800,
-            padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: const Text('Instructions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        ),
-      ]),
     );
   }
 }
