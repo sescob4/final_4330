@@ -112,6 +112,7 @@ flutter:
     - assets/in3.png
     - assets/ba4.png    
     - assets/floor.png
+    - assets/frame.png
 
     
   #roles:
