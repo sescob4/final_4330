@@ -142,4 +142,7 @@ flutter:
     - assets/sound/win_sound.mp3
     - assets/sound/back.mp3
     - assets/sound/back2.mp3
+  #SFX
+    - assets/sound/click-4.mp3
+    - assets/sound/click-8conv.wav
     

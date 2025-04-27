@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 //basic layout, need to add design later
 class Instruction2 extends StatelessWidget {
@@ -26,7 +27,11 @@ class Instruction2 extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.amber),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          final instrPlayer = AudioPlayer();
+                          instrPlayer.play(AssetSource('sound/click-4.mp3'));
+                          Navigator.pop(context);
+                        },
                       ),
                       const Text(
                         "Welcome to Liar's Dice",

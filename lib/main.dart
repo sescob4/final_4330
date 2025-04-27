@@ -27,7 +27,6 @@ Future<void> main() async {
     }
   }
 
-
   runApp(const MyApp());
 }
 
@@ -49,7 +48,8 @@ class MyApp extends StatelessWidget {
       title: 'Liar\'s Bar',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts.pressStart2pTextTheme(), // change the font to match style
+        textTheme: GoogleFonts
+            .pressStart2pTextTheme(), // change the font to match style
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.brown,
           brightness: Brightness.dark,
@@ -107,7 +107,7 @@ class HomePage extends StatelessWidget {
     return null;
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<String?>(
       future: _getUsername(),
@@ -135,44 +135,44 @@ class HomePage extends StatelessWidget {
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // title
-                        Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 10,
-                                color: Colors.black,
-                                offset: Offset(2, 2),
-                              )
-                            ],
+                    children: [
+                      // title
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.amber,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 10,
+                              color: Colors.black,
+                              offset: Offset(2, 2),
+                            )
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      FadeInDown(
+                        delay: const Duration(milliseconds: 500),
+                        child: const Text(
+                          'A roll of the dice. A twist of the truth.',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Color.fromARGB(255, 238, 235, 235),
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        FadeInDown(
-                          delay: const Duration(milliseconds: 500),
-                          child: const Text(
-                            'A roll of the dice. A twist of the truth.',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Color.fromARGB(255, 238, 235, 235),
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        ZoomIn(
-                          delay: const Duration(milliseconds: 1000),
-                          child: _buildButtons(context),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 20),
+                      ZoomIn(
+                        delay: const Duration(milliseconds: 1000),
+                        child: _buildButtons(context),
+                      ),
+                    ],
                   ),
                 ),
+              ),
 
               // logout button in top-right
               if (FirebaseAuth.instance.currentUser != null)
@@ -196,6 +196,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildButtons(BuildContext context) {
+    final AudioPlayer clickPlayer = AudioPlayer();
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromRGBO(33, 17, 0, .8),
@@ -213,7 +214,10 @@ class HomePage extends StatelessWidget {
       child: Column(children: [
         ElevatedButton(
           onPressed: () async {
-            await AudioManager().player
+            // Play click sound
+            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
+            await AudioManager()
+                .player
                 .setSource(AssetSource('sound/back2.mp3'));
             await AudioManager().player.setReleaseMode(ReleaseMode.loop);
             await AudioManager().player.resume();
@@ -232,7 +236,9 @@ class HomePage extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
+            //Plays click sound
+            await clickPlayer.play(AssetSource('sound/click-4.mp3'));
             Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const Instruction()));
           },
@@ -250,4 +256,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-

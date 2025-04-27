@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:final_4330/screens/instruction2.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 //need to add design later
 class Instruction extends StatelessWidget {
@@ -27,7 +28,12 @@ class Instruction extends StatelessWidget {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back, color: Colors.amber),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          final player = AudioPlayer();
+                          player.play(AssetSource('sound/click-4.mp3'));
+
+                          Navigator.pop(context);
+                        },
                       ),
                       const Text(
                         "Welcome to Liar's Deck",
@@ -45,11 +51,15 @@ class Instruction extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.arrow_forward, color: Colors.amber),
+                        icon: const Icon(Icons.arrow_forward,
+                            color: Colors.amber),
                         onPressed: () {
+                          final player = AudioPlayer();
+                          player.play(AssetSource('sound/click-4.mp3'));
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const Instruction2()),
+                            MaterialPageRoute(
+                                builder: (context) => const Instruction2()),
                           );
                         },
                       ),
@@ -58,7 +68,8 @@ class Instruction extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 10),
                     decoration: BoxDecoration(
                       color: Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
