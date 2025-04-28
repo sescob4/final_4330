@@ -151,13 +151,23 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   // CPU actions
 
   void _cpuAction() {
-    final shouldCall = bidQuantity != null && _rand.nextInt(4) == 0;
-    if (shouldCall) {
+  // only consider calling once there's an existing bid
+  if (bidQuantity != null && bidFace != null) {
+    final totalDice = numPlayers * dicePerPlayer;
+    final expected  = totalDice / 6;
+    // chance goes from 0.0 at q=expected, up to 1.0 at q=totalDice
+    final rawChance = (bidQuantity! - expected) / (totalDice - expected);
+    final callChance = rawChance.clamp(0.0, 1.0);
+
+    if (_rand.nextDouble() < callChance) {
       _handleCpuCall();
-    } else {
-      _handleCpuBet();
+      return;
     }
   }
+
+  // otherwise, raise the bid
+  _handleCpuBet();
+}
 
   void _handleCpuCall() {
     final cpuIdx = turnIndex + 1;
