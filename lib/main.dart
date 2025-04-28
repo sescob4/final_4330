@@ -13,7 +13,7 @@ import 'screens/audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
-import 'screens/user_stats_screen.dart'; // new import
+import 'screens/user_stats_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         textTheme: GoogleFonts
-            .pressStart2pTextTheme(), // change the font to match style
+            .pressStart2pTextTheme(), 
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.brown,
           brightness: Brightness.dark,
@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
-        '/userstats': (context) => const UserStatsScreen(), // new route
+        '/userstats': (context) => const UserStatsScreen(), 
       },
     );
   }
@@ -173,7 +173,6 @@ class HomePage extends StatelessWidget {
     return FutureBuilder<String?>(
       future: _getUsername(),
       builder: (context, snapshot) {
-        // Use snapshot.data if available; otherwise use a fallback string.
         final String? username = snapshot.data;
         final String statsButtonText = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
