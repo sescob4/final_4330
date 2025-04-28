@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../liars_deck_game.dart';
+import '../liars_deck_game_ai.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../widgets/frame_button.dart';
