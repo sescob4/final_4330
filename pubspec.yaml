@@ -114,6 +114,9 @@ flutter:
     - assets/ba4.png    
     - assets/floor.png
     - assets/frame.png
+    - assets/frame2.png
+    - assets/crown.png
+    - assets/handofcards.png
 
     
   #roles:
