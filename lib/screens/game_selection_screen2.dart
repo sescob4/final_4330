@@ -4,7 +4,6 @@ import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../widgets/frame_button.dart';
 
-
 class GameSelectionPage2 extends StatelessWidget {
   const GameSelectionPage2({super.key});
 
@@ -91,7 +90,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Deck",
-                      scaleFactor: 30,
+                      // imagePath: "assets/handofcards.png",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -105,6 +104,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
+                      // imagePath: "assets/handofcards.png",
                       onTap: () {
                         Navigator.push(
                           context,
