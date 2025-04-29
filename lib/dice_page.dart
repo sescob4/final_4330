@@ -459,13 +459,13 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   /// 0→You, 1→CPU1, 2→CPU2, 3→CPU3
   Alignment _playerAlignment(int idx) {
     switch (idx) {
-      case 0: return const Alignment(-6, .8);  //You
-      case 1: return const Alignment(-6.8, -1.0); //CPU2
-      case 2: return const Alignment(6.9, -1.0);  //CPU3
-      case 3: return const Alignment(6.9, .8);   //CPU4
+      case 0: return const Alignment( 0.0,  0.8); // You at bottom
+      case 1: return const Alignment(-0.8,  0.0); // CPU1 on left
+      case 2: return const Alignment( 0.0, -0.8); // CPU2 on top
+      case 3: return const Alignment( 0.8,  0.0); // CPU3 on right
       default: return Alignment.center;
-    }
   }
+}
 
   Widget _outBox({required String label}) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
