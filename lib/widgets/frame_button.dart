@@ -6,6 +6,7 @@ class ImageButton extends StatefulWidget {
   final double size;
   final double borderRadius;
   final double scaleFactor;
+  final String crownImagePath; // Add a new parameter for the crown image path
   final TextStyle? textStyle;
 
   const ImageButton({
@@ -15,6 +16,7 @@ class ImageButton extends StatefulWidget {
     this.size = 600,
     this.borderRadius = 16,
     this.scaleFactor = 0.9,
+    required this.crownImagePath, // Make the crown image path required
     this.textStyle,
   });
 
@@ -34,12 +36,6 @@ class _ImageButtonState extends State<ImageButton> {
   void _onTapUp(TapUpDetails details) {
     setState(() {
       _scale = 1.0;
-    });
-  }
-
-  void OnHover(HoverDetains details) {
-    setState(() {
-      _scale = widget.scaleFactor;
     });
   }
 
@@ -64,7 +60,7 @@ class _ImageButtonState extends State<ImageButton> {
             alignment: Alignment.center,
             children: [
               Image.asset(
-                "assets/frame2.png",
+                "assets/frame2.png", // Background image (can still be static)
                 width: widget.size,
                 fit: BoxFit.cover,
               ),
@@ -74,8 +70,8 @@ class _ImageButtonState extends State<ImageButton> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
-                      'assets/crown.png', // Replace with your image
-                      height: widget.size * 0.2, // Scales with button size
+                      widget.crownImagePath, // Use the passed crown image path
+                      height: widget.size * 0.5, // Scales with button size
                     ),
                     const SizedBox(height: 12),
                     Stack(

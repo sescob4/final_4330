@@ -90,7 +90,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Deck",
-                      // imagePath: "assets/handofcards.png",
+                      crownImagePath: "assets/handofcards.png",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -104,7 +104,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
-                      // imagePath: "assets/handofcards.png",
+                      crownImagePath: "assets/crown.png",
                       onTap: () {
                         Navigator.push(
                           context,

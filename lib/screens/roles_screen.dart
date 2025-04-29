@@ -66,7 +66,7 @@ class RolesScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 //pass the selected role if needed
-                                builder: (context) => GameSelectionPage(),
+                                builder: (context) => GameSelectionPage2(),
                               ),
                             );
                           },
