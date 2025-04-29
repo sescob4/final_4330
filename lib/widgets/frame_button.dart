@@ -5,7 +5,7 @@ class ImageButton extends StatefulWidget {
   final VoidCallback onTap;
   final double size;
   final double borderRadius;
-  final double scaleFactor; // New parameter for scaling
+  final double scaleFactor;
   final TextStyle? textStyle;
 
   const ImageButton({
@@ -14,7 +14,7 @@ class ImageButton extends StatefulWidget {
     required this.onTap,
     this.size = 600,
     this.borderRadius = 16,
-    this.scaleFactor = 0.9, // Default scale factor for shrinking
+    this.scaleFactor = 0.9,
     this.textStyle,
   });
 
@@ -23,23 +23,29 @@ class ImageButton extends StatefulWidget {
 }
 
 class _ImageButtonState extends State<ImageButton> {
-  double _scale = 1.0; // Default scale value
+  double _scale = 1.0;
 
   void _onTapDown(TapDownDetails details) {
     setState(() {
-      _scale = widget.scaleFactor; // Shrink based on the scaleFactor
+      _scale = widget.scaleFactor;
     });
   }
 
   void _onTapUp(TapUpDetails details) {
     setState(() {
-      _scale = 1.0; // Reset scale back to normal
+      _scale = 1.0;
+    });
+  }
+
+  void OnHover(HoverDetains details) {
+    setState(() {
+      _scale = widget.scaleFactor;
     });
   }
 
   void _onTapCancel() {
     setState(() {
-      _scale = 1.0; // Reset scale in case the tap is canceled
+      _scale = 1.0;
     });
   }
 
@@ -51,30 +57,57 @@ class _ImageButtonState extends State<ImageButton> {
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
       child: Transform.scale(
-        scale: _scale, // Apply the scaling transformation here
+        scale: _scale,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(widget.borderRadius),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Use the same background image always
               Image.asset(
-                "assets/frame.png",
+                "assets/frame2.png",
                 width: widget.size,
                 fit: BoxFit.cover,
               ),
-              Container(
+              SizedBox(
                 width: widget.size,
-                color: Colors.black.withOpacity(0.3), // optional overlay
-              ),
-              Text(
-                widget.label,
-                style: widget.textStyle ??
-                    const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/crown.png', // Replace with your image
+                      height: widget.size * 0.2, // Scales with button size
                     ),
+                    const SizedBox(height: 12),
+                    Stack(
+                      children: [
+                        Text(
+                          widget.label,
+                          style: (widget.textStyle ??
+                                  const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ))
+                              .copyWith(
+                            foreground: Paint()
+                              ..style = PaintingStyle.stroke
+                              ..strokeWidth = 4
+                              ..color =
+                                  Color(0xFFC3822C), // Bright gold outline
+                          ),
+                        ),
+                        Text(
+                          widget.label,
+                          style: widget.textStyle ??
+                              const TextStyle(
+                                color: Color(0xFF5E2D12),
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
