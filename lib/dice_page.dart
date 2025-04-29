@@ -24,6 +24,12 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   int?               bidQuantity;
   int?               bidFace;
 
+  // rolling‐animation state:
+   bool               _rolling          = false;
+    final Duration     _rollAnimDuration = Duration(milliseconds: 800);
+   final Duration     _rollAnimInterval = Duration(milliseconds: 100);
+   Timer?             _rollTimer;
+
   // Inline bet UI
   bool               _showBetControls  = false;
   bool               _betRaiseQuantity = true;
@@ -84,17 +90,49 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   // User actions A lot of work being done
 
   void rollDice() {
-    if (turnIndex != 0 || hasRolled) return;
-    _controller.forward(from: 0);
+  // guard against multiple rolls or re-entry
+  if (turnIndex != 0 || hasRolled || _rolling) return;
+
+  // prepare for animation
+  _rolling = true;
+  final finalRoll = List.generate(
+    dicePerPlayer,
+    (_) => _rand.nextInt(6) + 1,
+  );
+  int ticks = (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
+  int count = 0;
+
+  Timer.periodic(_rollAnimInterval, (timer) {
+    count++;
+    // on each tick, show random faces
     setState(() {
-      hasRolled = true;
-      allDice[0] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
-      for (var i = 1; i < numPlayers; i++) {
-        allDice[i] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
-      }
+      allDice[0] = List.generate(
+        dicePerPlayer,
+        (_) => _rand.nextInt(6) + 1,
+      );
     });
-    _addLog('You rolled: ${allDice[0].join(', ')}');
-  }
+
+    if (count >= ticks) {
+      timer.cancel();
+      // commit the final roll, mark as rolled, and roll CPU hands
+      setState(() {
+        allDice[0] = finalRoll;
+        for (var i = 1; i < numPlayers; i++) {
+          allDice[i] = List.generate(
+            dicePerPlayer,
+            (_) => _rand.nextInt(6) + 1,
+          );
+        }
+        hasRolled = true;
+        _rolling  = false;
+      });
+      _addLog('You rolled: ${allDice[0].join(', ')}');
+
+      // hand off to next player after a short pause
+      Future.delayed(const Duration(milliseconds: 500), _nextTurn);
+    }
+  });
+}
 
   void _userBet() {
     if (turnIndex != 0 || !hasRolled) return;
@@ -274,7 +312,17 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
                       child: _buildTable(tableSize),
                     ),
                     const SizedBox(height: 16),
-                    if (!hasRolled) _buildRollButton(),
+                    // ─── Your player area ──────────────────────────────────
+                    const SizedBox(height: 24), // space above “You”
+                    PlayerArea(
+                      name: 'You',
+                      isCurrent: true,
+                      diceValues: allDice[0], // ← show your dice
+                      small: false,
+                    ),
+                     
+                    const SizedBox(height: 16), // space below “You”
+                    if (!hasRolled && !_rolling) _buildRollButton(),
                     if (turnIndex == 0 && hasRolled && !_showBetControls) _buildUserControls(),
                     if (_showBetControls) _buildInlineBetControls(),
                   ],
