@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../liars_deck_game_ai.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
+
 class GameSelectionPage extends StatelessWidget {
   const GameSelectionPage({super.key});
 
@@ -11,8 +12,7 @@ class GameSelectionPage extends StatelessWidget {
       barrierDismissible: true,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF3E2723),
-        title: const Text('Game Menu', 
-            style: TextStyle(color: Colors.white)),
+        title: const Text('Game Menu', style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -27,22 +27,23 @@ class GameSelectionPage extends StatelessWidget {
             ), */
             TextButton.icon(
               icon: const Icon(Icons.settings, color: Colors.white),
-              label: const Text('Settings', 
-                  style: TextStyle(color: Colors.white)),
+              label:
+                  const Text('Settings', style: TextStyle(color: Colors.white)),
               onPressed: () {
-                Navigator.pop(context);
+                //SNavigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
             ),
-             TextButton.icon(
-                icon: const Icon(Icons.home, color: Colors.white),
-                label: const Text('Main Menu', 
-                    style: TextStyle(color: Colors.white)),
-                onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/home');
+            TextButton.icon(
+              icon: const Icon(Icons.home, color: Colors.white),
+              label: const Text('Main Menu',
+                  style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/home');
               },
-        ),
+            ),
           ],
         ),
       ),
@@ -67,7 +68,7 @@ class GameSelectionPage extends StatelessWidget {
               tooltip: 'Game Menu',
             ),
           ),
-          // Title 
+          // Title
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 0,
@@ -119,7 +120,8 @@ class GameSelectionPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const DicePage()),
+                        MaterialPageRoute(
+                            builder: (context) => const DicePage()),
                       );
                     },
                     style: ElevatedButton.styleFrom(

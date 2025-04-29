@@ -3,6 +3,7 @@ import 'screens/game_selection_screen.dart';
 import 'screens/instruction.dart';
 import 'screens/login_screen';
 import 'screens/signup_screen';
+import 'screens/settings.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -49,8 +50,7 @@ class MyApp extends StatelessWidget {
       title: 'Liar\'s Bar',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts
-            .pressStart2pTextTheme(), 
+        textTheme: GoogleFonts.pressStart2pTextTheme(),
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.brown,
           brightness: Brightness.dark,
@@ -64,7 +64,8 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomePage(),
         '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
-        '/userstats': (context) => const UserStatsScreen(), 
+        '/userstats': (context) => const UserStatsScreen(),
+        '/settings': (context) => const SettingsPage(),
       },
     );
   }
@@ -177,8 +178,9 @@ class HomePage extends StatelessWidget {
         final String statsButtonText = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
             : "Welcome, User";
-        final String centerTitle =
-            (username != null && username.isNotEmpty) ? "Welcome, $username" : "Liar's Bar";
+        final String centerTitle = (username != null && username.isNotEmpty)
+            ? "Welcome, $username"
+            : "Liar's Bar";
 
         return Scaffold(
           body: Stack(
