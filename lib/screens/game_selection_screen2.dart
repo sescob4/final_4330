@@ -91,8 +91,11 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Deck",
+                      crownImagePath: "assets/crown.png",
                       scaleFactor: 30,
-                      onTap: () {
+                      onTap: () async {
+                        final dbService = DatabaseService();
+                        final gameId = await dbService.createNewGame();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
