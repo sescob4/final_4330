@@ -3,7 +3,7 @@ import '../liars_deck_game.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../widgets/frame_button.dart';
-
+import '../Databaseservice.dart';
 
 class GameSelectionPage2 extends StatelessWidget {
   const GameSelectionPage2({super.key});
@@ -92,11 +92,15 @@ class GameSelectionPage2 extends StatelessWidget {
                     child: ImageButton(
                       label: "Liar's Deck",
                       scaleFactor: 30,
-                      onTap: () {
+                      onTap: () async {
+                        final dbService = DatabaseService();
+                        String gameId = await dbService.createNewGame();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LiarsDeckGamePage()),
+                            builder: (context) =>
+                                LiarsDeckGamePage(gameId: gameId),
+                          ),
                         );
                       },
                     ),

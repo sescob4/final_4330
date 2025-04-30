@@ -14,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
 import 'screens/user_stats_screen.dart'; // new import
+import 'screens/game_lobby_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -178,8 +179,9 @@ class HomePage extends StatelessWidget {
         final String statsButtonText = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
             : "Welcome, User";
-        final String centerTitle =
-            (username != null && username.isNotEmpty) ? "Welcome, $username" : "Liar's Bar";
+        final String centerTitle = (username != null && username.isNotEmpty)
+            ? "Welcome, $username"
+            : "Liar's Bar";
 
         return Scaffold(
           body: Stack(

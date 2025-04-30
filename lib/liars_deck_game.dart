@@ -12,10 +12,10 @@ class DeckCard {
   final CardType type;
   DeckCard(this.type);
   String get assetPath => switch (type) {
-        CardType.ace   => 'assets/ace.svg',
-        CardType.jack  => 'assets/jack.svg',
+        CardType.ace => 'assets/ace.svg',
+        CardType.jack => 'assets/jack.svg',
         CardType.queen => 'assets/queen.svg',
-        CardType.king  => 'assets/king.svg',
+        CardType.king => 'assets/king.svg',
         CardType.joker => 'assets/joker.svg',
       };
 }
@@ -81,13 +81,8 @@ class LiarsDeckGameState {
       }
     }
 
-    const tables = [
-      CardType.ace,
-      CardType.jack,
-      CardType.queen,
-      CardType.king
-    ];
-    tableType     = tables[rng.nextInt(tables.length)];
+    const tables = [CardType.ace, CardType.jack, CardType.queen, CardType.king];
+    tableType = tables[rng.nextInt(tables.length)];
     currentPlayer = _nextAlive(rng.nextInt(players.length));
     tableCards.clear();
     lastPlayerIdx = -1;
@@ -107,7 +102,7 @@ class LiarsDeckGameState {
     for (final c in cards) {
       p.hand.remove(c);
     }
-    tableCards    = List.of(cards);
+    tableCards = List.of(cards);
     lastPlayerIdx = players.indexOf(p);
     final msg =
         '${p.name} played ${cards.length} ${tableType.name}${cards.length == 1 ? '' : 's'}.';
@@ -123,9 +118,9 @@ class LiarsDeckGameState {
     final lied = correct != tableCards.length;
     final accused = players[lastPlayerIdx];
     final spinner = lied ? accused : caller;
-    final shot    = spinner.spin(rng);
+    final shot = spinner.spin(rng);
     return '${caller.name} ${lied ? "correctly" : "incorrectly"} called bluff. '
-           '${spinner.name} ${shot ? "was ELIMINATED!" : "survived."}';
+        '${spinner.name} ${shot ? "was ELIMINATED!" : "survived."}';
   }
 
   void _advanceTurn() =>
@@ -134,7 +129,8 @@ class LiarsDeckGameState {
 
 // UI PAGE
 class LiarsDeckGamePage extends StatefulWidget {
-  const LiarsDeckGamePage({super.key});
+  final String gameId;
+  const LiarsDeckGamePage({required this.gameId, super.key}); //changed
   @override
   State<LiarsDeckGamePage> createState() => _LiarsDeckGamePageState();
 }
@@ -211,25 +207,29 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       return;
     }
 
-    final prevIdx    = (game.currentPlayer - 1 + game.players.length) % game.players.length;
+    final prevIdx =
+        (game.currentPlayer - 1 + game.players.length) % game.players.length;
     final prevPlayer = game.players[prevIdx];
     final prevDumped = !prevPlayer.eliminated &&
         prevPlayer.hand.isEmpty &&
         game.tableCards.isNotEmpty;
 
-    final ai    = game.players[game.currentPlayer];
-    final bluff = prevDumped || (game.tableCards.isNotEmpty && game.rng.nextBool());
+    final ai = game.players[game.currentPlayer];
+    final bluff =
+        prevDumped || (game.tableCards.isNotEmpty && game.rng.nextBool());
 
     final msg = bluff
         ? game.callBluff(ai)
         : game.playCards(
             ai,
             ai.hand
-                .take(min(ai.hand.length,
-                    game.rng.nextInt(
-                            ai.hand.where((c) => c.type != CardType.joker).isEmpty
-                        ? 1
-                        : 4) +
+                .take(min(
+                    ai.hand.length,
+                    game.rng.nextInt(ai.hand
+                                .where((c) => c.type != CardType.joker)
+                                .isEmpty
+                            ? 1
+                            : 4) +
                         1))
                 .toList());
 
@@ -242,8 +242,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
   void _tapCard(DeckCard c) {
     if (!game.isHumanTurn()) return;
-    setState(() =>
-        selected.contains(c) ? selected.remove(c) : selected.add(c));
+    setState(() => selected.contains(c) ? selected.remove(c) : selected.add(c));
   }
 
   void _playSelected() {
@@ -271,8 +270,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           margin: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             border: Border.all(
-                color:
-                    selectable && selected.contains(c) ? Colors.blueAccent : Colors.transparent,
+                color: selectable && selected.contains(c)
+                    ? Colors.blueAccent
+                    : Colors.transparent,
                 width: 2),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -297,7 +297,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: TextStyle(color: lblCol, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text(label,
+            style: TextStyle(
+                color: lblCol, fontWeight: FontWeight.bold, fontSize: 12)),
         const SizedBox(height: 4),
         if (!p.eliminated)
           Container(
@@ -322,7 +324,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       );
 
   Widget _buildIntro() => Center(
-        child: ElevatedButton(onPressed: _startGame, child: const Text("Start Liar's Deck")),
+        child: ElevatedButton(
+            onPressed: _startGame, child: const Text("Start Liar's Deck")),
       );
 
   Widget _buildTable(BuildContext ctx) {
@@ -331,8 +334,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     const chatboxW = 150.0; // Added this for the chatbox
     return LayoutBuilder(builder: (context, constraints) {
       final radius = constraints.maxWidth * 0.10;
-      final center = Offset(
-          (constraints.maxWidth + chatboxW - consoleW) / 2, 
+      final center = Offset((constraints.maxWidth + chatboxW - consoleW) / 2,
           constraints.maxHeight / 2); // Adjusted the center so it is not off
 
       // dynamic offsets
@@ -350,43 +352,44 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             left: 8,
             child: IconButton(
                 icon: const Icon(Icons.menu, color: Colors.white),
-                    onPressed: () {
-                      // game menu 
-                      showDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: const Color(0xFF3E2723),
-                          title: const Text('Game Menu', 
-                              style: TextStyle(color: Colors.white)),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextButton.icon(
-                                icon: const Icon(Icons.play_arrow, color: Colors.white),
-                                label: const Text('Resume', 
-                                    style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              ),
-                              TextButton.icon(
-                                icon: const Icon(Icons.replay, color: Colors.white),
-                                label: const Text('Restart', 
-                                    style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _nextRound();
-                                },
-                              ),
-                              TextButton.icon(
-                                icon: const Icon(Icons.home, color: Colors.white),
-                                label: const Text('Main Menu', 
-                                    style: TextStyle(color: Colors.white)),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushReplacementNamed(context, '/home');
-                                },
+                onPressed: () {
+                  // game menu
+                  showDialog(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: const Color(0xFF3E2723),
+                      title: const Text('Game Menu',
+                          style: TextStyle(color: Colors.white)),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            icon: const Icon(Icons.play_arrow,
+                                color: Colors.white),
+                            label: const Text('Resume',
+                                style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.replay, color: Colors.white),
+                            label: const Text('Restart',
+                                style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              _nextRound();
+                            },
+                          ),
+                          TextButton.icon(
+                            icon: const Icon(Icons.home, color: Colors.white),
+                            label: const Text('Main Menu',
+                                style: TextStyle(color: Colors.white)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pushReplacementNamed(context, '/home');
+                            },
                           ),
                         ],
                       ),
@@ -394,7 +397,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   );
                 }),
           ),
-                 // Header (without menu button)
+          // Header (without menu button)
           Positioned(
             left: chatboxW + 8, // Adjusting these to adapt to the new chatbox
             right: consoleW + 16,
@@ -411,7 +414,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               ],
             ),
           ),
-          // Left chatbox 
+          // Left chatbox
           Positioned(
             top: padTop + 40,
             left: 8,
@@ -419,7 +422,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             width: chatboxW,
             child: Container(
               decoration: BoxDecoration(
-                  color: Colors.black38, 
+                  color: Colors.black38,
                   border: Border.all(color: Colors.white54)),
               padding: const EdgeInsets.all(6),
               // Will implement the chatbox later, just trying to set up the area right now
@@ -464,7 +467,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // AI3 (right)
           Positioned(
-            left: center.dx + radius + 20, // Moved AI3 left some, was far right after adding chatbox
+            left: center.dx +
+                radius +
+                20, // Moved AI3 left some, was far right after adding chatbox
             top: vTop(game.players[3]),
             child: _hand(game.players[3],
                 horizontal: false,
@@ -488,7 +493,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             width: consoleW,
             child: Container(
               decoration: BoxDecoration(
-                  color: Colors.black38, border: Border.all(color: Colors.white54)),
+                  color: Colors.black38,
+                  border: Border.all(color: Colors.white54)),
               padding: const EdgeInsets.all(6),
               child: Scrollbar(
                 controller: _scroll,
@@ -498,7 +504,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Text(history[i],
-                        style: const TextStyle(color: Colors.white, fontSize: 11)),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 11)),
                   ),
                 ),
               ),
@@ -517,7 +524,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             left: 8 + chatboxW,
             bottom: 8,
             child: game.roundOver
-                ? ElevatedButton(onPressed: _nextRound, child: const Text('Next Round'))
+                ? ElevatedButton(
+                    onPressed: _nextRound, child: const Text('Next Round'))
                 : Row(children: [
                     ElevatedButton(
                         onPressed: game.isHumanTurn() && selected.isNotEmpty
@@ -526,9 +534,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                         child: const Text('Play')),
                     const SizedBox(width: 8),
                     ElevatedButton(
-                        onPressed: game.isHumanTurn() && game.tableCards.isNotEmpty
-                            ? _callBluff
-                            : null,
+                        onPressed:
+                            game.isHumanTurn() && game.tableCards.isNotEmpty
+                                ? _callBluff
+                                : null,
                         child: const Text('Call Bluff')),
                   ]),
           ),
@@ -539,7 +548,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               duration: const Duration(milliseconds: 500),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.black87,
                     borderRadius: BorderRadius.circular(8),
