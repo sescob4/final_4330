@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'chatbox.dart';
 
 // MODEL
 enum CardType { ace, jack, queen, king, joker }
@@ -130,7 +129,7 @@ class LiarsDeckGameState {
 // UI PAGE
 class LiarsDeckGamePage extends StatefulWidget {
   final String gameId;
-  const LiarsDeckGamePage({required this.gameId, super.key}); //changed
+  const LiarsDeckGamePage({required this.gameId, super.key});
   @override
   State<LiarsDeckGamePage> createState() => _LiarsDeckGamePageState();
 }
@@ -331,13 +330,11 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   Widget _buildTable(BuildContext ctx) {
     final padTop = MediaQuery.of(ctx).padding.top;
     const consoleW = 150.0;
-    const chatboxW = 150.0; // Added this for the chatbox
     return LayoutBuilder(builder: (context, constraints) {
       final radius = constraints.maxWidth * 0.10;
-      final center = Offset((constraints.maxWidth + chatboxW - consoleW) / 2,
-          constraints.maxHeight / 2); // Adjusted the center so it is not off
+      final center =
+          Offset(constraints.maxWidth / 2, constraints.maxHeight / 2);
 
-      // dynamic offsets
       const cardH = 54.0, cardW = 36.0, gap = 4.0, pad = 4.0;
       double vTop(Player p) =>
           center.dy - ((p.hand.length * (cardH + gap)) / 2) - pad;
@@ -350,85 +347,11 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           Positioned(
             top: padTop,
             left: 8,
-            child: IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () {
-                  // game menu
-                  showDialog(
-                    context: context,
-                    barrierDismissible: true,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xFF3E2723),
-                      title: const Text('Game Menu',
-                          style: TextStyle(color: Colors.white)),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton.icon(
-                            icon: const Icon(Icons.play_arrow,
-                                color: Colors.white),
-                            label: const Text('Resume',
-                                style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                          TextButton.icon(
-                            icon: const Icon(Icons.replay, color: Colors.white),
-                            label: const Text('Restart',
-                                style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _nextRound();
-                            },
-                          ),
-                          TextButton.icon(
-                            icon: const Icon(Icons.home, color: Colors.white),
-                            label: const Text('Main Menu',
-                                style: TextStyle(color: Colors.white)),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.pushReplacementNamed(context, '/home');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
+            child: Text('TABLE: ${game.tableType.name.toUpperCase()}S',
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          // Header (without menu button)
-          Positioned(
-            left: chatboxW + 8, // Adjusting these to adapt to the new chatbox
-            right: consoleW + 16,
-            top: padTop,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Text('TABLE: ${game.tableType.name.toUpperCase()}S',
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-          // Left chatbox
-          Positioned(
-            top: padTop + 40,
-            left: 8,
-            bottom: 100,
-            width: chatboxW,
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Colors.black38,
-                  border: Border.all(color: Colors.white54)),
-              padding: const EdgeInsets.all(6),
-              // Will implement the chatbox later, just trying to set up the area right now
-            ),
-          ),
-          // Table circle
+          // Table center circle
           Positioned(
             left: center.dx - radius,
             top: center.dy - radius,
@@ -439,7 +362,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   color: Color(0xFFBCAAA4), shape: BoxShape.circle),
             ),
           ),
-          // Played cards
+          // Played cards at center
           Positioned(
             left: center.dx - (game.tableCards.length * cardW) / 2,
             top: center.dy - cardH / 2,
@@ -449,17 +372,17 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // AI1 (left)
           Positioned(
-            left: center.dx - radius - 120, // Changed from 140 to 120
+            left: center.dx - radius - 140,
             top: vTop(game.players[1]),
             child: _hand(game.players[1],
                 horizontal: false,
                 selectable: false,
                 highlight: game.currentPlayer == 1 && !game.roundOver),
           ),
-          // AI2 (top) ← moved up from -25 to -40
+          // AI2 (top)
           Positioned(
             left: hLeft(game.players[2]),
-            top: center.dy - radius - cardH - 40,
+            top: center.dy - radius - cardH - 25,
             child: _hand(game.players[2],
                 horizontal: true,
                 selectable: false,
@@ -467,9 +390,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // AI3 (right)
           Positioned(
-            left: center.dx +
-                radius +
-                20, // Moved AI3 left some, was far right after adding chatbox
+            left: center.dx + radius + 20,
             top: vTop(game.players[3]),
             child: _hand(game.players[3],
                 horizontal: false,
@@ -485,7 +406,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 selectable: game.isHumanTurn(),
                 highlight: game.currentPlayer == 0 && !game.roundOver),
           ),
-          // Console
+          // Console (right side)
           Positioned(
             top: padTop + 40,
             right: 8,
@@ -519,9 +440,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          // Controls
+          // Bottom controls
           Positioned(
-            left: 8 + chatboxW,
+            left: 8,
             bottom: 8,
             child: game.roundOver
                 ? ElevatedButton(
@@ -541,7 +462,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                         child: const Text('Call Bluff')),
                   ]),
           ),
-          // Overlay
+          // Overlay for "WIN" or "BLUFF"
           if (overlayMsg != null) ...[
             AnimatedOpacity(
               opacity: overlayOpacity,

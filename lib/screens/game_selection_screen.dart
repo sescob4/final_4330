@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../liars_deck_game.dart';
+import '../liars_deck_game_ai.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../Databaseservice.dart';
@@ -32,6 +32,7 @@ class GameSelectionPage extends StatelessWidget {
                   const Text('Settings', style: TextStyle(color: Colors.white)),
               onPressed: () {
                 Navigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
             ),

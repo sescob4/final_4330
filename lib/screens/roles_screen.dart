@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
-
+import 'game_selection_screen2.dart';
 //needs more UI design
 
 class RolesScreen extends StatelessWidget {
@@ -66,7 +66,7 @@ class RolesScreen extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                 //pass the selected role if needed
-                                builder: (context) => GameSelectionPage(), 
+                                builder: (context) => GameSelectionPage2(),
                               ),
                             );
                           },
@@ -78,7 +78,7 @@ class RolesScreen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color:Colors.transparent,
+                                      color: Colors.transparent,
                                       blurRadius: 10,
                                       offset: Offset(4, 4),
                                     ),
@@ -114,6 +114,7 @@ class RolesScreen extends StatelessWidget {
     );
   }
 }
+
 class Character extends StatelessWidget {
   final String imagePath;
 
@@ -121,8 +122,8 @@ class Character extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      return ClipRRect(
-      borderRadius: BorderRadius.circular(20), 
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
       child: Image.asset(
         imagePath,
         fit: BoxFit.contain,

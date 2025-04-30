@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../liars_deck_game.dart';
+import '../liars_deck_game_ai.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../widgets/frame_button.dart';
@@ -92,9 +92,7 @@ class GameSelectionPage2 extends StatelessWidget {
                     child: ImageButton(
                       label: "Liar's Deck",
                       scaleFactor: 30,
-                      onTap: () async {
-                        final dbService = DatabaseService();
-                        String gameId = await dbService.createNewGame();
+                      onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -109,6 +107,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
+                      crownImagePath: "assets/crown.png",
                       onTap: () {
                         Navigator.push(
                           context,
