@@ -6,6 +6,7 @@ class UserStatsScreen extends StatelessWidget {
   const UserStatsScreen({super.key});
 
   Future<Map<String, dynamic>?> _getUserStats() async {
+  try {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
@@ -18,7 +19,12 @@ class UserStatsScreen extends StatelessWidget {
       }
     }
     return null;
+  } catch (e) {
+    print('Error fetching user stats: $e');
+    // Return cached data or default values if available
+    return null;
   }
+}
 
   @override
   Widget build(BuildContext context) {

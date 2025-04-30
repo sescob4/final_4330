@@ -28,7 +28,8 @@ Future<void> main() async {
       rethrow;
     }
   }
-
+  // Enable offline persistence
+  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
   runApp(const MyApp());
 }
 
