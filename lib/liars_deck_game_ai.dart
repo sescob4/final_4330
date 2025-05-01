@@ -492,3 +492,14 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     });
   }
 }
+
+class LiarsDeckGamePageAI extends StatelessWidget {
+  const LiarsDeckGamePageAI({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: Text("Solo Liar's Deck coming soon!")),
+    );
+  }
+}

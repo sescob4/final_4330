@@ -23,13 +23,19 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await FirebaseFirestore.instance.clearPersistence();
+    await FirebaseFirestore.instance.enableNetwork();
+    print("Firestore network enabled.");
   } on FirebaseException catch (e) {
     if (e.code != 'duplicate-app') {
       rethrow;
     }
   }
   // Enable offline persistence
-  FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
+  //FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
+
+  // ✅ Force Firestore back online (in case it’s stuck in offline mode)
+
   runApp(const MyApp());
 }
 
