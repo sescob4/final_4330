@@ -106,12 +106,15 @@ class GameSelectionPage2 extends StatelessWidget {
             left: 0,
             right: 0,
             child: const Center(
-              child: Text(
-                "Choose Your Game",
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: EdgeInsets.all(64.0),
+                child: Text(
+                  "Choose Your Game",
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
