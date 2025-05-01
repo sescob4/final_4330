@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
 import 'screens/user_stats_screen.dart'; // new import
+import 'Databaseservice.dart'; // new import
 
 //
 Future<void> main() async {
@@ -69,7 +70,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
-        '/home': (context) => const HomePage(),
+        '/home': (context) =>  HomePage(),
         '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
         '/userstats': (context) => const UserStatsScreen(),
@@ -95,25 +96,23 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.data == null) {
           return const LoginScreen();
         }
-        return const HomePage();
+        return HomePage();
       },
     );
   }
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+   HomePage({super.key});
+  
+  // Create an instance of DatabaseService
+  final DatabaseService _databaseService = DatabaseService();
 
   Future<String?> _getUsername() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (snapshot.exists && snapshot.data() is Map<String, dynamic>) {
-        return (snapshot.data() as Map<String, dynamic>)['username'] as String?;
-      }
+      // Use the method from DatabaseService to get username
+      return await _databaseService.getCurrentUsername();
     }
     return null;
   }
