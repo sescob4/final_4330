@@ -14,8 +14,8 @@ import 'screens/audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
-import 'screens/user_stats_screen.dart'; // new import
-import 'Databaseservice.dart'; // new import
+import 'screens/user_stats_screen.dart'; 
+import 'Databaseservice.dart'; 
 
 //
 Future<void> main() async {
@@ -35,8 +35,6 @@ Future<void> main() async {
   }
   // Enable offline persistence
   //FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
-
-  // ✅ Force Firestore back online (in case it’s stuck in offline mode)
 
   runApp(const MyApp());
 }

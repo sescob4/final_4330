@@ -6,7 +6,6 @@ class DatabaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
-  // Helper to get current user ID or generate guest ID
   String _getCurrentUserId() {
     return _auth.currentUser?.uid ?? 
       "guest_${DateTime.now().millisecondsSinceEpoch}";

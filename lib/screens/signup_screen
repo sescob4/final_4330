@@ -37,7 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       print("Error saving user data: $error");
     });
     
-    Navigator.pushReplacementNamed(context, '/');
+    Navigator.pushReplacementNamed(context, '/home');
   } on FirebaseAuthException catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(e.message ?? 'Sign up failed')),
