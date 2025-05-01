@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -16,29 +17,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signUp() async {
-    if (!_formKey.currentState!.validate()) return;
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-      //save user data to Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'username': _usernameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'stats': {'wins': 0, 'losses': 0},
-      });
-      Navigator.pushReplacementNamed(context, '/');
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Sign up failed')),
-      );
-    }
+  if (!_formKey.currentState!.validate()) return;
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+    
+    // Save user data to Realtime Database instead of Firestore
+    await FirebaseDatabase.instance.ref()
+        .child('users')
+        .child(userCredential.user!.uid)
+        .set({
+      'username': _usernameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'stats': {'wins': 0, 'losses': 0},
+    }).catchError((error) {
+      print("Error saving user data: $error");
+    });
+    
+    Navigator.pushReplacementNamed(context, '/');
+  } on FirebaseAuthException catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.message ?? 'Sign up failed')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
