@@ -343,6 +343,12 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
       return Stack(
         children: [
+          Positioned.fill(
+            child:Image.asset(
+              'assets/table1.png',
+              fit:BoxFit.cover
+            ),
+          ),
           // Header
           Positioned(
             top: padTop,
