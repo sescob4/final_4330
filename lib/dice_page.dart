@@ -289,12 +289,40 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     final tableOffset = Offset(0, -baseSize * 0.1);
 
     return Scaffold(
-       body: Stack(
+       body: Stack( 
         children: [
+          
         Positioned.fill(
         child: Image.asset(
           'assets/table1.png',
           fit: BoxFit.cover,
+        ),
+      ),
+            Positioned(
+        top: 16,
+        left: 16,
+        child: SizedBox(
+          width: 100,
+          height: 100,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              // Table circle
+              
+              // Player icons around the table
+              for (int i = 0; i < numPlayers; i++)
+                Positioned(
+                  left: 40 + 35 * cos(2 * pi * i / numPlayers) - 12,
+                  top:  40 + 35 * sin(2 * pi * i / numPlayers) - 12,
+                  child: Icon(
+                    i == 0 ? Icons.person : Icons.smart_toy,
+                    color: turnIndex == i ? Colors.amber : Colors.white54,
+                    size: 24,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       //extendBodyBehindAppBar: true,
@@ -311,26 +339,19 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
           Expanded(
             flex: 2,
             child: SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 16),
+              child: Center(                       // ← wrap in Center
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Transform.translate(
-                      offset: tableOffset,
-                      child: _buildTable(tableSize),
-                    ),
-                    const SizedBox(height: 16),
-                    // ─── Your player area ──────────────────────────────────
-                    const SizedBox(height: 24), // space above “You”
+                    const SizedBox(height: 24),
                     PlayerArea(
                       name: 'You',
                       isCurrent: true,
-                      diceValues: allDice[0], // ← show your dice
+                      diceValues: allDice[0],
                       small: false,
                     ),
-                     
-                    const SizedBox(height: 16), // space below “You”
+                    const SizedBox(height: 24),
                     if (!hasRolled && !_rolling) _buildRollButton(),
                     if (turnIndex == 0 && hasRolled && !_showBetControls) _buildUserControls(),
                     if (_showBetControls) _buildInlineBetControls(),
