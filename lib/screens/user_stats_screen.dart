@@ -5,26 +5,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 class UserStatsScreen extends StatelessWidget {
   const UserStatsScreen({super.key});
 
-  Future<Map<String, dynamic>?> _getUserStats() async {
-  try {
+  Future<Map<String, dynamic>> _getUserStats() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-          .instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      DocumentReference<Map<String, dynamic>> docRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await docRef.get();
       if (snapshot.exists && snapshot.data() != null) {
-        return snapshot.data();
+        return snapshot.data()!;
+      } else {
+        // If the user document doesn't exist, create default stats.
+        Map<String, dynamic> defaultData = {
+          'username': user.email ?? 'User',
+          'gamesPlayed': 0,
+          'gamesWon': 0,
+        };
+        await docRef.set(defaultData);
+        return defaultData;
       }
     }
-    return null;
-  } catch (e) {
-    print('Error fetching user stats: $e');
-    // Return cached data or default values if available
-    return null;
+    // For non-logged in users, return default guest stats.
+    return {
+      'username': 'Guest',
+      'gamesPlayed': 0,
+      'gamesWon': 0,
+    };
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +39,7 @@ class UserStatsScreen extends StatelessWidget {
         title: const Text('User Stats'),
         backgroundColor: Colors.brown.shade900,
       ),
-      body: FutureBuilder<Map<String, dynamic>?>(
+      body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserStats(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -47,19 +53,14 @@ class UserStatsScreen extends StatelessWidget {
               ),
             );
           }
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(
-              child: Text(
-                'No stats available',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
+          // Use the default values if no stats found
           final data = snapshot.data!;
-          final String username = data['username'] ?? 'Unknown';
-          final int gamesPlayed = data['gamesPlayed'] ?? 0;
-          final int gamesWon = data['gamesWon'] ?? 0;
-          final String winPerc = gamesPlayed > 0 ? ((gamesWon / gamesPlayed) * 100).toStringAsFixed(1) : '0.0';
+          final String username = data['username'] as String;
+          final int gamesPlayed = data['gamesPlayed'] as int;
+          final int gamesWon = data['gamesWon'] as int;
+          final String winPerc = gamesPlayed > 0
+              ? ((gamesWon / gamesPlayed) * 100).toStringAsFixed(1)
+              : '0.0';
 
           return Stack(
             children: [
@@ -77,7 +78,8 @@ class UserStatsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.amber.shade800, width: 2),
+                      border:
+                          Border.all(color: Colors.amber.shade800, width: 2),
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -93,17 +95,20 @@ class UserStatsScreen extends StatelessWidget {
                         const SizedBox(height: 20),
                         Text(
                           'Games Played: $gamesPlayed',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 18, color: Colors.white),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           'Games Won: $gamesWon',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 18, color: Colors.white),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           'Win Percentage: $winPerc%',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
+                          style: const TextStyle(
+                              fontSize: 18, color: Colors.white),
                         ),
                       ],
                     ),

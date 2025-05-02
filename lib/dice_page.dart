@@ -289,14 +289,23 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     final tableOffset = Offset(0, -baseSize * 0.1);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      backgroundColor: Colors.brown.shade900,
-      appBar: AppBar(
-        leading: const BackButton(color: Colors.white),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+       body: Stack(
+        children: [
+        Positioned.fill(
+        child: Image.asset(
+          'assets/table1.png',
+          fit: BoxFit.cover,
+        ),
       ),
-      body: Row(
+      //extendBodyBehindAppBar: true,
+      //backgroundColor: Colors.brown.shade900,
+      //appBar: AppBar(
+      //  leading: const BackButton(color: Colors.white),
+      //  backgroundColor: Colors.transparent,
+      //  elevation: 0,
+      //),
+      //body: Row(
+      Row(
         children: [
           // ── LEFT: game area in a scrollable SafeArea ────────────────
           Expanded(
@@ -337,7 +346,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
             child: Container(
               margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: Colors.black38, border: Border.all(color: Colors.white54)),
+             // decoration: BoxDecoration(color: Colors.black38, border: Border.all(color: Colors.white54)),
               child: Scrollbar(
                 controller: _scrollController,
                 child: ListView.builder(
@@ -353,6 +362,8 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
           ),
         ],
       ),
+        ],
+    ),
     );
   }
 

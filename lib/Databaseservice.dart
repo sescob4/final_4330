@@ -153,9 +153,9 @@ Future<String?> joinQueueAndCheck(String username) async {
     
     try {
       final snapshot = await _db.child('users/$uid/username').get();
-      return snapshot.exists ? snapshot.value.toString() : 'Unknown Player';
+      return snapshot.exists ? snapshot.value.toString() : 'Guest Player';
     } catch (e) {
-      return 'Unknown Player';
+      return 'Guest Player';
     }
   }
   

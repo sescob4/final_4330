@@ -107,7 +107,7 @@ class GameSelectionPage2 extends StatelessWidget {
             right: 0,
             child: const Center(
               child: Padding(
-                padding: EdgeInsets.all(64.0),
+                padding: EdgeInsets.all(8.0),
                 child: Text(
                   "Choose Your Game",
                   style: TextStyle(
@@ -147,7 +147,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
-                      crownImagePath: "assets/crown.png",
+                      crownImagePath: "assets/dice.png",
                       onTap: () {
                         Navigator.push(
                           context,
@@ -255,7 +255,7 @@ class UserClassification extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Multiple Users",
-                      crownImagePath: "assets/crown.png",
+                      crownImagePath: "assets/group.png",
                       scaleFactor: 30,
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
@@ -281,7 +281,7 @@ class UserClassification extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "AI Bot",
-                      crownImagePath: "assets/crown.png",
+                      crownImagePath: "assets/single.png",
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         final userId = info['uid']!;

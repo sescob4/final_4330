@@ -117,6 +117,9 @@ flutter:
     - assets/frame2.png
     - assets/crown.png
     - assets/handofcards.png
+    - assets/dice.png
+    - assets/wood.png
+    - assets/table1.png
 
     
   #roles:
@@ -129,6 +132,9 @@ flutter:
     - assets/role2.png
     - assets/role3.png
     - assets/role4.png
+    - assets/group.png
+    - assets/single.png
+
 
 
 
