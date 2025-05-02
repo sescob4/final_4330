@@ -19,6 +19,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   // State fields
   late List<List<int>> allDice;
   late List<bool>     alive;
+  late List<int> lives;      // new: track remaining lives per player
   int                turnIndex         = 0;     // 0 = You, 1–3 = CPUs
   bool               hasRolled         = false; // user may roll only once per turn
   int?               bidQuantity;
@@ -68,6 +69,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   void _initGameState() {
     allDice           = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
     alive             = List.filled(numPlayers, true);
+     lives       = List.filled(numPlayers, 3);   // ← everyone starts with 3 lives
     turnIndex         = 0;
     hasRolled         = false;
     bidQuantity       = null;
@@ -129,7 +131,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
       _addLog('You rolled: ${allDice[0].join(', ')}');
 
       // hand off to next player after a short pause
-      Future.delayed(const Duration(milliseconds: 500), _nextTurn);
+       _addLog('Your turn: Bet or Call');
     }
   });
 }
@@ -237,43 +239,74 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   }
 
   void _resolveCall(int caller) {
-    final counts = <int,int>{};
-    for (var hand in allDice) for (var v in hand) {
-      counts[v] = (counts[v] ?? 0) + 1;
+  // ─── count dice ─────────────────────────────────────────────
+  final counts = <int,int>{};
+  for (var hand in allDice) for (var v in hand) {
+    counts[v] = (counts[v] ?? 0) + 1;
+  }
+  final qty    = bidQuantity!;
+  final face   = bidFace!;
+  final actual = counts[face] ?? 0;
+  final last   = (turnIndex + numPlayers - 1) % numPlayers;
+  final loser  = actual < qty ? last : caller;
+  final loserName = loser == 0 ? 'You' : 'CPU ${loser + 1}';
+
+  // ─── decrement lives / eliminate ───────────────────────────
+  setState(() {
+    lives[loser]--;              // – subtract one life
+    if (lives[loser] > 0) {
+      _addLog('$loserName lost a life! (${lives[loser]} left)');
+    } else {
+      alive[loser] = false;
+      _addLog('$loserName has no lives left and is eliminated');
     }
-    final qty    = bidQuantity!;
-    final face   = bidFace!;
-    final actual = counts[face] ?? 0;
-    final last   = (turnIndex + numPlayers - 1) % numPlayers;
-    final loser  = actual < qty ? last : caller;
-    final loserName = loser == 0 ? 'You' : 'CPU ${loser + 1}';
-    final msg = 'Call: needed $qty×$face, found $actual — $loserName out';
-    _addLog(msg);
-    setState(() => alive[loser] = false);
-    ScaffoldMessenger.of(context)
-      .showSnackBar(SnackBar(content: Text(msg)))
-      .closed
-      .then((_) {
-        if (loser != 0) {
-          setState(() {
-            hasRolled   = false;
-            bidQuantity = null;
-            bidFace     = null;
-            turnIndex   = 0;
-          });
-        }
-      });
-  }
+  });
 
-  void _nextTurn() {
-    setState(() {
-      do { turnIndex = (turnIndex + 1) % numPlayers; }
-      while (!alive[turnIndex]);
+  // ─── show the snackbar ──────────────────────────────────────
+  final resultMsg = lives[loser] > 0
+    ? '$loserName lost a life! (${lives[loser]} left)'
+    : '$loserName eliminated';
+
+  ScaffoldMessenger.of(context)
+    .showSnackBar(
+      SnackBar(content: Text(
+        'Call: needed $qty×$face, found $actual — $resultMsg'
+      ))
+    )
+    .closed
+    .then((_) {
+      setState(() {
+      // clear the previous bid
+      bidQuantity = null;
+      bidFace     = null;
+      // mark roll phase again
+      hasRolled   = false;
+      // always start next round with the user
+      turnIndex   = 0;
     });
-    if (turnIndex == 0 && hasRolled) _addLog('Your turn again: Bet or Call');
-    if (turnIndex != 0)               Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+    _addLog('New round: roll the dice');
+ 
+    });
+}
+/// Advance to the next alive player and kick off CPU or your turn.
+void _nextTurn() {
+  setState(() {
+    // step to the next index that’s still alive
+    do {
+      turnIndex = (turnIndex + 1) % numPlayers;
+    } while (!alive[turnIndex]);
+  });
+
+  // if it’s your turn again, log it
+  if (turnIndex == 0 && hasRolled) {
+    _addLog('Your turn again: Bet or Call');
   }
 
+  // if it’s a CPU’s turn, schedule its move
+  if (turnIndex != 0) {
+    Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+  }
+}
   // ────────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -350,6 +383,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
                       isCurrent: true,
                       diceValues: allDice[0],
                       small: false,
+                      lives: lives[0],
                     ),
                     const SizedBox(height: 24),
                     if (!hasRolled && !_rolling) _buildRollButton(),
@@ -404,6 +438,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
                 isCurrent: i == 0,
                 diceValues: i == 0 ? allDice[0] : null,
                 small: i != 0,
+                 lives: lives[i],
               )
             : _outBox(label: i == 0 ? 'You' : 'CPU ${i + 1}'),
         ),
@@ -511,20 +546,26 @@ class PlayerArea extends StatelessWidget {
   final bool       isCurrent;
   final List<int>? diceValues;
   final bool       small;
+  final int        lives;
 
   const PlayerArea({
     required this.name,
     required this.isCurrent,
     this.diceValues,
     this.small = false,
+    required this.lives, 
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     // CPU dice = 32, your dice now = 30
-    final dieSize = small ? 32.0 : 30.0;
-
+   final dieSize = isCurrent
+    ? 48.0      // big dice for “You”
+    : 32.0;     // smaller if we ever show CPU dice here
+    final hearts = List<Widget>.generate(
+          lives,
+          (_) => const Icon(Icons.favorite, size: 12, color: Colors.redAccent),);
     final diceWidgets = isCurrent
         ? (diceValues ?? []).map((v) => SizedBox(
             width: dieSize,
@@ -540,7 +581,16 @@ class PlayerArea extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(
+          name,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: isCurrent ? 20 : 14,  // big label for you
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(mainAxisSize: MainAxisSize.min, children: hearts),
         const SizedBox(height: 6),
         FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets)),
       ],
