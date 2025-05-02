@@ -107,13 +107,16 @@ class HomePage extends StatelessWidget {
   final DatabaseService _databaseService = DatabaseService();
 
   Future<String?> _getUsername() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // Use the method from DatabaseService to get username
-      return await _databaseService.getCurrentUsername();
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    if (user.isAnonymous) {
+      return 'Guest Player';  // "Guest Player" instead of "Unknown Player"
     }
-    return null;
+    // Read username from database
+    return await _databaseService.getCurrentUsername();
   }
+  return null;
+}
 
   Widget _buildButtons(BuildContext context) {
     final AudioPlayer clickPlayer = AudioPlayer();
