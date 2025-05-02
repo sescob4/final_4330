@@ -180,9 +180,6 @@ class HomePage extends StatelessWidget {
       future: _getUsername(),
       builder: (context, snapshot) {
         final String? username = snapshot.data;
-        final String statsButtonText = (username != null && username.isNotEmpty)
-            ? "Welcome, $username"
-            : "Welcome, User";
         final String centerTitle = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
             : "Liar's Bar";
@@ -251,34 +248,6 @@ class HomePage extends StatelessWidget {
                         await FirebaseAuth.instance.signOut();
                         Navigator.pushReplacementNamed(context, '/login');
                       },
-                    ),
-                  ),
-                ),
-              // Stats button in top-left; always visible for authenticated users
-              if (FirebaseAuth.instance.currentUser != null)
-                SafeArea(
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: EdgeInsets.zero,
-                        ),
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/userstats');
-                        },
-                        child: Text(
-                          statsButtonText,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      ),
                     ),
                   ),
                 ),

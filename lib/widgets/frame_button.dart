@@ -6,7 +6,7 @@ class ImageButton extends StatefulWidget {
   final double size;
   final double borderRadius;
   final double scaleFactor;
-  final String crownImagePath; // Add a new parameter for the crown image path
+  final String crownImagePath;
   final TextStyle? textStyle;
 
   const ImageButton({
@@ -16,7 +16,7 @@ class ImageButton extends StatefulWidget {
     this.size = 600,
     this.borderRadius = 16,
     this.scaleFactor = 0.9,
-    required this.crownImagePath, // Make the crown image path required
+    required this.crownImagePath,
     this.textStyle,
   });
 
@@ -54,59 +54,73 @@ class _ImageButtonState extends State<ImageButton> {
       onTapCancel: _onTapCancel,
       child: Transform.scale(
         scale: _scale,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(widget.borderRadius),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Image.asset(
-                "assets/frame2.png", // Background image (can still be static)
-                width: widget.size,
-                fit: BoxFit.cover,
-              ),
-              SizedBox(
-                width: widget.size,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      widget.crownImagePath, // Use the passed crown image path
-                      height: widget.size * 0.5, // Scales with button size
-                    ),
-                    const SizedBox(height: 12),
-                    Stack(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final availableHeight = constraints.maxHeight;
+            final availableWidth = constraints.maxWidth;
+            final buttonSize = availableHeight < availableWidth 
+                ? availableHeight 
+                : availableWidth;
+
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    "assets/frame2.png",
+                    width: buttonSize,
+                    height: buttonSize,
+                    fit: BoxFit.cover,
+                  ),
+                  SizedBox(
+                    width: buttonSize,
+                    height: buttonSize,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          widget.label,
-                          style: (widget.textStyle ??
+                        Image.asset(
+                          widget.crownImagePath,
+                          height: buttonSize * 0.4,
+                          fit: BoxFit.contain,
+                        ),
+                        SizedBox(height: buttonSize * 0.02),
+                        Stack(
+                          children: [
+                            Text(
+                              widget.label,
+                              textAlign: TextAlign.center,
+                              style: (widget.textStyle ??
+                                      const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                      ))
+                                  .copyWith(
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 4
+                                  ..color = const Color(0xFFC3822C),
+                              ),
+                            ),
+                            Text(
+                              widget.label,
+                              textAlign: TextAlign.center,
+                              style: widget.textStyle ??
                                   const TextStyle(
+                                    color: Color(0xFF5E2D12),
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
-                                  ))
-                              .copyWith(
-                            foreground: Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 4
-                              ..color =
-                                  Color(0xFFC3822C), // Bright gold outline
-                          ),
-                        ),
-                        Text(
-                          widget.label,
-                          style: widget.textStyle ??
-                              const TextStyle(
-                                color: Color(0xFF5E2D12),
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                  ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
