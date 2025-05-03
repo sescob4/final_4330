@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart' as rtdb;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../liars_deck_game_ai.dart';
@@ -308,128 +308,31 @@ class UserClassification extends StatelessWidget {
     );
   }
 }
-/*try {
-                          final userDoc = await firestore
-                              .FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(userId)
-                              .get();
-                          //userName = userDoc.data()?['username'] ?? 'Guest';
-                          final data = userDoc.data();
-                        if (data != null && data['username'] != null && data['username'].toString().isNotEmpty) {
-                          userName = data['username'];
-                        }
 
-                          print("Retrieved username: $userName");
-                        } catch (e) {
-                          print("Error fetching Firestore user doc: $e");
-                        }*/
-/*if (gameChosen == "dice") {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GameQUEUE(
-                                gameChosen: gameChosen,
-                                userID: userId,
-                                userName: userName,
-                              ),
-                            ),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GameQUEUE(
-                                gameChosen: gameChosen,
-                                userID:
-                                    userId, // TODO: Replace with real user ID
-                                userName:
-                                    userName, // TODO: Replace with actual player name
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),*/
-/*SizedBox(width: buttonPadding),
-                  Expanded(
-                    child: ImageButton(
-                      label:
-                          "AI Bot", ////////////////////AI////////////// THIS NEEDS TO BE CHANGED
-                      crownImagePath: "assets/crown.png",
-                      onTap: () async {
-                        final user = FirebaseAuth.instance.currentUser;
-                        final userId = user?.uid ??
-                            "guest_${DateTime.now().millisecondsSinceEpoch}";
-                        final userDoc = await firestore
-                            .FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(userId)
-                            .get();
-                        final userName = userDoc.data()?['username'] ?? 'Guest';
-                        //print("Retrieved username: $userName");
-                        if (gameChosen == "dice") {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => GameQUEUE(
-                                    gameChosen: gameChosen,
-                                    userID: userId,
-                                    userName: userName),
-                              ));
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GameQUEUE(
-                                gameChosen: gameChosen,
-                                userID:
-                                    userId, // TODO: Replace with real user ID
-                                userName:
-                                    userName, // TODO: Replace with actual player name
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}*/
 
-class GameQUEUE extends StatefulWidget {
+class GameQUEUE extends StatefulWidget{
   final gameChosen;
   final userID;
   final userName;
 
-  const GameQUEUE(
-      {super.key,
-      required this.gameChosen,
-      required this.userID,
-      required this.userName});
+  const GameQUEUE({ super.key,
+  required this.gameChosen,
+  required this.userID,
+  required this.userName});
 
   @override
   State<GameQUEUE> createState() => _GameLoadingQueue();
 }
 
-class _GameLoadingQueue extends State<GameQUEUE> {
+class _GameLoadingQueue extends State<GameQUEUE>{
   final QueueDeck _queueManager = QueueDeck();
-  StreamSubscription<rtdb.DatabaseEvent>? _assignementListener;
+  StreamSubscription<DatabaseEvent>? _assignementListener;
 
   @override
-  void initState() {
+  void initState(){
     super.initState();
     _beginQueueProcess();
   }
-
   Future<void> _beginQueueProcess() async {
     await _queueManager.tryJoinQueue(
       widget.userID,
@@ -438,13 +341,14 @@ class _GameLoadingQueue extends State<GameQUEUE> {
     );
 
     // Listen to the queue path
-    final queuePath =
-        widget.gameChosen == "deck" ? "deck/deckQueue" : "dice/deckQueue";
+    final queuePath = widget.gameChosen == "deck"
+        ? "deck/deckQueue"
+        : "dice/deckQueue";
 
-    _assignementListener = rtdb.FirebaseDatabase.instance
+    _assignementListener = FirebaseDatabase.instance
         .ref(queuePath)
         .onValue
-        .listen((rtdb.DatabaseEvent event) {
+        .listen((DatabaseEvent event) {
       final data = event.snapshot.value;
 
       if (data is Map) {
@@ -466,8 +370,7 @@ class _GameLoadingQueue extends State<GameQUEUE> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (_) =>
-                    LiarsDeckGamePage(gameId: "placeholder_game_id"),
+                builder: (_) => LiarsDeckGamePage(gameId: "placeholder_game_id"),
               ),
             );
           } else {
@@ -483,6 +386,7 @@ class _GameLoadingQueue extends State<GameQUEUE> {
     });
   }
 
+
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
@@ -492,40 +396,42 @@ class _GameLoadingQueue extends State<GameQUEUE> {
       ),
     );
   }
+
 }
+
+
+
+
 
 //class with functions to get lock and add to a game/queue
 class QueueDeck {
-  final rtdb.DatabaseReference _lockRefDECK =
-      rtdb.FirebaseDatabase.instance.ref("deck/queueLock");
-  final rtdb.DatabaseReference _lockRefDICE =
-      rtdb.FirebaseDatabase.instance.ref("dice/queueLock");
 
-  final rtdb.DatabaseReference _queueRefDeck =
-      rtdb.FirebaseDatabase.instance.ref("deck/deckQueue");
-  final rtdb.DatabaseReference _queueRefDice =
-      rtdb.FirebaseDatabase.instance.ref("dice/deckQueue");
+  final DatabaseReference _lockRefDECK = FirebaseDatabase.instance.ref("deck/queueLock");
+  final DatabaseReference _lockRefDICE = FirebaseDatabase.instance.ref("dice/queueLock");
+
+  final DatabaseReference _queueRefDeck = FirebaseDatabase.instance.ref("deck/deckQueue");
+  final DatabaseReference _queueRefDice = FirebaseDatabase.instance.ref("dice/deckQueue");
 
   Future<bool> acquireQueueLock(String gameChosen) async {
-    if (gameChosen == "dice") {
+    if(gameChosen == "dice") {
       final result = await _lockRefDICE.runTransaction((currentData) {
         if (currentData == true) {
-          print("locked" + rtdb.ServerValue.timestamp.toString());
-          return rtdb.Transaction.abort();
+          print("locked" + ServerValue.timestamp.toString());
+          return Transaction.abort();
         } else {
-          print("free" + rtdb.ServerValue.timestamp.toString());
-          return rtdb.Transaction.success(true);
+          print("free" + ServerValue.timestamp.toString());
+          return Transaction.success(true);
         }
       });
       return result.committed;
-    } else if (gameChosen == "deck") {
+    }else if(gameChosen == "deck"){
       final result = await _lockRefDECK.runTransaction((currentData) {
         if (currentData == true) {
-          print("locked" + rtdb.ServerValue.timestamp.toString());
-          return rtdb.Transaction.abort();
+          print("locked" + ServerValue.timestamp.toString());
+          return Transaction.abort();
         } else {
-          print("free" + rtdb.ServerValue.timestamp.toString());
-          return rtdb.Transaction.success(true);
+          print("free" + ServerValue.timestamp.toString());
+          return Transaction.success(true);
         }
       });
       return result.committed;
@@ -534,14 +440,12 @@ class QueueDeck {
     return false;
   }
 
-  Future<void> tryJoinQueue(
-      String userId, String name, String gameChosen) async {
+  Future<void> tryJoinQueue(String userId, String name, String gameChosen) async {
     bool joined = false;
 
     while (!joined) {
       final lockAcquired = await acquireQueueLock(gameChosen);
-      if (gameChosen == "dice") {
-        ////////////////////////////
+      if(gameChosen == "dice") {////////////////////////////
         if (!lockAcquired) {
           print("Still locked");
           await Future.delayed(const Duration(seconds: 5));
@@ -550,24 +454,27 @@ class QueueDeck {
             await _queueRefDice.push().set({
               "userId": userId,
               "name": name,
-              "timestamp": rtdb.ServerValue.timestamp,
+              "timestamp": ServerValue.timestamp,
             });
             joined = true;
           } finally {
             await _lockRefDICE.set(false); // Always release the lock
           }
         }
-      } else if (gameChosen == "deck") {
-        //////////////////////////
+      }else if(gameChosen == "deck"){//////////////////////////
         if (!lockAcquired) {
           print("Still locked");
           await Future.delayed(const Duration(seconds: 5));
         } else {
           try {
+            //////////// THIS LOGIC holder is for when the user in in the queue to be added
+            // the user should be looking for a gameID with a false lock or add a new one
+            //if we you are the fourth player you lock the game
+
             await _queueRefDeck.push().set({
               "userId": userId,
               "name": name,
-              "timestamp": rtdb.ServerValue.timestamp,
+              "timestamp": ServerValue.timestamp,
             });
             joined = true;
           } finally {
