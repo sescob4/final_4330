@@ -120,6 +120,12 @@ flutter:
     - assets/dice.png
     - assets/wood.png
     - assets/table1.png
+    - assets/face1.svg
+    - assets/face2.svg
+    - assets/face3.svg
+    - assets/face4.svg
+    - assets/face5.svg
+    - assets/face6.svg
 
     
   #roles:

@@ -602,9 +602,7 @@ class PlayerArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // CPU dice = 32, your dice now = 30
-   final dieSize = isCurrent
-    ? 48.0      // big dice for “You”
-    : 32.0;     // smaller if we ever show CPU dice here
+   final dieSize = isCurrent? 96.0 : 72.0;     // smaller if we ever show CPU dice here
     final hearts = List<Widget>.generate(
           lives,
           (_) => const Icon(Icons.favorite, size: 12, color: Colors.redAccent),);
@@ -612,8 +610,9 @@ class PlayerArea extends StatelessWidget {
         ? (diceValues ?? []).map((v) => SizedBox(
             width: dieSize,
             height: dieSize,
-            child: FittedBox(fit: BoxFit.contain, child: DiceFace(value: v)),
+            child: DiceFace(value: v),
           )).toList()
+
         : List.generate(dicePerPlayer, (_) => SizedBox(
             width: dieSize,
             height: dieSize,
