@@ -44,7 +44,39 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   // history log
   final List<String>         history           = [];
   final ScrollController     _scrollController = ScrollController();
-
+  
+void _showGameMenu() {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => AlertDialog(
+      backgroundColor: const Color(0xFF3E2723),
+      title: const Text('Game Menu', style: TextStyle(color: Colors.white)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          /*Resume can go here later*/
+          TextButton.icon(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            label: const Text('Settings', style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.home, color: Colors.white),
+            label: const Text('Main Menu', style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/home');
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
   @override
   void initState() {
     super.initState();
@@ -329,6 +361,15 @@ void _nextTurn() {
         child: Image.asset(
           'assets/table1.png',
           fit: BoxFit.cover,
+        ),
+      ),
+       Positioned(
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 8,
+        child: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white, size: 32),
+          onPressed: _showGameMenu,
+          tooltip: 'Game Menu',
         ),
       ),
             Positioned(
