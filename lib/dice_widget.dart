@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DiceRoller extends StatefulWidget {
   const DiceRoller({super.key});
@@ -28,15 +29,17 @@ class _DiceRollerState extends State<DiceRoller> {
           style: TextStyle(fontSize: 24),
         ),
         SizedBox(height: 16),
-        Text(
-          '$_currentRoll',
-          style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+         // ← swap the number for an SVG:
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: SvgPicture.asset(
+            'assets/face$_currentRoll.svg',
+            fit: BoxFit.contain,
+          ),
         ),
-        SizedBox(height: 32),
-        ElevatedButton(
-          onPressed: _rollDice,
-          child: Text('Roll Dice'),
-        ),
+        const SizedBox(height: 32),
+        ElevatedButton(onPressed: _rollDice, child: const Text('Roll Dice')),
       ],
     );
   }
