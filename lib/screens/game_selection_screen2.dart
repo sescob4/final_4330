@@ -130,6 +130,7 @@ class GameSelectionPage2 extends StatelessWidget {
                     child: ImageButton(
                       label: "Liar's Deck",
                       crownImagePath: "assets/handofcards.png",
+                      // fontScale: .5,
                       onTap: () async {
                         final dbService = DatabaseService();
                         final gameId = await dbService.createNewGame();
@@ -148,6 +149,7 @@ class GameSelectionPage2 extends StatelessWidget {
                     child: ImageButton(
                       label: "Liar's Dice",
                       crownImagePath: "assets/dice.png",
+                      // fontScale: .5,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -254,7 +256,7 @@ class UserClassification extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ImageButton(
-                      label: "Multiple Users",
+                      label: "Multiple\nUsers",
                       crownImagePath: "assets/group.png",
                       scaleFactor: 30,
                       onTap: () async {

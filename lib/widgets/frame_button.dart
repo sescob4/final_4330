@@ -8,6 +8,8 @@ class ImageButton extends StatefulWidget {
   final double scaleFactor;
   final String crownImagePath;
   final TextStyle? textStyle;
+  final double fontSize;
+  final double fontScale;
 
   const ImageButton({
     super.key,
@@ -18,6 +20,8 @@ class ImageButton extends StatefulWidget {
     this.scaleFactor = 0.9,
     required this.crownImagePath,
     this.textStyle,
+    this.fontSize = 28,
+    this.fontScale = 0.5, // Controls relative font sizing
   });
 
   @override
@@ -58,8 +62,8 @@ class _ImageButtonState extends State<ImageButton> {
           builder: (context, constraints) {
             final availableHeight = constraints.maxHeight;
             final availableWidth = constraints.maxWidth;
-            final buttonSize = availableHeight < availableWidth 
-                ? availableHeight 
+            final buttonSize = availableHeight < availableWidth
+                ? availableHeight
                 : availableWidth;
 
             return ClipRRect(
@@ -91,14 +95,15 @@ class _ImageButtonState extends State<ImageButton> {
                               widget.label,
                               textAlign: TextAlign.center,
                               style: (widget.textStyle ??
-                                      const TextStyle(
-                                        fontSize: 28,
+                                      TextStyle(
+                                        fontSize:
+                                            widget.fontSize * widget.fontScale,
                                         fontWeight: FontWeight.bold,
                                       ))
                                   .copyWith(
                                 foreground: Paint()
                                   ..style = PaintingStyle.stroke
-                                  ..strokeWidth = 4
+                                  ..strokeWidth = 4 * widget.fontScale
                                   ..color = const Color(0xFFC3822C),
                               ),
                             ),
@@ -106,9 +111,9 @@ class _ImageButtonState extends State<ImageButton> {
                               widget.label,
                               textAlign: TextAlign.center,
                               style: widget.textStyle ??
-                                  const TextStyle(
-                                    color: Color(0xFF5E2D12),
-                                    fontSize: 28,
+                                  TextStyle(
+                                    color: const Color(0xFF5E2D12),
+                                    fontSize: widget.fontSize * widget.fontScale,
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
