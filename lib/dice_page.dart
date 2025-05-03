@@ -4,8 +4,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'widgets/dice_face.dart';
+import 'widgets/player_profile.dart';
+import 'widgets/player_area.dart';
 
-const int numPlayers = 4; // You + 3 CPUs
+
+
+
+const int numPlayers = 4; 
 const int dicePerPlayer = 5;
 
 class DicePage extends StatefulWidget {
@@ -45,6 +50,8 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   final List<String>         history           = [];
   final ScrollController     _scrollController = ScrollController();
   
+  bool _showComments = false;  
+
 void _showGameMenu() {
   showDialog(
     context: context,
@@ -363,7 +370,9 @@ void _nextTurn() {
           fit: BoxFit.cover,
         ),
       ),
-       Positioned(
+_buildHeartBox(lives[0]),
+_buildHeartBox(lives[0]),
+      Positioned(
         top: MediaQuery.of(context).padding.top + 8,
         left: 8,
         child: IconButton(
@@ -372,89 +381,150 @@ void _nextTurn() {
           tooltip: 'Game Menu',
         ),
       ),
-            Positioned(
-        top: 16,
+      Positioned(
+        top: MediaQuery.of(context).padding.top + 40, // Changed from 60 to 40
         left: 16,
-        child: SizedBox(
-          width: 100,
-          height: 100,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              // Table circle
-              
-              // Player icons around the table
-              for (int i = 0; i < numPlayers; i++)
-                Positioned(
-                  left: 40 + 35 * cos(2 * pi * i / numPlayers) - 12,
-                  top:  40 + 35 * sin(2 * pi * i / numPlayers) - 12,
-                  child: Icon(
-                    i == 0 ? Icons.person : Icons.smart_toy,
-                    color: turnIndex == i ? Colors.amber : Colors.white54,
-                    size: 24,
-                  ),
-                ),
-            ],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PlayerProfile(
+              name: 'CPU 1',
+              roleNumber: 1,
+              lives: lives[1],
+              isCurrentTurn: turnIndex == 1,
+            ),
+            PlayerProfile(
+              name: 'CPU 2',
+              roleNumber: 2,
+              lives: lives[2],
+              isCurrentTurn: turnIndex == 2,
+            ),
+            PlayerProfile(
+              name: 'CPU 3',
+              roleNumber: 3,
+              lives: lives[3],
+              isCurrentTurn: turnIndex == 3,
+            ),
+            PlayerProfile(
+              name: 'You',
+              roleNumber: 4,
+              lives: lives[0],
+              isCurrentTurn: turnIndex == 0,
+            ),
+          ],
         ),
       ),
-      //extendBodyBehindAppBar: true,
-      //backgroundColor: Colors.brown.shade900,
-      //appBar: AppBar(
-      //  leading: const BackButton(color: Colors.white),
-      //  backgroundColor: Colors.transparent,
-      //  elevation: 0,
-      //),
-      //body: Row(
       Row(
         children: [
           // ── LEFT: game area in a scrollable SafeArea ────────────────
           Expanded(
             flex: 2,
             child: SafeArea(
-              child: Center(                       // ← wrap in Center
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 24),
-                    PlayerArea(
-                      name: 'You',
-                      isCurrent: true,
-                      diceValues: allDice[0],
-                      small: false,
-                      lives: lives[0],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity, // Take full width
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 0),
+                          
+                          // Center dice area
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  PlayerArea(
+                                    name: '',
+                                    isCurrent: true,
+                                    diceValues: allDice[0],
+                                    small: false,
+                                    lives: lives[0],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Center controls
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!hasRolled && !_rolling) _buildRollButton(),
+                                  if (turnIndex == 0 && hasRolled && !_showBetControls) 
+                                    _buildUserControls(),
+                                  if (_showBetControls) _buildInlineBetControls(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                    if (!hasRolled && !_rolling) _buildRollButton(),
-                    if (turnIndex == 0 && hasRolled && !_showBetControls) _buildUserControls(),
-                    if (_showBetControls) _buildInlineBetControls(),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
           ),
 
-          // ── RIGHT: history log ───────────────────────────────────────
-          Expanded(
-            flex: 1,
-            child: Container(
-              margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 35),
-              padding: const EdgeInsets.all(6),
-             // decoration: BoxDecoration(color: Colors.black38, border: Border.all(color: Colors.white54)),
-              child: Scrollbar(
-                controller: _scrollController,
-                child: ListView.builder(
-                  controller: _scrollController,
-                   padding: const EdgeInsets.only(bottom: 8),
-                  itemCount: history.length,
-                  itemBuilder: (_, i) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(history[i], style: const TextStyle(color: Colors.white, fontSize: 11)),
-                  ),  
+          // ── RIGHT: collapsible history log ───────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: _showComments ? MediaQuery.of(context).size.width * 0.25 : 50,
+            child: Column(
+              children: [
+                // Comments toggle button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: Icon(
+                      _showComments ? Icons.comment : Icons.comment_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showComments = !_showComments;
+                      });
+                    },
+                    tooltip: _showComments ? 'Hide Comments' : 'Show Comments',
+                  ),
                 ),
-              ),
+                // Comments list
+                if (_showComments)
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 35),
+                      padding: const EdgeInsets.all(6),
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.only(bottom: 8),
+                          itemCount: history.length,
+                          itemBuilder: (_, i) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              history[i],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -507,63 +577,129 @@ void _nextTurn() {
   );
 
   Widget _buildInlineBetControls() {
-    final minVal = _betRaiseQuantity ? (bidQuantity ?? 0) + 1 : (bidFace ?? 1) + 1;
-    final maxVal = _betRaiseQuantity ? dicePerPlayer * numPlayers : 6;
-    final curr  = (_betRaiseQuantity ? _tempQty : _tempFace).toDouble();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.brown.shade800,
-        border: Border.all(color: Colors.amber),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          ChoiceChip(
-            label: const Text('Raise Qty'),
-            selected: _betRaiseQuantity,
-            onSelected: (_) => setState(() => _betRaiseQuantity = true),
-          ),
-          const SizedBox(width: 12),
-          ChoiceChip(
-            label: const Text('Raise Face'),
-            selected: !_betRaiseQuantity,
-            onSelected: (_) => setState(() => _betRaiseQuantity = false),
-          ),
-        ]),
-        const SizedBox(height: 12),
-        Row(children: [
-          Icon(_betRaiseQuantity ? Icons.format_list_numbered : Icons.looks_one),
-          Expanded(
-            child: Slider(
-              min: minVal.toDouble(),
-              max: maxVal.toDouble(),
-              divisions: maxVal - minVal,
-              value: curr.clamp(minVal.toDouble(), maxVal.toDouble()),
-              label: '${curr.toInt()}',
-              onChanged: (v) {
-                setState(() {
-                  if (_betRaiseQuantity) {
-                    _tempQty  = v.toInt();
-                  } else {
-                    _tempFace = v.toInt();
-                  }
-                });
-              },
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: Colors.brown.shade800,
+      border: Border.all(color: Colors.amber),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Quantity controls
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.brown.shade700,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Center(
+                child: Text(
+                  _tempQty.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
             ),
-          ),
-        ]),
-        const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          ElevatedButton(onPressed: _confirmBet, child: const Text('Confirm')),
-          const SizedBox(width: 16),
-          TextButton(onPressed: _cancelBet, child: const Text('Cancel')),
-        ]),
-      ]),
-    );
-  }
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
+                  onPressed: () {
+                    if (_tempQty < dicePerPlayer * numPlayers) {
+                      setState(() => _tempQty++);
+                    }
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minHeight: 20),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
+                  onPressed: _tempQty > (bidQuantity ?? 0) + 1 
+                    ? () => setState(() => _tempQty--)
+                    : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minHeight: 20),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Text('×', style: TextStyle(color: Colors.amber, fontSize: 24)),
+        // Face controls
+        Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.brown.shade700,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Center(
+                child: Text(
+                  _tempFace.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
+                  onPressed: _tempFace < 6 
+                    ? () => setState(() => _tempFace++)
+                    : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minHeight: 20),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
+                  onPressed: _tempFace > (bidFace ?? 1) + 1
+                    ? () => setState(() => _tempFace--)
+                    : null,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minHeight: 20),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(width: 12),
+        // Buttons
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: _tempQty > (bidQuantity ?? 0) || _tempFace > (bidFace ?? 1)
+                ? _confirmBet 
+                : null,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              child: const Text('Confirm'),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: _cancelBet,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
 
   /// 0→You, 1→CPU1, 2→CPU2, 3→CPU3
   Alignment _playerAlignment(int idx) {
@@ -581,71 +717,43 @@ void _nextTurn() {
     decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(8)),
     child: Text(label, style: const TextStyle(color: Colors.white)),
   );
-}
 
-class PlayerArea extends StatelessWidget {
-  final String     name;
-  final bool       isCurrent;
-  final List<int>? diceValues;
-  final bool       small;
-  final int        lives;
-
-  const PlayerArea({
-    required this.name,
-    required this.isCurrent,
-    this.diceValues,
-    this.small = false,
-    required this.lives, 
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // CPU dice = 32, your dice now = 30
-   final dieSize = isCurrent? 96.0 : 72.0;     // smaller if we ever show CPU dice here
-    final hearts = List<Widget>.generate(
-          lives,
-          (_) => const Icon(Icons.favorite, size: 12, color: Colors.redAccent),);
-    final diceWidgets = isCurrent
-        ? (diceValues ?? []).map((v) => SizedBox(
-            width: dieSize,
-            height: dieSize,
-            child: DiceFace(value: v),
-          )).toList()
-
-        : List.generate(dicePerPlayer, (_) => SizedBox(
-            width: dieSize,
-            height: dieSize,
-            child: const CoveredDice(),
-          ));
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          name,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: isCurrent ? 20 : 14,  // big label for you
+  Widget _buildHeartBox(int lives) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.only(top: 6, bottom: 6, left: 12, right: 12),
+          decoration: BoxDecoration(
+            color: Colors.brown.shade800,
+            border: Border(
+              left: const BorderSide(color: Colors.amber, width: 3),
+              right: const BorderSide(color: Colors.amber, width: 3),
+              bottom: const BorderSide(color: Colors.amber, width: 3),
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              lives,
+              (_) => const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 1),
+                child: Icon(
+                  Icons.favorite,
+                  size: 30, // Reduced heart size
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 6),
-        Row(mainAxisSize: MainAxisSize.min, children: hearts),
-        const SizedBox(height: 6),
-        FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets)),
-      ],
+      ),
     );
   }
-}
-
-class CoveredDice extends StatelessWidget {
-  const CoveredDice({super.key});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.symmetric(horizontal: 2),
-    decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(6)),
-    child: const Center(child: Icon(Icons.help_outline, color: Colors.white)),
-  );
 }
