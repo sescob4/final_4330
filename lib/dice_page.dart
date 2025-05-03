@@ -399,13 +399,14 @@ void _nextTurn() {
           Expanded(
             flex: 1,
             child: Container(
-              margin: const EdgeInsets.all(8),
+              margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 35),
               padding: const EdgeInsets.all(6),
              // decoration: BoxDecoration(color: Colors.black38, border: Border.all(color: Colors.white54)),
               child: Scrollbar(
                 controller: _scrollController,
                 child: ListView.builder(
                   controller: _scrollController,
+                   padding: const EdgeInsets.only(bottom: 8),
                   itemCount: history.length,
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
