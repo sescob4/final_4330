@@ -134,6 +134,10 @@ flutter:
     - assets/role4.png
     - assets/group.png
     - assets/single.png
+    - assets/role1_profile.png
+    - assets/role2_profile.png
+    - assets/role3_profile.png
+    - assets/role4_profile.png
 
 
 

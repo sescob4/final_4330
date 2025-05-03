@@ -522,8 +522,8 @@ class PlayerArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // CPU dice = 32, your dice now = 30
     final dieSize = small ? 32.0 : 30.0;
+    final profileSize = small ? 40.0 : 50.0;  // Size for profile picture
 
     final diceWidgets = isCurrent
         ? (diceValues ?? []).map((v) => SizedBox(
@@ -540,9 +540,38 @@ class PlayerArea extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        if (isCurrent) // Only show profile for current player (You)
+          Container(
+            width: profileSize,
+            height: profileSize,
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.amber,
+                width: 2,
+              ),
+              image: const DecorationImage(
+                image: AssetImage('assets/role1_profile.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        Text(
+          name, 
+          style: const TextStyle(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold
+          )
+        ),
         const SizedBox(height: 6),
-        FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets)),
+        FittedBox(
+          fit: BoxFit.scaleDown, 
+          child: Row(
+            mainAxisSize: MainAxisSize.min, 
+            children: diceWidgets
+          )
+        ),
       ],
     );
   }
