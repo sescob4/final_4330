@@ -186,7 +186,7 @@ class HomePage extends StatelessWidget {
         final String centerTitle = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
             : "Liar's Bar";
-
+        
         return Scaffold(
           body: Stack(
             children: [
@@ -251,6 +251,34 @@ class HomePage extends StatelessWidget {
                         await FirebaseAuth.instance.signOut();
                         Navigator.pushReplacementNamed(context, '/login');
                       },
+                    ),
+                  ),
+                ),
+              // User Stats button in the top-left
+              if (FirebaseAuth.instance.currentUser != null)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/userstats');
+                        },
+                        child: const Text(
+                          'User Stats',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
