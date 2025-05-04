@@ -1,4 +1,5 @@
-// lib/screens/dice_page.dart
+// ─────────────────────────────────────────────────────────────────────────────
+// Imports
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -7,83 +8,57 @@ import 'widgets/dice_face.dart';
 import 'widgets/player_profile.dart';
 import 'widgets/player_area.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+const int numPlayers = 4;       // Total players: You + 3 CPUs
+const int dicePerPlayer = 5;    // Dice per player
 
-
-
-const int numPlayers = 4; 
-const int dicePerPlayer = 5;
-
+// ─────────────────────────────────────────────────────────────────────────────
+// DicePage: Main game screen widget
 class DicePage extends StatefulWidget {
   const DicePage({super.key});
+
   @override
   State<DicePage> createState() => _DicePageState();
 }
 
 class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin {
-  // ────────────────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────────────────
   // State fields
-  late List<List<int>> allDice;
-  late List<bool>     alive;
-  late List<int> lives;      // new: track remaining lives per player
-  int                turnIndex         = 0;     // 0 = You, 1–3 = CPUs
-  bool               hasRolled         = false; // user may roll only once per turn
-  int?               bidQuantity;
-  int?               bidFace;
+  late List<List<int>> allDice;         // All players' dice values
+  late List<bool> alive;                // Alive flags per player
+  late List<int> lives;                 // Lives remaining per player
+  int turnIndex = 0;                    // 0 = You, 1–3 = CPUs
+  bool hasRolled = false;               // Has current player rolled?
+  int? bidQuantity;                     // Current bid quantity
+  int? bidFace;                         // Current bid face
 
-  // rolling‐animation state:
-   bool               _rolling          = false;
-    final Duration     _rollAnimDuration = Duration(milliseconds: 800);
-   final Duration     _rollAnimInterval = Duration(milliseconds: 100);
-   Timer?             _rollTimer;
+  // Rolling animation state
+  bool _rolling = false;
+  final Duration _rollAnimDuration = Duration(milliseconds: 800);
+  final Duration _rollAnimInterval = Duration(milliseconds: 100);
+  Timer? _rollTimer;
 
-  // Inline bet UI
-  bool               _showBetControls  = false;
-  bool               _betRaiseQuantity = true;
-  late int           _tempQty;
-  late int           _tempFace;
+  // Inline betting UI state
+  bool _showBetControls = false;
+  bool _betRaiseQuantity = true;
+  late int _tempQty;
+  late int _tempFace;
 
-  final Random               _rand            = Random();
-  late AnimationController   _controller;
-  late Animation<double>     _animation;
+  // Random generator for CPU actions
+  final Random _rand = Random();
 
-  // history log
-  final List<String>         history           = [];
-  final ScrollController     _scrollController = ScrollController();
-  
-  bool _showComments = false;  
+  // Animation controller (reserved)
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
-void _showGameMenu() {
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (_) => AlertDialog(
-      backgroundColor: const Color(0xFF3E2723),
-      title: const Text('Game Menu', style: TextStyle(color: Colors.white)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          /*Resume can go here later*/
-          TextButton.icon(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            label: const Text('Settings', style: TextStyle(color: Colors.white)),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/settings');
-            },
-          ),
-          TextButton.icon(
-            icon: const Icon(Icons.home, color: Colors.white),
-            label: const Text('Main Menu', style: TextStyle(color: Colors.white)),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/home');
-            },
-          ),
-        ],
-      ),
-    ),
-  );
-}
+  // History log / comments panel
+  final List<String> history = [];
+  final ScrollController _scrollController = ScrollController();
+  bool _showComments = false;
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Initialization & disposal
   @override
   void initState() {
     super.initState();
@@ -105,18 +80,22 @@ void _showGameMenu() {
     super.dispose();
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Game state setup
   void _initGameState() {
-    allDice           = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
-    alive             = List.filled(numPlayers, true);
-     lives       = List.filled(numPlayers, 3);   // ← everyone starts with 3 lives
-    turnIndex         = 0;
-    hasRolled         = false;
-    bidQuantity       = null;
-    bidFace           = null;
-    _showBetControls  = false;
+    allDice = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
+    alive = List.filled(numPlayers, true);
+    lives = List.filled(numPlayers, 3);
+    turnIndex = 0;
+    hasRolled = false;
+    bidQuantity = null;
+    bidFace = null;
+    _showBetControls = false;
     history.clear();
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Logging utility: append to history and scroll
   void _addLog(String entry) {
     history.add(entry);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -126,127 +105,115 @@ void _showGameMenu() {
     });
   }
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Game menu dialog
+  void _showGameMenu() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF3E2723),
+        title: const Text('Game Menu', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton.icon(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              label: const Text('Settings', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.home, color: Colors.white),
+              label: const Text('Main Menu', style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacementNamed(context, '/home');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // User actions A lot of work being done
-
+  // ───────────────────────────────────────────────────────────────────────────
+  // User actions: roll, bet, call
   void rollDice() {
-  // guard against multiple rolls or re-entry
-  if (turnIndex != 0 || hasRolled || _rolling) return;
-
-  // prepare for animation
-  _rolling = true;
-  final finalRoll = List.generate(
-    dicePerPlayer,
-    (_) => _rand.nextInt(6) + 1,
-  );
-  int ticks = (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
-  int count = 0;
-
-  Timer.periodic(_rollAnimInterval, (timer) {
-    count++;
-    // on each tick, show random faces
-    setState(() {
-      allDice[0] = List.generate(
-        dicePerPlayer,
-        (_) => _rand.nextInt(6) + 1,
-      );
-    });
-
-    if (count >= ticks) {
-      timer.cancel();
-      // commit the final roll, mark as rolled, and roll CPU hands
+    if (turnIndex != 0 || hasRolled || _rolling) return;
+    _rolling = true;
+    final finalRoll = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
+    int ticks = (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
+    int count = 0;
+    Timer.periodic(_rollAnimInterval, (timer) {
+      count++;
       setState(() {
-        allDice[0] = finalRoll;
-        for (var i = 1; i < numPlayers; i++) {
-          allDice[i] = List.generate(
-            dicePerPlayer,
-            (_) => _rand.nextInt(6) + 1,
-          );
-        }
-        hasRolled = true;
-        _rolling  = false;
+        allDice[0] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
       });
-      _addLog('You rolled: ${allDice[0].join(', ')}');
-
-      // hand off to next player after a short pause
-       _addLog('Your turn: Bet or Call');
-    }
-  });
-}
+      if (count >= ticks) {
+        timer.cancel();
+        setState(() {
+          allDice[0] = finalRoll;
+          for (var i = 1; i < numPlayers; i++) {
+            allDice[i] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
+          }
+          hasRolled = true;
+          _rolling = false;
+        });
+        _addLog('You rolled: ${allDice[0].join(', ')}');
+        _addLog('Your turn: Bet or Call');
+      }
+    });
+  }
 
   void _userBet() {
     if (turnIndex != 0 || !hasRolled) return;
     setState(() {
-      _showBetControls  = true;
+      _showBetControls = true;
       _betRaiseQuantity = true;
-      _tempQty          = (bidQuantity ?? 0) + 1;
-      _tempFace         = (bidFace     ?? 1) + 1;
+      _tempQty = (bidQuantity ?? 0) + 1;
+      _tempFace = (bidFace ?? 1) + 1;
     });
   }
 
   void _confirmBet() {
-  if (turnIndex != 0 || !hasRolled) return;
-
-  setState(() {
-    // If we're raising the quantity, set bidQuantity and
-    // default bidFace to 1 if it's the first bet.
-    if (_betRaiseQuantity) {
-      bidQuantity = _tempQty;
-      bidFace     = bidFace ?? 1;
-    } else {
-      // Raising the face: set bidFace and
-      // default bidQuantity to 1 if it's the first bet.
-      bidFace     = _tempFace;
-      bidQuantity = bidQuantity ?? 1;
-    }
-
-    _addLog('You bet $bidQuantity × $bidFace');
-    _showBetControls = false;
-
-    // Advance to next alive player
-    do {
-      turnIndex = (turnIndex + 1) % numPlayers;
-    } while (!alive[turnIndex]);
-  });
-
-  // If it's now a CPU's turn, schedule its action
-  if (turnIndex != 0) {
-    Future.delayed(const Duration(milliseconds: 400), _cpuAction);
-  }
-}
-
-  void _cancelBet() {
-    setState(() => _showBetControls = false);
+    if (turnIndex != 0 || !hasRolled) return;
+    setState(() {
+      if (_betRaiseQuantity) {
+        bidQuantity = _tempQty;
+        bidFace = bidFace ?? 1;
+      } else {
+        bidFace = _tempFace;
+        bidQuantity = bidQuantity ?? 1;
+      }
+      _addLog('You bet $bidQuantity × $bidFace');
+      _showBetControls = false;
+      do { turnIndex = (turnIndex + 1) % numPlayers; } while (!alive[turnIndex]);
+    });
+    if (turnIndex != 0) Future.delayed(const Duration(milliseconds: 400), _cpuAction);
   }
 
+  void _cancelBet() => setState(() => _showBetControls = false);
   void _userCall() {
     if (turnIndex != 0 || !hasRolled || bidQuantity == null) return;
     _addLog('You called bluff on ${bidQuantity!} × ${bidFace!}');
     _resolveCall(0);
   }
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // CPU actions
-
+  // ───────────────────────────────────────────────────────────────────────────
+  // CPU actions: bet or call
   void _cpuAction() {
-  // only consider calling once there's an existing bid
-  if (bidQuantity != null && bidFace != null) {
-    final totalDice = numPlayers * dicePerPlayer;
-    final expected  = totalDice / 6;
-    // chance goes from 0.0 at q=expected, up to 1.0 at q=totalDice
-    final rawChance = (bidQuantity! - expected) / (totalDice - expected);
-    final callChance = rawChance.clamp(0.0, 1.0);
-
-    if (_rand.nextDouble() < callChance) {
-      _handleCpuCall();
-      return;
+    if (bidQuantity != null && bidFace != null) {
+      final totalDice = numPlayers * dicePerPlayer;
+      final expected = totalDice / 6;
+      final rawChance = (bidQuantity! - expected) / (totalDice - expected);
+      final callChance = rawChance.clamp(0.0, 1.0);
+      if (_rand.nextDouble() < callChance) { _handleCpuCall(); return; }
     }
+    _handleCpuBet();
   }
-
-  // otherwise, raise the bid
-  _handleCpuBet();
-}
 
   void _handleCpuCall() {
     final cpuIdx = turnIndex + 1;
@@ -258,17 +225,14 @@ void _showGameMenu() {
   }
 
   void _handleCpuBet() {
-    final cpuIdx  = turnIndex + 1;
-    final oldQty  = bidQuantity ?? 0;
-    final oldFace = bidFace     ?? 1;
+    final cpuIdx = turnIndex + 1;
+    final oldQty = bidQuantity ?? 0;
+    final oldFace = bidFace ?? 1;
     bool raiseQty = _rand.nextBool();
     if (!raiseQty && oldFace >= 6) raiseQty = true;
-    final newQty  = raiseQty ? oldQty + 1 : oldQty;
+    final newQty = raiseQty ? oldQty + 1 : oldQty;
     final newFace = raiseQty ? oldFace : min(oldFace + 1, 6);
-    setState(() {
-      bidQuantity = newQty;
-      bidFace     = newFace;
-    });
+    setState(() { bidQuantity = newQty; bidFace = newFace; });
     final msg = 'CPU $cpuIdx bets $newQty × $newFace';
     _addLog(msg);
     ScaffoldMessenger.of(context)
