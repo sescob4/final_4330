@@ -10,6 +10,7 @@ import 'widgets/player_area.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
+enum _LockMode { none, qty, face }
 const int numPlayers = 4;       // Total players: You + 3 CPUs
 const int dicePerPlayer = 5;    // Dice per player
 
@@ -32,6 +33,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   bool hasRolled = false;               // Has current player rolled?
   int? bidQuantity;                     // Current bid quantity
   int? bidFace;                         // Current bid face
+  _LockMode _lockMode = _LockMode.none;
 
   // Rolling animation state
   bool _rolling = false;
@@ -44,6 +46,8 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   bool _betRaiseQuantity = true;
   late int _tempQty;
   late int _tempFace;
+  late int _origQty;
+  late int _origFace;
 
   // Random generator for CPU actions
   final Random _rand = Random();
@@ -175,6 +179,9 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
       _betRaiseQuantity = true;
       _tempQty = (bidQuantity ?? 0) + 1;
       _tempFace = (bidFace ?? 1) + 1;
+      _origQty = _tempQty;
+      _origFace = _tempFace;
+      _lockMode = _LockMode.none;
     });
   }
 
@@ -216,16 +223,15 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   }
 
   void _handleCpuCall() {
-    final cpuIdx = turnIndex + 1;
+    final cpuIdx = turnIndex;
     _addLog('CPU $cpuIdx calls bluff');
-    _resolveCall(turnIndex);
-    Future.delayed(const Duration(milliseconds: 400), () {
-      if (alive[0] && hasRolled) _nextTurn();
-    });
+    // immediately resolve the call (this resets turnIndex, hasRolled, etc.)
+  _resolveCall(turnIndex);
+ 
   }
 
   void _handleCpuBet() {
-    final cpuIdx = turnIndex + 1;
+    final cpuIdx = turnIndex;
     final oldQty = bidQuantity ?? 0;
     final oldFace = bidFace ?? 1;
     bool raiseQty = _rand.nextBool();
@@ -252,7 +258,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   final actual = counts[face] ?? 0;
   final last   = (turnIndex + numPlayers - 1) % numPlayers;
   final loser  = actual < qty ? last : caller;
-  final loserName = loser == 0 ? 'You' : 'CPU ${loser + 1}';
+  final loserName = loser == 0 ? 'You' : 'CPU $loser';
 
   // ─── decrement lives / eliminate ───────────────────────────
   setState(() {
@@ -514,7 +520,7 @@ _buildHeartBox(lives[0]),
           alignment: _playerAlignment(i),
           child: alive[i]
             ? PlayerArea(
-                name: i == 0 ? 'You' : 'CPU ${i + 1}',
+                name: i == 0 ? 'You' : 'CPU $i',
                 isCurrent: i == 0,
                 diceValues: i == 0 ? allDice[0] : null,
                 small: i != 0,
@@ -544,7 +550,9 @@ _buildHeartBox(lives[0]),
     ]),
   );
 
-  Widget _buildInlineBetControls() {
+ 
+// Inline‐bet controls (mutually resetting fields)
+Widget _buildInlineBetControls() {
   return Container(
     margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
     padding: const EdgeInsets.all(8),
@@ -555,99 +563,129 @@ _buildHeartBox(lives[0]),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Quantity controls
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 20,
-              decoration: BoxDecoration(
-                color: Colors.brown.shade700,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  _tempQty.toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
+        // ── Qty display + arrows ────────────────────────────
+        Container(
+          width: 40, height: 20,
+          decoration: BoxDecoration(
+            color: Colors.brown.shade700,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text('$_tempQty',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
-                  onPressed: () {
-                    if (_tempQty < dicePerPlayer * numPlayers) {
-                      setState(() => _tempQty++);
-                    }
-                  },
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minHeight: 20),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
-                  onPressed: _tempQty > (bidQuantity ?? 0) + 1 
-                    ? () => setState(() => _tempQty--)
-                    : null,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minHeight: 20),
-                ),
-              ],
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Qty ↑
+            IconButton(
+              icon: Icon(Icons.arrow_drop_up,
+                color: Colors.amber,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // 1) reset face to original
+                  _tempFace = _origFace;
+                  // 2) now lock qty and increment
+                  _lockMode = _LockMode.qty;
+                  if (_tempQty < dicePerPlayer * numPlayers) _tempQty++;
+                });
+              },
+            ),
+            // Qty ↓
+            IconButton(
+              icon: Icon(Icons.arrow_drop_down,
+                color: Colors.amber,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // 1) reset face
+                  _tempFace = _origFace;
+                  // 2) lock qty and decrement
+                  _lockMode = _LockMode.qty;
+                  if (_tempQty > (bidQuantity ?? 0) + 1) _tempQty--;
+                });
+              },
             ),
           ],
         ),
+
+        const SizedBox(width: 8),
         const Text('×', style: TextStyle(color: Colors.amber, fontSize: 24)),
-        // Face controls
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.brown.shade700,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Center(
-                child: Text(
-                  _tempFace.toString(),
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
+        const SizedBox(width: 8),
+
+        // ── Face display + arrows ────────────────────────────
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            color: Colors.brown.shade700,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text('$_tempFace',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
-                  onPressed: _tempFace < 6 
-                    ? () => setState(() => _tempFace++)
-                    : null,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minHeight: 20),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
-                  onPressed: _tempFace > (bidFace ?? 1) + 1
-                    ? () => setState(() => _tempFace--)
-                    : null,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minHeight: 20),
-                ),
-              ],
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Face ↑
+            IconButton(
+              icon: Icon(Icons.arrow_drop_up,
+                color: Colors.amber,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // reset qty first
+                  _tempQty = _origQty;
+                  // lock face and increment
+                  _lockMode = _LockMode.face;
+                  if (_tempFace < 6) _tempFace++;
+                });
+              },
+            ),
+            // Face ↓
+            IconButton(
+              icon: Icon(Icons.arrow_drop_down,
+                color: Colors.amber,
+                size: 20,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // reset qty
+                  _tempQty = _origQty;
+                  // lock face and decrement
+                  _lockMode = _LockMode.face;
+                  if (_tempFace > (bidFace ?? 1) + 1) _tempFace--;
+                });
+              },
             ),
           ],
         ),
+
         const SizedBox(width: 12),
-        // Buttons
+        // ── Confirm / Cancel ─────────────────────────────────────────
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
-              onPressed: _tempQty > (bidQuantity ?? 0) || _tempFace > (bidFace ?? 1)
-                ? _confirmBet 
+              onPressed: (_tempQty > (bidQuantity ?? 0) || _tempFace > (bidFace ?? 1))
+                ? _confirmBet
                 : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -668,6 +706,8 @@ _buildHeartBox(lives[0]),
     ),
   );
 }
+
+
 
   /// 0→You, 1→CPU1, 2→CPU2, 3→CPU3
   Alignment _playerAlignment(int idx) {
