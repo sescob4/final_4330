@@ -504,6 +504,10 @@ _buildHeartBox(lives[0]),
                     child: Container(
                       margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 35),
                       padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.5),    // ← this is the translucent fill
+                      borderRadius: BorderRadius.circular(8),  // ← round the corners
+                      ),
                       child: Scrollbar(
                         controller: _scrollController,
                         child: ListView.builder(

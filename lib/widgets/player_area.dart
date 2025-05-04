@@ -49,9 +49,9 @@ class PlayerArea extends StatelessWidget {
             fontSize: isCurrent ? 20 : 14,
           ),
         ),
-        const SizedBox(height: 6),
-        Row(mainAxisSize: MainAxisSize.min, children: hearts),
-        const SizedBox(height: 6),
+        
+        
+        
         FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: diceWidgets)),
       ],
     );
