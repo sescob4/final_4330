@@ -290,17 +290,22 @@ class UserClassification extends StatelessWidget {
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         final userId = info['uid']!;
-                        final userName = info['username']!;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GameQUEUE(
-                              gameChosen: gameChosen,
-                              userID: userId,
-                              userName: userName,
+                        final userName = info['username']!;//////////////////////HERE the name is passed!!!! amy-edit Later()()()()()()()
+                        if (gameChosen == "deck") {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => LiarsDeckGamePage(gameId: "AI BOT"),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DicePage(),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),
@@ -505,6 +510,7 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
+                "createdBy": userId,
                 "playerTURN": "",
                 "chat": ["Starting Game Chat....."],
               "betDeclared": "",
@@ -585,7 +591,8 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DeckSessions.push();
               await newGameSessionRef.set({
-               'playerTurn': "",
+                "createdBy": userId,
+                'playerTurn': "",
                 "chat": ["Starting Game Chat....."],
               'gameLock': false,
               "playersAndCards":{
