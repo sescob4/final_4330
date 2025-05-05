@@ -510,6 +510,7 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
+                "createdBy": userId,
                 "playerTURN": "",
                 "chat": ["Starting Game Chat....."],
               "betDeclared": "",
@@ -590,7 +591,8 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DeckSessions.push();
               await newGameSessionRef.set({
-               'playerTurn': "",
+                "createdBy": userId,
+                'playerTurn': "",
                 "chat": ["Starting Game Chat....."],
               'gameLock': false,
               "playersAndCards":{
