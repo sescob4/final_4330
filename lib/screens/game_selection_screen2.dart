@@ -135,8 +135,6 @@ class GameSelectionPage2 extends StatelessWidget {
                       // fontScale: .5,
                       onTap: () async {
                         print("game selected::deck:");
-                        final dbService = DatabaseService();
-                        final gameId = await dbService.createNewGame();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -174,7 +172,7 @@ class GameSelectionPage2 extends StatelessWidget {
     );
   }
 }
-
+/////////////////////////////////////working database do not touch below this pretty please !
 class UserClassification extends StatelessWidget {
   final String gameChosen;
   const UserClassification({super.key, required this.gameChosen});
@@ -507,6 +505,8 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
+                "playerTURN": "",
+                "chat": ["Starting Game Chat....."],
               "betDeclared": "",
                 "gameLock": false,
                 "timestamp": ServerValue.timestamp,
@@ -535,6 +535,7 @@ class QueueDeck {
         else {
           try {
             final snapshot = await _DeckSessions.orderByChild("timestamp").limitToLast(5).get();
+
             int addedToGame = 0;
             //this is to see if a session van be added_____________________________________________________
             for(final session in snapshot.children){
@@ -584,13 +585,17 @@ class QueueDeck {
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DeckSessions.push();
               await newGameSessionRef.set({
-                "betDeclared": "",
-                "gameLock": false,
-                "timestamp": ServerValue.timestamp,
-                "playersAndCards":{
-                  userId: [0,0,0,0]
-                }
+               'playerTurn': "",
+                "chat": ["Starting Game Chat....."],
+              'gameLock': false,
+              "playersAndCards":{
+                userId: [0,0,0,0]
+              },
+              'cardDeclared': '',
+              'cardDownStack': '',
+              'timeStamp': ServerValue.timestamp,
               });
+
 
               final booleanSession = newGameSessionRef.key;
               if(booleanSession != null){
