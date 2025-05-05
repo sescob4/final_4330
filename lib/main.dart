@@ -107,7 +107,7 @@ class HomePage extends StatelessWidget {
   User? user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     if (user.isAnonymous) {
-      return 'Guest';  // "Guest Player" instead of "Unknown Player"
+      return 'Guest Player';  // "Guest Player" instead of "Unknown Player"
     }
     // Read username from database
     return await _databaseService.getCurrentUsername();
