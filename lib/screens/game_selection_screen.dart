@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../liars_deck_game_ai.dart';
+import 'settings.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../Databaseservice.dart';
@@ -23,7 +24,7 @@ class GameSelectionPage extends StatelessWidget {
               label: const Text('Resume', 
                   style: TextStyle(color: Colors.white)),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, '/resume');
               },
             ), */
             TextButton.icon(
