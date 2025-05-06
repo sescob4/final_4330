@@ -34,6 +34,8 @@ Future<void> main() async {
     );
     await FirebaseFirestore.instance.clearPersistence();
     await FirebaseFirestore.instance.enableNetwork();
+     // Force sign out any existing user on app start
+    await FirebaseAuth.instance.signOut();
     print("Firestore network enabled.");
   } on FirebaseException catch (e) {
     if (e.code != 'duplicate-app') {
