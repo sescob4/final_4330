@@ -149,7 +149,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
-                      crownImagePath: "assets/dice.png",
+                      crownImagePath: "assets/dice2.png",
                       // fontScale: .5,
                       onTap: () {
                         print("game selected::deck:");
@@ -261,7 +261,6 @@ class UserClassification extends StatelessWidget {
                     child: ImageButton(
                       label: "Multiple\nUsers",
                       crownImagePath: "assets/group.png",
-                      scaleFactor: 30,
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         //final user = FirebaseAuth.instance.currentUser;
