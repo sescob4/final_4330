@@ -127,10 +127,9 @@ class LiarsDeckGameState {
     do {
       currentPlayer = (currentPlayer + 1) % players.length;
       attempts++;
-    } while (
-      (players[currentPlayer].eliminated || players[currentPlayer].hand.isEmpty) 
-      && attempts < players.length
-    );
+    } while ((players[currentPlayer].eliminated ||
+            players[currentPlayer].hand.isEmpty) &&
+        attempts < players.length);
   }
 }
 
@@ -161,22 +160,21 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   }
 
   void _addLog(String s) {
-  setState(() {
-    history.add(s);
-  });
+    setState(() {
+      history.add(s);
+    });
 
-  // Delay scroll after rebuild safely
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (_scroll.hasClients) {
-      _scroll.animateTo(
-        _scroll.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  });
-}
-
+    // Delay scroll after rebuild safely
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   void _showOverlay(String msg) {
     setState(() {
@@ -236,9 +234,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     }
 
     final prevIdx = game.lastPlayerIdx;
-    final prevPlayer = (prevIdx >= 0 && prevIdx < game.players.length) 
-      ? game.players[prevIdx] 
-      : null;
+    final prevPlayer = (prevIdx >= 0 && prevIdx < game.players.length)
+        ? game.players[prevIdx]
+        : null;
 
     final prevDumped = prevPlayer != null &&
         !prevPlayer.eliminated &&
@@ -270,7 +268,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     _maybeScheduleAI();
   }
 
-
   void _tapCard(DeckCard c) {
     if (!game.isHumanTurn()) return;
     setState(() => selected.contains(c) ? selected.remove(c) : selected.add(c));
@@ -296,18 +293,25 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   Widget _card(DeckCard c, {bool selectable = false}) => GestureDetector(
         onTap: selectable ? () => _tapCard(c) : null,
         child: Container(
-          width: 36,
-          height: 54,
+          width: 48, // increased size
+          height: 72,
           margin: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             border: Border.all(
-                color: selectable && selected.contains(c)
-                    ? Colors.blueAccent
-                    : Colors.transparent,
-                width: 2),
-            borderRadius: BorderRadius.circular(4),
+              color: selectable && selected.contains(c)
+                  ? Colors.blueAccent
+                  : Colors.transparent,
+              width: 2,
+            ),
+            borderRadius: BorderRadius.circular(6),
           ),
-          child: SvgPicture.asset(c.assetPath, fit: BoxFit.cover),
+          clipBehavior: Clip.hardEdge, // clip anything outside
+          child: SvgPicture.asset(
+            c.assetPath,
+            width: 48,
+            height: 72,
+            fit: BoxFit.cover, // fill the container
+          ),
         ),
       );
 
@@ -316,36 +320,63 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       required bool selectable,
       required bool highlight}) {
     final label = p.eliminated
-        ? '${p.name}  ⚠ ELIMINATED ⚠'
+        ? '${p.name} ⚠ ELIMINATED ⚠'
         : '${p.name} (${p.rouletteChambers}/6)';
     final lblCol = p.eliminated
         ? Colors.orangeAccent
         : highlight
             ? Colors.green
             : Colors.white;
-    final cards = p.hand.map((c) => _card(c, selectable: selectable)).toList();
+
+    final isUser = p.name == 'You';
+
+    final cardOffset =
+        isUser ? 0.0 : -25.0; // slight left shift for AI card stack
+
+    final cards = isUser
+        ? p.hand.map((c) => _card(c, selectable: selectable)).toList()
+        : List.generate(
+            p.hand.length,
+            (i) => Positioned(
+              left: cardOffset + i * 20.0,
+              child: SvgPicture.asset(
+                'assets/cardback.svg',
+                width: 38,
+                height: 56,
+              ),
+            ),
+          );
+
+    final totalWidth = _handWidth(p.hand.length);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(label,
-            style: TextStyle(
-                color: lblCol, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(
+            color: lblCol,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+        ),
         const SizedBox(height: 4),
         if (!p.eliminated)
-          Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: Colors.black45,
-              border: Border.all(color: highlight ? Colors.green : Colors.grey),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: horizontal
-                ? Row(mainAxisSize: MainAxisSize.min, children: cards)
-                : Column(mainAxisSize: MainAxisSize.min, children: cards),
-          ),
+          isUser
+              ? Row(mainAxisSize: MainAxisSize.min, children: cards)
+              : SizedBox(
+                  width: totalWidth,
+                  height: 62,
+                  child: Stack(children: cards),
+                ),
       ],
     );
+  }
+
+  double _handWidth(int count) {
+    if (count <= 1) return 42;
+    return 42 + (count - 1) * 20.0;
   }
 
   @override
@@ -376,10 +407,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       return Stack(
         children: [
           Positioned.fill(
-            child:Image.asset(
-              'assets/table1.png',
-              fit:BoxFit.cover
-            ),
+            child: Image.asset('assets/table1.png', fit: BoxFit.cover),
           ),
           // Header
           Positioned(
@@ -400,50 +428,75 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   color: Color(0xFFBCAAA4), shape: BoxShape.circle),
             ),
           ),
-          // Played cards at center
+          // Played cards at center (hidden using card backs)
           Positioned(
-            left: center.dx - (game.tableCards.length * cardW) / 2,
-            top: center.dy - cardH / 2,
-            child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: game.tableCards.map(_card).toList()),
+            left: center.dx - (game.tableCards.length * 40) / 2,
+            top: center.dy - 31, // Half of card height (62/2)
+            child: SizedBox(
+              width: game.tableCards.length * 20.0 + 22,
+              height: 62,
+              child: Stack(
+                children: List.generate(
+                  game.tableCards.length,
+                  (i) => Positioned(
+                    left: i * 20.0,
+                    child: SvgPicture.asset(
+                      'assets/cardback.svg',
+                      width: 42,
+                      height: 62,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-          // AI1 (left)
+
+          // AI1 (left, closer to table)
           Positioned(
-            left: center.dx - radius - 140,
-            top: vTop(game.players[1]),
-            child: _hand(game.players[1],
-                horizontal: false,
-                selectable: false,
-                highlight: game.currentPlayer == 1 && !game.roundOver),
+            left: 200,
+            top: center.dy - 40,
+            child: _hand(
+              game.players[1],
+              horizontal: true,
+              selectable: false,
+              highlight: game.currentPlayer == 1 && !game.roundOver,
+            ),
           ),
-          // AI2 (top)
+
+          // AI2 (top center)
           Positioned(
-            left: hLeft(game.players[2]),
-            top: center.dy - radius - cardH - 25,
-            child: _hand(game.players[2],
-                horizontal: true,
-                selectable: false,
-                highlight: game.currentPlayer == 2 && !game.roundOver),
+            left: 395,
+            top: 40,
+            child: _hand(
+              game.players[2],
+              horizontal: true,
+              selectable: false,
+              highlight: game.currentPlayer == 2 && !game.roundOver,
+            ),
           ),
-          // AI3 (right)
+
+          // AI3 (right, closer to table)
           Positioned(
-            left: center.dx + radius + 20,
-            top: vTop(game.players[3]),
-            child: _hand(game.players[3],
-                horizontal: false,
-                selectable: false,
-                highlight: game.currentPlayer == 3 && !game.roundOver),
+            right: 220,
+            top: center.dy - 40,
+            child: _hand(
+              game.players[3],
+              horizontal: true,
+              selectable: false,
+              highlight: game.currentPlayer == 3 && !game.roundOver,
+            ),
           ),
+
           // You (bottom)
           Positioned(
-            left: hLeft(game.players[0]),
-            top: center.dy + radius + 25,
+            left: 325,
+            top: center.dy + radius + 15,
             child: _hand(game.players[0],
                 horizontal: true,
                 selectable: game.isHumanTurn(),
                 highlight: game.currentPlayer == 0 && !game.roundOver),
           ),
+
           // Console (right side)
           Positioned(
             top: padTop + 40,
@@ -478,28 +531,34 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          // Bottom controls
+          // Bottom controls (stacked for more room)
           Positioned(
             left: 8,
             bottom: 8,
             child: game.roundOver
                 ? ElevatedButton(
                     onPressed: _nextRound, child: const Text('Next Round'))
-                : Row(children: [
-                    ElevatedButton(
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton(
                         onPressed: game.isHumanTurn() && selected.isNotEmpty
                             ? _playSelected
                             : null,
-                        child: const Text('Play')),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
+                        child: const Text('Play Cards'),
+                      ),
+                      const SizedBox(height: 6),
+                      ElevatedButton(
                         onPressed:
                             game.isHumanTurn() && game.tableCards.isNotEmpty
                                 ? _callBluff
                                 : null,
-                        child: const Text('Call Bluff')),
-                  ]),
+                        child: const Text('Call Bluff'),
+                      ),
+                    ],
+                  ),
           ),
+
           // Overlay for "WIN" or "BLUFF"
           if (overlayMsg != null) ...[
             AnimatedOpacity(
