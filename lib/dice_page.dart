@@ -176,8 +176,8 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     if (turnIndex != 0 || !hasRolled) return;
     setState(() {
       _showBetControls = true;
-      _tempQty = (bidQuantity ?? 0) + 1;
-      _tempFace = (bidFace ?? 1);
+      _tempQty = bidQuantity ?? 1;  // Start from last bid quantity or 1
+      _tempFace = bidFace ?? 1;      // Start from last bid face or 1
       _origQty = _tempQty;
       _origFace = _tempFace;
       _lockMode = _LockMode.none;
@@ -186,8 +186,10 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
 
   void _confirmBet() {
     if (turnIndex != 0 || !hasRolled) return;
+    // Only confirm if quantity or face is incremented
+    if (!(_tempQty > (bidQuantity ?? 0) || _tempFace > (bidFace ?? 1))) return;
+
     setState(() {
-      // Always update both bidQuantity and bidFace from temp values
       bidQuantity = _tempQty;
       bidFace = _tempFace;
 
@@ -653,7 +655,7 @@ Widget _buildInlineBetControls() {
                 setState(() {
                   // reset qty first
                   _tempQty = _origQty;
-                  // lock face and increment
+                  // lock face and increment only if less than 6
                   _lockMode = _LockMode.face;
                   if (_tempFace < 6) _tempFace++;
                 });
