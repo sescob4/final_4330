@@ -6,12 +6,12 @@ class DatabaseService {
   final DatabaseReference _db = FirebaseDatabase.instance.ref();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
-  String _getCurrentUserId() {
+  String getCurrentUserId() {
     return _auth.currentUser?.uid ?? 
       "guest_${DateTime.now().millisecondsSinceEpoch}";
   }
   Future<String> getCurrentUsername() async {
-  final uid = _getCurrentUserId();
+  final uid = getCurrentUserId();
   return await _getUsernameByUid(uid);
 }
   // Game session management
@@ -24,7 +24,7 @@ class DatabaseService {
       'cardDeclared': '',
       'cardDownStack': '',
       'createdAt': ServerValue.timestamp,
-      'createdBy': _getCurrentUserId(),
+      'createdBy': getCurrentUserId(),
     });
     return gameId;
   }
@@ -53,7 +53,7 @@ class DatabaseService {
   
   // Card actions
   Future<void> writeCardPutDown(String card, String gameId) async {
-    final userId = _getCurrentUserId();
+    final userId = getCurrentUserId();
     final username = await _getUsernameByUid(userId);
     
     // Add to game history with timestamp
@@ -73,7 +73,7 @@ class DatabaseService {
   }
   
 Future<String?> joinQueueAndCheck(String username) async {
-  final userId = _getCurrentUserId();
+  final userId = getCurrentUserId();
   final queueRef = _db.child("deck/queue");
   final newEntry = await queueRef.push();
   

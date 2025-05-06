@@ -49,6 +49,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  mockito: ^5.4.4
+  build_runner: ^2.4.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -118,6 +120,7 @@ flutter:
     - assets/crown.png
     - assets/handofcards.png
     - assets/dice.png
+    - assets/dice2.png
     - assets/wood.png
     - assets/table1.png
     - assets/face1.svg
