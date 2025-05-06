@@ -510,9 +510,10 @@ class QueueDeck {
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
                 "createdBy": userId,
-                "playerTURN": "",
+                "currentPlayer": "",
+                "lastPlayer": "",
                 "chat": ["Starting Game Chat....."],
-              "betDeclared": "",
+              "betDeclared": [0,0],// 2 dice of 3 this is how it would go
                 "gameLock": false,
                 "timestamp": ServerValue.timestamp,
                 "playersAndDice":{
