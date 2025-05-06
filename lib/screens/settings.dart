@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 //This is a placeholder screen for now, not fully implemented
 
@@ -34,6 +35,29 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('musicVolume', musicVolume);
     await prefs.setDouble('sfxVolume', sfxVolume);
+  }
+
+    // Add logout function
+  void logout() async {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?',
+            style: TextStyle(color: Colors.amber)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text('Log Out')),
+        ],
+      ),
+    );
   }
 
   void quitGame() {
@@ -99,11 +123,18 @@ class _SettingsPageState extends State<SettingsPage> {
               divisions: 10,
               label: '${(sfxVolume * 100).round()}%',
             ),
+            
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: quitGame,
               child: const Text('Quit Game'),
             ),
+            // Logout button
+            const SizedBox(height: 20),
+            ElevatedButton(
+               onPressed: logout,
+               child: const Text('Log Out'),
+             ),
           ],
         ),
       ),
