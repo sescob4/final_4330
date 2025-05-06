@@ -169,4 +169,7 @@ flutter:
   #SFX
     - assets/sound/click-4.mp3
     - assets/sound/click-8conv.wav
+    - assets/sound/card_sound_effect.mp3
+    - assets/sound/revolver_spin_sound.mp3
+    - assets/sound/dice-roll_effect.mp3
     

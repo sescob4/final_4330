@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 // MODEL
 enum CardType { ace, jack, queen, king, joker }
@@ -268,9 +269,13 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     _maybeScheduleAI();
   }
 
-  void _tapCard(DeckCard c) {
+  void _tapCard(DeckCard c) async {
     if (!game.isHumanTurn()) return;
-    setState(() => selected.contains(c) ? selected.remove(c) : selected.add(c));
+    await _player.play(AssetSource('sound/card_sound_effect.mp3'));
+
+    setState(() {
+      selected.contains(c) ? selected.remove(c) : selected.add(c);
+    });
   }
 
   void _playSelected() {
@@ -384,10 +389,15 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
         backgroundColor: const Color(0xFF3E2723),
         body: started ? _buildTable(context) : _buildIntro(),
       );
-
+  final AudioPlayer _player = AudioPlayer();
   Widget _buildIntro() => Center(
         child: ElevatedButton(
-            onPressed: _startGame, child: const Text("Start Liar's Deck")),
+          onPressed: () async {
+            await _player.play(AssetSource('sound/click-4.mp3'));
+            _startGame();
+          },
+          child: const Text("Start Liar's Deck"),
+        ),
       );
 
   Widget _buildTable(BuildContext ctx) {
@@ -537,13 +547,20 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             bottom: 8,
             child: game.roundOver
                 ? ElevatedButton(
-                    onPressed: _nextRound, child: const Text('Next Round'))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ElevatedButton(
+                    onPressed: () async {
+                      await _player.play(AssetSource('sound/click-4.mp3'));
+                      _nextRound();
+                    },
+                    child: const Text('Next Round'),
+                  )
+                : Row(children: [
+                    ElevatedButton(
                         onPressed: game.isHumanTurn() && selected.isNotEmpty
-                            ? _playSelected
+                            ? () async {
+                                await _player
+                                    .play(AssetSource('sound/click-4.mp3'));
+                                _playSelected();
+                              }
                             : null,
                         child: const Text('Play Cards'),
                       ),
@@ -551,7 +568,11 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                       ElevatedButton(
                         onPressed:
                             game.isHumanTurn() && game.tableCards.isNotEmpty
-                                ? _callBluff
+                                ? () async {
+                                    await _player
+                                        .play(AssetSource('sound/click-4.mp3'));
+                                    _callBluff();
+                                  }
                                 : null,
                         child: const Text('Call Bluff'),
                       ),
