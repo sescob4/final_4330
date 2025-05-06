@@ -105,7 +105,7 @@ class LiarsDeckGameState {
     lastPlayerIdx = players.indexOf(p);
     final msg =
         '${p.name} played ${cards.length} ${tableType.name}${cards.length == 1 ? '' : 's'}.';
-    _advanceTurn();
+    advanceTurn();
     return msg;
   }
 
@@ -122,8 +122,16 @@ class LiarsDeckGameState {
         '${spinner.name} ${shot ? "was ELIMINATED!" : "survived."}';
   }
 
-  void _advanceTurn() =>
-      currentPlayer = _nextAlive((currentPlayer + 1) % players.length);
+  void advanceTurn() {
+    int attempts = 0;
+    do {
+      currentPlayer = (currentPlayer + 1) % players.length;
+      attempts++;
+    } while (
+      (players[currentPlayer].eliminated || players[currentPlayer].hand.isEmpty) 
+      && attempts < players.length
+    );
+  }
 }
 
 // UI PAGE
@@ -153,10 +161,22 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   }
 
   void _addLog(String s) {
+  setState(() {
     history.add(s);
-    SchedulerBinding.instance.addPostFrameCallback(
-        (_) => _scroll.jumpTo(_scroll.position.maxScrollExtent));
-  }
+  });
+
+  // Delay scroll after rebuild safely
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (_scroll.hasClients) {
+      _scroll.animateTo(
+        _scroll.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  });
+}
+
 
   void _showOverlay(String msg) {
     setState(() {
@@ -206,14 +226,25 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       return;
     }
 
-    final prevIdx =
-        (game.currentPlayer - 1 + game.players.length) % game.players.length;
-    final prevPlayer = game.players[prevIdx];
-    final prevDumped = !prevPlayer.eliminated &&
+    final ai = game.players[game.currentPlayer];
+
+    if (ai.hand.isEmpty) {
+      game.advanceTurn();
+      aiBusy = false;
+      _maybeScheduleAI();
+      return;
+    }
+
+    final prevIdx = game.lastPlayerIdx;
+    final prevPlayer = (prevIdx >= 0 && prevIdx < game.players.length) 
+      ? game.players[prevIdx] 
+      : null;
+
+    final prevDumped = prevPlayer != null &&
+        !prevPlayer.eliminated &&
         prevPlayer.hand.isEmpty &&
         game.tableCards.isNotEmpty;
 
-    final ai = game.players[game.currentPlayer];
     final bluff =
         prevDumped || (game.tableCards.isNotEmpty && game.rng.nextBool());
 
@@ -238,6 +269,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     aiBusy = false;
     _maybeScheduleAI();
   }
+
 
   void _tapCard(DeckCard c) {
     if (!game.isHumanTurn()) return;
