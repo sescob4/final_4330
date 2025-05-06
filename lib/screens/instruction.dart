@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:final_4330/screens/instruction2.dart';
 import 'package:audioplayers/audioplayers.dart';
 
-//need to add design later
 class Instruction extends StatelessWidget {
   const Instruction({super.key});
 
@@ -27,12 +26,11 @@ class Instruction extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.amber),
+                        icon: const Icon(Icons.home, color: Colors.amber),
                         onPressed: () {
                           final player = AudioPlayer();
                           player.play(AssetSource('sound/click-4.mp3'));
-
-                          Navigator.pop(context);
+                          Navigator.popUntil(context, (route) => route.isFirst);
                         },
                       ),
                       const Text(
@@ -51,15 +49,15 @@ class Instruction extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.arrow_forward,
-                            color: Colors.amber),
+                        icon: const Icon(Icons.arrow_forward, color: Colors.amber),
                         onPressed: () {
                           final player = AudioPlayer();
                           player.play(AssetSource('sound/click-4.mp3'));
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const Instruction2()),
+                              builder: (context) => const Instruction2(),
+                            ),
                           );
                         },
                       ),
@@ -68,10 +66,9 @@ class Instruction extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 10),
+                    margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(33, 17, 0, 0.8),
+                      color: const Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: Colors.amber.shade800,
@@ -79,52 +76,36 @@ class Instruction extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Color.fromRGBO(33, 17, 0, 0.8),
+                          color: const Color.fromRGBO(33, 17, 0, 0.8),
                           blurRadius: 10,
                           offset: const Offset(0, 5),
                         ),
                       ],
                     ),
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(25),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Row(
-                            children: [
-                              SizedBox(width: 10),
-                              Text(
-                                "Game Overview",
-                                style: TextStyle(
-                                  color: Colors.amber,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 10.0,
-                                      color: Colors.black,
-                                      offset: Offset(2.0, 2.0),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          Expanded(
+                            child: _buildInstructionSection(
+                              "The Basics",
+                              "A twisted game of cards where every bluff could be your last! Play a card and claim its value. Be careful, your opponents might call your bluff!",
+                            ),
                           ),
-                          const SizedBox(height: 25),
-                          _buildInstructionSection(
-                            "The Basics",
-                            "A twisted game of cards where every bluff could be your last! Play a card and claim its value. Be careful, your opponents might call your bluff!",
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildInstructionSection(
+                              "The Stakes",
+                              "Get caught lying, and you'll play Russian Roulette. Survive the one bullet out of 6 rounds, or it's game over. The stakes are high, and every decision matters.",
+                            ),
                           ),
-                          const SizedBox(height: 25),
-                          _buildInstructionSection(
-                            "The Stakes",
-                            "Get caught lying, and you'll play Russian Roulette. Survive the one bullet out of 6 rounds, or it's game over. The stakes are high, and every decision matters.",
-                          ),
-                          const SizedBox(height: 25),
-                          _buildInstructionSection(
-                            "Victory",
-                            "Outlast everyone at the table to win. Will you dare to deceive? Master the art of bluffing and strategic play to emerge victorious in this game of deception.",
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildInstructionSection(
+                              "Victory",
+                              "Outlast everyone at the table to win. Will you dare to deceive? Master the art of bluffing and strategic play to emerge victorious in this game of deception.",
+                            ),
                           ),
                         ],
                       ),
@@ -141,9 +122,9 @@ class Instruction extends StatelessWidget {
 
   Widget _buildInstructionSection(String title, String content) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color.fromRGBO(0, 0, 0, 0.3),
+        color: const Color.fromRGBO(0, 0, 0, 0.3),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: Colors.amber,
@@ -151,7 +132,7 @@ class Instruction extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.3),
+            color: const Color.fromRGBO(0, 0, 0, 0.3),
             blurRadius: 5,
             offset: const Offset(0, 3),
           ),
@@ -164,7 +145,7 @@ class Instruction extends StatelessWidget {
             title,
             style: const TextStyle(
               color: Colors.amber,
-              fontSize: 22,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.1,
               shadows: [
@@ -176,13 +157,13 @@ class Instruction extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             content,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
-              height: 1.5,
+              fontSize: 13.5,
+              height: 1.4,
               letterSpacing: 0.5,
             ),
           ),

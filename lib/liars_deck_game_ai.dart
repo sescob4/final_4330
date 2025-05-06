@@ -380,7 +380,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       );
     }
 
-    final cardOffset = isUser ? 0.0 : -25.0;
+    final cardOffset = isUser ? 0.0 : -30.0;
     final cards = isUser
         ? p.hand.map((c) => _card(c, selectable: selectable)).toList()
         : List.generate(
