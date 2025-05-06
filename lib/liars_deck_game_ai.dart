@@ -497,14 +497,41 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             ),
           ),
 
-          // You (bottom)
+          // You (bottom - label and cards centered under table)
           Positioned(
-            left: 325,
             top: center.dy + radius + 15,
-            child: _hand(game.players[0],
-                horizontal: true,
-                selectable: game.isHumanTurn(),
-                highlight: game.currentPlayer == 0 && !game.roundOver),
+            left: 0,
+            right: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${game.players[0].name} (${game.players[0].rouletteChambers}/6)',
+                  style: TextStyle(
+                    color: game.players[0].eliminated
+                        ? Colors.orangeAccent
+                        : game.currentPlayer == 0 && !game.roundOver
+                            ? Colors.green
+                            : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                if (!game.players[0].eliminated)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: game.players[0].hand
+                          .map((c) => _card(c, selectable: game.isHumanTurn()))
+                          .toList(),
+                    ),
+                  ),
+              ],
+            ),
           ),
 
           // Console (right side)
@@ -541,7 +568,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          // Bottom controls (stacked for more room)
+          // Bottom controls (stacked vertically with sound)
           Positioned(
             left: 8,
             bottom: 8,
@@ -553,8 +580,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                     },
                     child: const Text('Next Round'),
                   )
-                : Row(children: [
-                    ElevatedButton(
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton(
                         onPressed: game.isHumanTurn() && selected.isNotEmpty
                             ? () async {
                                 await _player
@@ -564,7 +593,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                             : null,
                         child: const Text('Play Cards'),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed:
                             game.isHumanTurn() && game.tableCards.isNotEmpty
