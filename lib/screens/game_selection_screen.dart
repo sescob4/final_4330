@@ -55,6 +55,18 @@ class GameSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Choose Your Game',
+          style: TextStyle(
+            color: Colors.amber,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -68,22 +80,6 @@ class GameSelectionPage extends StatelessWidget {
               icon: const Icon(Icons.menu, color: Colors.white, size: 32),
               onPressed: () => _showGameMenu(context),
               tooltip: 'Game Menu',
-            ),
-          ),
-          // Title
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 0,
-            right: 0,
-            child: const Center(
-              child: Text(
-                "Choose Your Game",
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
             ),
           ),
           // Game selection container

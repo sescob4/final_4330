@@ -1,3 +1,4 @@
+import 'package:final_4330/main.dart';
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
 import 'game_selection_screen2.dart';
@@ -16,6 +17,32 @@ class RolesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+    elevation: 0,
+    backgroundColor: Colors.transparent,
+    leading: IconButton(
+      icon: const Icon(Icons.arrow_back, color: Colors.white),
+      onPressed: () => Navigator.pop(context),
+    ),
+    centerTitle: true,
+    title: const Text(
+      'Select Your Role',
+      style: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.amber,
+        shadows: [
+          Shadow(
+            blurRadius: 10,
+            color: Colors.black87,
+            offset: Offset(2, 2),
+          )
+        ],
+      ),
+    ),
+  ),
+      
       body: Stack(
         children: [
           // Background
@@ -37,23 +64,6 @@ class RolesScreen extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Select Your Role',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFFFD580),
-                    shadows: [
-                      Shadow(
-                        blurRadius: 10,
-                        color: Colors.black87,
-                        offset: Offset(2, 2),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 30),
                 Expanded(
                   child: Center(
                     child: Wrap(
