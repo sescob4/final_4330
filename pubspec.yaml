@@ -129,6 +129,9 @@ flutter:
     - assets/face4.svg
     - assets/face5.svg
     - assets/face6.svg
+    - assets/splat1.svg
+    - assets/splat2.svg
+    - assets/splat3.svg
 
     
   #roles:

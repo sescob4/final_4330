@@ -6,14 +6,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 // MODEL
-enum CardType { ace, jack, queen, king, joker }
+enum CardType { ace, queen, king, joker }
 
 class DeckCard {
   final CardType type;
   DeckCard(this.type);
   String get assetPath => switch (type) {
         CardType.ace => 'assets/ace.svg',
-        CardType.jack => 'assets/jack.svg',
+        // CardType.jack => 'assets/jack.svg',
         CardType.queen => 'assets/queen.svg',
         CardType.king => 'assets/king.svg',
         CardType.joker => 'assets/joker.svg',
@@ -67,7 +67,7 @@ class LiarsDeckGameState {
     final deck = <DeckCard>[
       ...List.generate(6, (_) => DeckCard(CardType.king)),
       ...List.generate(6, (_) => DeckCard(CardType.queen)),
-      ...List.generate(6, (_) => DeckCard(CardType.jack)),
+      // ...List.generate(6, (_) => DeckCard(CardType.jack)),
       ...List.generate(6, (_) => DeckCard(CardType.ace)),
       ...List.generate(2, (_) => DeckCard(CardType.joker)),
     ]..shuffle(rng);
@@ -81,7 +81,7 @@ class LiarsDeckGameState {
       }
     }
 
-    const tables = [CardType.ace, CardType.jack, CardType.queen, CardType.king];
+    const tables = [CardType.ace, CardType.queen, CardType.king];
     tableType = tables[rng.nextInt(tables.length)];
     currentPlayer = _nextAlive(rng.nextInt(players.length));
     tableCards.clear();
@@ -148,6 +148,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   final List<String> history = [];
   final ScrollController _scroll = ScrollController();
 
+  bool gameOver = false; // true when full game ends, not just round
+
   bool started = false, aiBusy = false;
   static const aiDelay = Duration(seconds: 3);
 
@@ -193,10 +195,30 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   void _checkWinner() {
     final alive = game.players.where((p) => !p.eliminated).toList();
     if (alive.length == 1) {
-      _showOverlay('${alive.first.name} WINS!');
+      final winner = alive.first;
       game.roundOver = true;
       aiBusy = false;
+      gameOver = true;
+
+      if (winner.name == 'You') {
+        _showOverlay('YOU WIN!');
+      } else {
+        _showOverlay('YOU LOSE!');
+      }
     }
+  }
+
+  void _restartGame() {
+    setState(() {
+      game = LiarsDeckGameState();
+      selected.clear();
+      history.clear();
+      gameOver = false;
+      started = true;
+      aiBusy = false;
+    });
+    _addLog('New game started.');
+    _maybeScheduleAI();
   }
 
   void _startGame() {
@@ -324,20 +346,41 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       {required bool horizontal,
       required bool selectable,
       required bool highlight}) {
-    final label = p.eliminated
-        ? '${p.name} ⚠ ELIMINATED ⚠'
-        : '${p.name} (${p.rouletteChambers}/6)';
-    final lblCol = p.eliminated
-        ? Colors.orangeAccent
-        : highlight
-            ? Colors.green
-            : Colors.white;
-
     final isUser = p.name == 'You';
 
-    final cardOffset =
-        isUser ? 0.0 : -25.0; // slight left shift for AI card stack
+    // Hardcoded width for eliminated AI splats to match expected position
+    const fixedAIWidth = 100.0;
 
+    if (!isUser && p.eliminated) {
+      String splatAsset;
+      switch (p.name) {
+        case 'AI1':
+          splatAsset = 'assets/splat1.svg';
+          break;
+        case 'AI2':
+          splatAsset = 'assets/splat2.svg';
+          break;
+        case 'AI3':
+          splatAsset = 'assets/splat3.svg';
+          break;
+        default:
+          splatAsset = 'assets/splat3.svg';
+      }
+
+      return SizedBox(
+        width: fixedAIWidth,
+        height: 80,
+        child: Center(
+          child: SvgPicture.asset(
+            splatAsset,
+            width: 80,
+            height: 80,
+          ),
+        ),
+      );
+    }
+
+    final cardOffset = isUser ? 0.0 : -25.0;
     final cards = isUser
         ? p.hand.map((c) => _card(c, selectable: selectable)).toList()
         : List.generate(
@@ -353,6 +396,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           );
 
     final totalWidth = _handWidth(p.hand.length);
+    final label = '${p.name} (${p.rouletteChambers}/6)';
+    final lblCol = highlight ? Colors.green : Colors.white;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -367,14 +412,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
         ),
         const SizedBox(height: 4),
-        if (!p.eliminated)
-          isUser
-              ? Row(mainAxisSize: MainAxisSize.min, children: cards)
-              : SizedBox(
-                  width: totalWidth,
-                  height: 62,
-                  child: Stack(children: cards),
-                ),
+        isUser
+            ? Row(mainAxisSize: MainAxisSize.min, children: cards)
+            : SizedBox(
+                width: totalWidth, height: 62, child: Stack(children: cards)),
       ],
     );
   }
@@ -440,10 +481,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // Played cards at center (hidden using card backs)
           Positioned(
-            left: center.dx - (game.tableCards.length * 40) / 2,
-            top: center.dy - 31, // Half of card height (62/2)
+            top: center.dy - 31,
+            left: center.dx - ((game.tableCards.length - 1) * 20 + 104) / 2,
             child: SizedBox(
-              width: game.tableCards.length * 20.0 + 22,
+              width: (game.tableCards.length - 1) * 20.0 + 100,
               height: 62,
               child: Stack(
                 children: List.generate(
@@ -568,45 +609,52 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          // Bottom controls (stacked vertically with sound)
           Positioned(
             left: 8,
             bottom: 8,
-            child: game.roundOver
+            child: gameOver
                 ? ElevatedButton(
                     onPressed: () async {
                       await _player.play(AssetSource('sound/click-4.mp3'));
-                      _nextRound();
+                      _restartGame();
                     },
-                    child: const Text('Next Round'),
+                    child: const Text('Play Again'),
                   )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ElevatedButton(
-                        onPressed: game.isHumanTurn() && selected.isNotEmpty
-                            ? () async {
-                                await _player
-                                    .play(AssetSource('sound/click-4.mp3'));
-                                _playSelected();
-                              }
-                            : null,
-                        child: const Text('Play Cards'),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed:
-                            game.isHumanTurn() && game.tableCards.isNotEmpty
+                : game.roundOver
+                    ? ElevatedButton(
+                        onPressed: () async {
+                          await _player.play(AssetSource('sound/click-4.mp3'));
+                          _nextRound();
+                        },
+                        child: const Text('Next Round'),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ElevatedButton(
+                            onPressed: game.isHumanTurn() && selected.isNotEmpty
+                                ? () async {
+                                    await _player
+                                        .play(AssetSource('sound/click-4.mp3'));
+                                    _playSelected();
+                                  }
+                                : null,
+                            child: const Text('Play Cards'),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton(
+                            onPressed: game.isHumanTurn() &&
+                                    game.tableCards.isNotEmpty
                                 ? () async {
                                     await _player
                                         .play(AssetSource('sound/click-4.mp3'));
                                     _callBluff();
                                   }
                                 : null,
-                        child: const Text('Call Bluff'),
+                            child: const Text('Call Bluff'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
           ),
 
           // Overlay for "WIN" or "BLUFF"
