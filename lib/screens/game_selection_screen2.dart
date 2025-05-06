@@ -289,7 +289,7 @@ class UserClassification extends StatelessWidget {
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         final userId = info['uid']!;
-                        final userName = info['username']!;//////////////////////HERE the name is passed!!!! amy-edit Later()()()()()()()
+                        final userName = info['username']!;
                         if (gameChosen == "deck") {
                           Navigator.pushReplacement(
                             context,
