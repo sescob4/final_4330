@@ -49,6 +49,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  mockito: ^5.4.4
+  build_runner: ^2.4.6
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -118,6 +120,7 @@ flutter:
     - assets/crown.png
     - assets/handofcards.png
     - assets/dice.png
+    - assets/dice2.png
     - assets/wood.png
     - assets/table1.png
     - assets/face1.svg
@@ -126,6 +129,9 @@ flutter:
     - assets/face4.svg
     - assets/face5.svg
     - assets/face6.svg
+    - assets/splat1.svg
+    - assets/splat2.svg
+    - assets/splat3.svg
 
     
   #roles:
@@ -166,4 +172,7 @@ flutter:
   #SFX
     - assets/sound/click-4.mp3
     - assets/sound/click-8conv.wav
+    - assets/sound/card_sound_effect.mp3
+    - assets/sound/revolver_spin_sound.mp3
+    - assets/sound/dice-roll_effect.mp3
     

@@ -149,7 +149,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   Expanded(
                     child: ImageButton(
                       label: "Liar's Dice",
-                      crownImagePath: "assets/dice.png",
+                      crownImagePath: "assets/dice2.png",
                       // fontScale: .5,
                       onTap: () {
                         print("game selected::deck:");
@@ -261,7 +261,6 @@ class UserClassification extends StatelessWidget {
                     child: ImageButton(
                       label: "Multiple\nUsers",
                       crownImagePath: "assets/group.png",
-                      scaleFactor: 30,
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         //final user = FirebaseAuth.instance.currentUser;
@@ -290,7 +289,7 @@ class UserClassification extends StatelessWidget {
                       onTap: () async {
                         final info = await GameSelectionPage2().getUserInfo();
                         final userId = info['uid']!;
-                        final userName = info['username']!;//////////////////////HERE the name is passed!!!! amy-edit Later()()()()()()()
+                        final userName = info['username']!;
                         if (gameChosen == "deck") {
                           Navigator.pushReplacement(
                             context,
@@ -511,9 +510,10 @@ class QueueDeck {
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
                 "createdBy": userId,
-                "playerTURN": "",
+                "currentPlayer": "",
+                "lastPlayer": "",
                 "chat": ["Starting Game Chat....."],
-              "betDeclared": "",
+              "betDeclared": [0,0],// 2 dice of 3 this is how it would go
                 "gameLock": false,
                 "timestamp": ServerValue.timestamp,
                 "playersAndDice":{
