@@ -90,6 +90,13 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     allDice = List.generate(numPlayers, (_) => List.filled(dicePerPlayer, 1));
     alive = List.filled(numPlayers, true);
     lives = List.filled(numPlayers, 3);
+
+    // Debugging logs
+    print('Game initialized:');
+    print('allDice: $allDice');
+    print('alive: $alive');
+    print('lives: $lives');
+
     turnIndex = 0;
     hasRolled = false;
     bidQuantity = null;
@@ -252,53 +259,113 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   }
 
   void _resolveCall(int caller) {
+    // Debugging logs
+    print('Resolving call...');
+    print('allDice: $allDice');
+    print('lives: $lives');
+    print('alive: $alive');
+
     // ─── count dice ─────────────────────────────────────────────
-    final counts = <int,int>{};
-    for (var hand in allDice) for (var v in hand) {
-      counts[v] = (counts[v] ?? 0) + 1;
+    final counts = <int, int>{};
+    for (var hand in allDice) {
+      for (var v in hand) {
+        counts[v] = (counts[v] ?? 0) + 1;
+      }
     }
-    final qty    = bidQuantity!;
-    final face   = bidFace!;
+
+    final qty = bidQuantity!;
+    final face = bidFace!;
     final actual = counts[face] ?? 0;
-    final last   = (turnIndex + numPlayers - 1) % numPlayers;
-    final loser  = actual < qty ? last : caller;
+
+    // Find the last alive player before the current turn
+    int last = turnIndex;
+    do {
+      last = (last + numPlayers - 1) % numPlayers;
+    } while (!alive[last]);
+
+    final loser = actual < qty ? last : caller;
     final loserName = loser == 0 ? 'You' : 'CPU $loser';
 
     // ─── decrement lives / eliminate ───────────────────────────
     setState(() {
-      lives[loser]--;              // – subtract one life
       if (lives[loser] > 0) {
-        _addLog('$loserName lost a life! (${lives[loser]} left)');
-      } else {
-        alive[loser] = false;
-        _addLog('$loserName has no lives left and is eliminated');
+        lives[loser]--; // Subtract one life
+        if (lives[loser] == 0) {
+          alive[loser] = false; // Mark as out
+          _addLog('$loserName has no lives left and is eliminated');
+        } else {
+          _addLog('$loserName lost a life! (${lives[loser]} left)');
+        }
       }
     });
 
+    // Check for game over
+    _checkGameOver();
+
+    // Debugging logs
+    print('After resolving call:');
+    print('lives: $lives');
+    print('alive: $alive');
+
     // ─── show the snackbar ──────────────────────────────────────
     final resultMsg = lives[loser] > 0
-      ? '$loserName lost a life! (${lives[loser]} left)'
-      : '$loserName eliminated';
+        ? '$loserName lost a life! (${lives[loser]} left)'
+        : '$loserName eliminated';
 
     ScaffoldMessenger.of(context)
-      .showSnackBar(
-        SnackBar(content: Text(
-          'Call: needed $qty×$face, found $actual — $resultMsg'
-        ))
-      )
-      .closed
-      .then((_) {
-        setState(() {
-          // clear the previous bid
-          bidQuantity = null;
-          bidFace     = null;
-          // mark roll phase again
-          hasRolled   = false;
-          // always start next round with the user
-          turnIndex   = 0;
+        .showSnackBar(
+          SnackBar(content: Text(
+            'Call: needed $qty×$face, found $actual — $resultMsg'
+          ))
+        )
+        .closed
+        .then((_) {
+          setState(() {
+            // clear the previous bid
+            bidQuantity = null;
+            bidFace     = null;
+            // mark roll phase again
+            hasRolled   = false;
+            // always start next round with the user
+            turnIndex   = 0;
+          });
+          _addLog('New round: roll the dice');
         });
-        _addLog('New round: roll the dice');
-      });
+  }
+
+  void _checkGameOver() {
+    // Check if the user has lost
+    if (lives[0] <= 0) {
+      _showGameOverDialog('Game Over', 'You lost all your lives!');
+      return;
+    }
+
+    // Check if all CPUs are eliminated
+    if (alive.sublist(1).every((isAlive) => !isAlive)) {
+      _showGameOverDialog('Congratulations!', 'You won the game!');
+      return;
+    }
+  }
+
+  void _showGameOverDialog(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF3E2723),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _initGameState(); // Reset the game
+            },
+            child: const Text('Restart', style: TextStyle(color: Colors.amber)),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Advance to the next alive player and kick off CPU or your turn.
@@ -536,7 +603,7 @@ _buildHeartBox(lives[0]),
   );
 
   Widget _buildRollButton() => ElevatedButton(
-    onPressed: rollDice,
+    onPressed: (lives[0] > 0) ? rollDice : null, // Disable if user has no lives
     style: ElevatedButton.styleFrom(
       backgroundColor: Colors.amber,
       foregroundColor: Colors.brown.shade900,
@@ -548,9 +615,15 @@ _buildHeartBox(lives[0]),
   Widget _buildUserControls() => Align(
     alignment: Alignment.center,
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      ElevatedButton(onPressed: _userBet, child: const Text('Bet')),
+      ElevatedButton(
+        onPressed: (lives[0] > 0) ? _userBet : null, // Disable if user has no lives
+        child: const Text('Bet'),
+      ),
       const SizedBox(width: 16),
-      ElevatedButton(onPressed: _userCall, child: const Text('Call')),
+      ElevatedButton(
+        onPressed: (lives[0] > 0) ? _userCall : null, // Disable if user has no lives
+        child: const Text('Call'),
+      ),
     ]),
   );
 
@@ -713,14 +786,24 @@ Widget _buildInlineBetControls() {
 
 
 
-  /// 0→You, 1→CPU1, 2→CPU2, 3→CPU3
-  Alignment _playerAlignment(int idx) {
-    switch (idx) {
-      case 0: return const Alignment( 0.0,  0.8); // You at bottom
-      case 1: return const Alignment(-0.8,  0.0); // CPU1 on left
-      case 2: return const Alignment( 0.0, -0.8); // CPU2 on top
-      case 3: return const Alignment( 0.8,  0.0); // CPU3 on right
-      default: return Alignment.center;
+// Updated _playerAlignment method
+Alignment _playerAlignment(int idx) {
+  if (idx < 0 || idx >= numPlayers) {
+    print('Invalid player index: $idx');
+    return Alignment.center;
+  }
+
+  switch (idx) {
+    case 0:
+      return const Alignment(0.0, 0.8); // You at bottom
+    case 1:
+      return const Alignment(-0.8, 0.0); // CPU1 on left
+    case 2:
+      return const Alignment(0.0, -0.8); // CPU2 on top
+    case 3:
+      return const Alignment(0.8, 0.0); // CPU3 on right
+    default:
+      return Alignment.center;
   }
 }
 
