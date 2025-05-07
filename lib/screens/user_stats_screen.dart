@@ -86,21 +86,33 @@ class UserStatsScreen extends StatelessWidget {
                   SafeArea(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Color.fromRGBO(0,0,0,0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'User Stats',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.amber,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.amberAccent),
+                            onPressed: () {
+                              Navigator.pop(context); 
+                            },
                           ),
-                        ),
+                          Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Color.fromRGBO(0, 0, 0, 0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                'User Stats',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 48), 
+                        ],
                       ),
                     ),
                   ),
