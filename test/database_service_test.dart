@@ -1,30 +1,48 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:final_4330/Databaseservice.dart';
 
-class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 class MockDatabaseReference extends Mock implements DatabaseReference {}
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
 class MockUser extends Mock implements User {}
 
 void main() {
-  group('DatabaseService', () {
-    late MockFirebaseAuth mockAuth;
+  group('DatabaseService - createNewGame', () {
     late MockDatabaseReference mockDb;
+    late MockDatabaseReference mockDeckRef;
+    late MockDatabaseReference mockGameRef;
+    late MockFirebaseAuth mockAuth;
+    late MockUser mockUser;
+
     late DatabaseService service;
 
     setUp(() {
-      mockAuth = MockFirebaseAuth();
       mockDb = MockDatabaseReference();
-      service = DatabaseService(); // You'd modify to inject mocks
+      mockDeckRef = MockDatabaseReference();
+      mockGameRef = MockDatabaseReference();
+      mockAuth = MockFirebaseAuth();
+      mockUser = MockUser();
+
+      when(mockDb.child('deck/gameSessions')).thenReturn(mockDeckRef);
+      when(mockDeckRef.push()).thenReturn(mockGameRef);
+      when(mockGameRef.key).thenReturn('testGameId');
+      when(mockAuth.currentUser).thenReturn(mockUser);
+      when(mockUser.uid).thenReturn('testUid');
+
+      service = DatabaseService(auth: mockAuth, db: mockDb);
     });
 
-    test('getCurrentUserId returns guest when user is null', () {
-      // Simulate _auth.currentUser being null
-      when(mockAuth.currentUser).thenReturn(null);
-      final id = service.getCurrentUserId();
-      expect(id.startsWith("guest_"), true);
+    test('createNewGame returns the generated gameId and sets data', () async {
+      when(mockGameRef.set(any)).thenAnswer((_) async {});
+
+      final gameId = await service.createNewGame();
+
+      expect(gameId, equals('testGameId'));
+      verify(mockGameRef.set(argThat(
+        containsPair('createdBy', 'testUid'),
+      ))).called(1);
     });
   });
 }
