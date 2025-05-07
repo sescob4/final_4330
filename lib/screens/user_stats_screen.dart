@@ -51,10 +51,6 @@ class UserStatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Stats'),
-        backgroundColor: Colors.brown,
-      ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _getUserStats(),
         builder: (context, snapshot) {
@@ -85,46 +81,71 @@ class UserStatsScreen extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              SafeArea(
-                child: Center(
-                  child: Container(
-                    margin: const EdgeInsets.all(20),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color.fromRGBO(33, 17, 0, 0.8),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.amber, width: 2),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "$username's Stats",
+              Column(
+                children: [
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Color.fromRGBO(0,0,0,0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'User Stats',
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 24,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.amber,
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Games Played: $gamesPlayed',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Games Won: $gamesWon',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Win Percentage: $winPerc%',
-                          style: const TextStyle(fontSize: 18, color: Colors.white),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        margin: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color.fromRGBO(33, 17, 0, 0.8),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.amber, width: 2),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "$username's Stats",
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Games Played: $gamesPlayed',
+                              style: const TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Games Won: $gamesWon',
+                              style: const TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'Win Percentage: $winPerc%',
+                              style: const TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           );

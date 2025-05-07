@@ -22,8 +22,11 @@ class RolesScreen extends StatelessWidget {
     elevation: 0,
     backgroundColor: Colors.transparent,
     leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.white),
-      onPressed: () => Navigator.pop(context),
+      icon: const Icon(Icons.arrow_back, color: Colors.amberAccent),
+      onPressed: () {
+        Navigator.pop(context);
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     ),
     centerTitle: true,
     title: const Text(
