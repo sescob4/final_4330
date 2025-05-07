@@ -153,16 +153,19 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
   // ───────────────────────────────────────────────────────────────────────────
   // User actions: roll, bet, call
   void rollDice() {
-    if (turnIndex != 0 || hasRolled || _rolling) return;
+    if (turnIndex != 0 || hasRolled || _rolling) return; // Prevent rolling if it's not the user's turn or already rolled
     _rolling = true;
+
     final finalRoll = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
     int ticks = (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
     int count = 0;
+
     Timer.periodic(_rollAnimInterval, (timer) {
       count++;
       setState(() {
         allDice[0] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
       });
+
       if (count >= ticks) {
         timer.cancel();
         setState(() {
@@ -172,9 +175,25 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
           }
           hasRolled = true;
           _rolling = false;
+
+          // Log the roll results
+          _addLog('You rolled: ${allDice[0].join(', ')}');
+
+          // Transition to the betting phase
+          if (!alive[turnIndex]) {
+            // Ensure the turnIndex points to an alive player
+            do {
+              turnIndex = (turnIndex + 1) % numPlayers;
+            } while (!alive[turnIndex]);
+          }
+
+          if (turnIndex == 0) {
+            _addLog('Your turn: Bet or Call');
+          } else {
+            _addLog('CPU $turnIndex starts betting');
+            Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+          }
         });
-        _addLog('You rolled: ${allDice[0].join(', ')}');
-        _addLog('Your turn: Bet or Call');
       }
     });
   }
@@ -323,13 +342,31 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
           setState(() {
             // clear the previous bid
             bidQuantity = null;
-            bidFace     = null;
-            // mark roll phase again
-            hasRolled   = false;
-            // always start next round with the user
-            turnIndex   = 0;
+            bidFace = null;
+            hasRolled = false;
+
+            // Set the turnIndex to the loser of the previous round
+            turnIndex = loser;
+
+            // Ensure the turnIndex points to an alive player
+            while (!alive[turnIndex]) {
+              turnIndex = (turnIndex + 1) % numPlayers;
+            }
+
+            // Log the next round
+            _addLog('${loserName == "You" ? "You" : "CPU $loser"} will roll the dice and start the next round.');
+
+            // If the loser is the user, allow them to roll
+            if (turnIndex == 0) {
+              _addLog('Your turn: Roll the dice.');
+            } else {
+              // If the loser is a CPU, simulate their roll and betting
+              Future.delayed(const Duration(milliseconds: 400), () {
+                rollDice();
+                Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+              });
+            }
           });
-          _addLog('New round: roll the dice');
         });
   }
 
