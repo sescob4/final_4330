@@ -286,33 +286,38 @@ Future<String?> joinQueueAndCheck(String username) async {
 
     if (data is Map) {
       List<int> betDeclare = List<int>.from(data["betDeclared"]);
+      int ones =0;
+      int twos=0;
+      int threes=0;
+      int fours=0;
+      int fives=0;
+      int sixs=0;
 
-      // Counters for dice faces
-      int ones = 0, twos = 0, threes = 0, fours = 0, fives = 0, sixs = 0;
+      final playersAndDice = Map<String,dynamic>.from(data["playersAndDice"]);
 
-      final playersAndDice = Map<String, dynamic>.from(data["playersAndDice"]);
-
-      // Tally dice values across all players
-      playersAndDice.forEach((playerID, dicelist) {
+      playersAndDice.forEach((playerID, dicelist){
         final dice = List<int>.from(dicelist);
-        for (var die in dice) {
-          if (die == 1) ones++;
-          if (die == 2) twos++;
-          if (die == 3) threes++;
-          if (die == 4) fours++;
-          if (die == 5) fives++;
-          if (die == 6) sixs++;
+        var di;
+        for(di in dice){
+          if(di==1){ones++;}
+          if(di==2){twos++;}
+          if(di == 3){threes++;}
+          if(di == 4){fours++;}
+          if(di == 5){fives++;}
+          if(di == 6){sixs++;}
         }
       });
-
-      // Check if bet is valid based on actual dice counts
-      if (betDeclare[1] == 1 && betDeclare[0] <= ones) return true;
-      if (betDeclare[1] == 2 && betDeclare[0] <= twos) return true;
-      if (betDeclare[1] == 3 && betDeclare[0] <= threes) return true;
-      if (betDeclare[1] == 4 && betDeclare[0] <= fours) return true;
-      if (betDeclare[1] == 5 && betDeclare[0] <= fives) return true;
-      if (betDeclare[1] == 6 && betDeclare[0] <= sixs) return true;
-
+      if(betDeclare[1] == 1){ if(betDeclare[0]==ones){ return true;}}
+      if(betDeclare[1]== 2){ if(betDeclare[0]==twos){return true;}}
+      if(betDeclare[1]==3){ if(betDeclare[0]==threes){return true;}}
+      if(betDeclare[1]==4){ if(betDeclare[0]==fours){return true;}}
+      if(betDeclare[1]==5){ if(betDeclare[0]==fives){return true;}}
+      if(betDeclare[1]==6){ if(betDeclare[0]==sixs){return true;}}
+/* ACTION: ASK TEAM about logic for this does the bet have to be exact or less or greater???????
+*
+*
+*
+* */
       return false;
     }
 
@@ -333,5 +338,23 @@ Future<String?> joinQueueAndCheck(String username) async {
     print("error in getDice");
     return [];
   }
+  //'s Functions
+  Future<void> putDownCardsAndLog(String userID, String gameID, List<String> cards) async {
+    final DatabaseReference playerRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/playersAndCards/$userID");
+    final DatabaseReference logRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/cardActions");
+    final username = await _getUsernameByUid(userID);
 
+    // Save card list to current state
+    await playerRef.set(cards);
+
+    // Log each card with timestamp and metadata
+    for (final card in cards) {
+      await logRef.push().set({
+        'userId': userID,
+        'username': username,
+        'card': card,
+        'timestamp': ServerValue.timestamp,
+      });
+    }
+  }
 }
