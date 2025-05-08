@@ -316,20 +316,18 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     _maybeScheduleAI();
   }
 
-  void _callBluff() {
-    _showOverlay('You CALLED BLUFF!');
-    setState(() {
-      showRevealedCards = true;
-    });
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (!mounted) return;
-      final msg = game.callBluff(game.players[0]);
-      setState(() {
-        _addLog(msg);
-      });
-      _checkWinner();
-    });
-  }
+  void _callBluff() async {
+  _showOverlay('You CALLED BLUFF!');
+  final msg = game.callBluff(game.players[0]);
+
+  setState(() {
+    showRevealedCards = true; // set this AFTER cards are finalized
+    _addLog(msg);
+  });
+
+  _checkWinner();
+}
+
 
   Widget _card(DeckCard c, {bool selectable = false}) => GestureDetector(
         onTap: selectable ? () => _tapCard(c) : null,
