@@ -15,8 +15,8 @@ import 'screens/audio.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
 import 'screens/roles_screen.dart';
-import 'screens/user_stats_screen.dart'; 
-import 'Databaseservice.dart'; 
+import 'screens/user_stats_screen.dart';
+import 'Databaseservice.dart';
 
 //
 Future<void> main() async {
@@ -34,7 +34,7 @@ Future<void> main() async {
     );
     await FirebaseFirestore.instance.clearPersistence();
     await FirebaseFirestore.instance.enableNetwork();
-     // Force sign out any existing user on app start
+    // Force sign out any existing user on app start
     await FirebaseAuth.instance.signOut();
     print("Firestore network enabled.");
   } on FirebaseException catch (e) {
@@ -44,7 +44,6 @@ Future<void> main() async {
   }
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -75,7 +74,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
-        '/home': (context) =>  HomePage(),
+        '/home': (context) => HomePage(),
         '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
         '/userstats': (context) => const UserStatsScreen(),
@@ -108,22 +107,22 @@ class AuthWrapper extends StatelessWidget {
 }
 
 class HomePage extends StatelessWidget {
-   HomePage({super.key});
-  
+  HomePage({super.key});
+
   // Create an instance of DatabaseService
   final DatabaseService _databaseService = DatabaseService();
 
   Future<String?> _getUsername() async {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    if (user.isAnonymous) {
-      return 'Guest Player';  // "Guest Player" instead of "Unknown Player"
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      if (user.isAnonymous) {
+        return 'Guest Player'; // "Guest Player" instead of "Unknown Player"
+      }
+      // Read username from database
+      return await _databaseService.getCurrentUsername();
     }
-    // Read username from database
-    return await _databaseService.getCurrentUsername();
+    return null;
   }
-  return null;
-}
 
   Widget _buildButtons(BuildContext context) {
     final AudioPlayer clickPlayer = AudioPlayer();
@@ -193,7 +192,7 @@ class HomePage extends StatelessWidget {
         final String centerTitle = (username != null && username.isNotEmpty)
             ? "Welcome, $username"
             : "Liar's Bar";
-        
+
         return Scaffold(
           body: Stack(
             children: [
@@ -247,20 +246,32 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              // Logout button in the top-right
+              // Logout + Settings buttons in the top-right
               if (FirebaseAuth.instance.currentUser != null)
                 SafeArea(
                   child: Align(
                     alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                      onPressed: () async {
-                        await FirebaseAuth.instance.signOut();
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.settings, color: Colors.white),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/settings');
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.white),
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
+                            Navigator.pushReplacementNamed(context, '/login');
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
+
               // User Stats button in the top-left
               if (FirebaseAuth.instance.currentUser != null)
                 SafeArea(
