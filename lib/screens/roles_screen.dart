@@ -2,11 +2,13 @@ import 'package:final_4330/main.dart';
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
 import 'game_selection_screen2.dart';
+import 'package:audioplayers/audioplayers.dart';
 //needs more UI design
 
 class RolesScreen extends StatelessWidget {
-  const RolesScreen({super.key});
+  RolesScreen({super.key});
 
+  final AudioPlayer player = AudioPlayer();
   final List<Map<String, String>> roles = const [
     {"name": "Girl", "image": "assets/role1.png"},
     {"name": "Bartender", "image": "assets/role2.png"},
@@ -19,33 +21,32 @@ class RolesScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-    elevation: 0,
-    backgroundColor: Colors.transparent,
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.amberAccent),
-      onPressed: () {
-        Navigator.pop(context);
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    ),
-    centerTitle: true,
-    title: const Text(
-      'Select Your Role',
-      style: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.amber,
-        shadows: [
-          Shadow(
-            blurRadius: 10,
-            color: Colors.black87,
-            offset: Offset(2, 2),
-          )
-        ],
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.amberAccent),
+            onPressed: () async {
+              await player.play(AssetSource('sound/click-4.mp3'));
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/home');
+            }),
+        centerTitle: true,
+        title: const Text(
+          'Select Your Role',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.amber,
+            shadows: [
+              Shadow(
+                blurRadius: 10,
+                color: Colors.black87,
+                offset: Offset(2, 2),
+              )
+            ],
+          ),
+        ),
       ),
-    ),
-  ),
-      
       body: Stack(
         children: [
           // Background

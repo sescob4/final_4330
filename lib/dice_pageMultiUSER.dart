@@ -117,19 +117,68 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   Future<void> _callBluff() async {
-    if (_currentPlayer != widget.userID || _bidQuantity == null) return;
-    final wasCorrect = await _dbService.checkDiceCall(widget.userID, widget.gameID);
-    final msg = wasCorrect
-        ? 'Call failed: bet was correct!'
-        : 'You caught a bluff!';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  if (_currentPlayer != widget.userID || _bidQuantity == null) return;
+  await _resolveCall();
+}
 
-    setState(() {
-      _bidQuantity = 1;
-      _bidFace = 1;
-    });
-    await _dbService.setPlayer(widget.userID, widget.gameID);
+
+  Future<void> _resolveCall() async {
+  final qty = _bidQuantity!;
+  final face = _bidFace!;
+
+  // 1) Load all players' dice
+  final refPlayers = FirebaseDatabase.instance
+      .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
+  final snap = await refPlayers.once();
+  final data = snap.snapshot.value;
+  if (data is! Map) return;
+
+  // 2) Count how many of that face were rolled
+  int actualCount = 0;
+  for (var entry in data.entries) {
+    final diceList = entry.value;
+    if (diceList is List) {
+      for (var d in List<int>.from(diceList)) {
+        if (d == face) actualCount++;
+      }
+    }
   }
+
+  // 3) Find who made the bet
+  final lastSnap = await FirebaseDatabase.instance
+      .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
+      .once();
+  final bettorId = lastSnap.snapshot.value?.toString();
+
+  // 4) Decide who loses a life
+  final callerId = widget.userID;
+  final loserId = (actualCount >= qty) ? callerId : bettorId;
+  if (loserId == null) return;
+
+  // 5) Subtract a life in the DB
+  final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
+
+  // 6) Notify everyone
+  final youCalled = (loserId == callerId);
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    content: Text(
+      youCalled
+        ? "Your call was wrong! You lose a life ($livesLeft left)."
+        : "Bluff caught! Opponent loses a life ($livesLeft left)."
+    ),
+  ));
+
+  // 7) Reset local state
+  setState(() {
+    _bidQuantity = null;
+    _bidFace = null;
+    _hasRolled = false;
+    _showBetControls = false;
+  });
+
+  // 8) Advance to next turn
+  await _dbService.setPlayer(callerId, widget.gameID);
+}
 
   void _userBet() {
     _origQty = 1;

@@ -506,7 +506,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       return Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/table1.png', fit: BoxFit.cover),
+            child: Image.asset('assets/tab1.png', fit: BoxFit.cover),
           ),
 
           // overlay “Start Game” button until the user taps it
