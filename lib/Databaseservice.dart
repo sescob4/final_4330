@@ -200,10 +200,7 @@ Future<String?> joinQueueAndCheck(String username) async {
 
 // Writes new dice values for all players if the current user is the game creator
   Future<void> writeDiceForAll(String userID, String gameID) async {
-    final canWrite = await FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/createdBy").once();
-    final canWrite2 = canWrite.snapshot.value;
 
-    if (canWrite2 == userID) {
       DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
       DatabaseEvent event = await ref.once();
       final data = event.snapshot.value;
@@ -221,12 +218,12 @@ Future<String?> joinQueueAndCheck(String username) async {
             await ref.child(playerID).set(updatedDiceList);
           }
         }
+      }else {
+        print("error in writeDiceForALL");
       }
-    } else {
-      print("error in writeDiceForALL");
-    }
-
   }
+
+
 
 // Sets the current bet made by a player and transitions the turn
   Future<void> placeDiceBet(String userID, String gameID, int amount, int faceValue) async {
@@ -297,6 +294,7 @@ Future<String?> joinQueueAndCheck(String username) async {
           if(di == 6){sixs++;}
         }
       });
+
       if(betDeclare[1] == 1){ if(betDeclare[0]==ones){ return true;}}
       if(betDeclare[1]== 2){ if(betDeclare[0]==twos){return true;}}
       if(betDeclare[1]==3){ if(betDeclare[0]==threes){return true;}}
@@ -321,6 +319,15 @@ Future<String?> joinQueueAndCheck(String username) async {
     print("error in getDice");
     return [];
   }
+  Future<void> loseLifeDB(String userId, String gameId) async{
+    final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameId/playersLife");
+    final snapshot = await ref.once();
+    final data = snapshot.snapshot.value;
+    if(data is Map) {
+      data
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////// DECK GAME FIREBASE DATABASE FUNCTIONS /////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -395,6 +402,7 @@ Future<String?> joinQueueAndCheck(String username) async {
 //ACTION: Need to make total dice for each player = 5
 //ACTION:Need to add lives feature
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
+//ACTION: player id add it
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////EXAMPLES BELOW///////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
