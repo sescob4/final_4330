@@ -30,6 +30,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
 
   List<int> _diceValues = [];
   bool _isRolling = false;
+  bool _hasRolled = false;
   String? _currentPlayer;
 
   StreamSubscription<DatabaseEvent>? _turnSubscription;
@@ -67,12 +68,18 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   void _listenToTurnChanges() {
-    final ref = FirebaseDatabase.instance
-        .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
-    _turnSubscription = ref.onValue.listen((event) {
-      setState(() => _currentPlayer = event.snapshot.value?.toString());
+  final ref = FirebaseDatabase.instance
+      .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
+  _turnSubscription = ref.onValue.listen((evt) {
+    final cp = evt.snapshot.value?.toString();
+    setState(() {
+      _currentPlayer = cp;
+      if (cp == widget.userID) {
+        _hasRolled = false;  // ← new turn, allow rolling again
+      }
     });
-  }
+  });
+}
 
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
@@ -94,18 +101,24 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   Future<void> _rollDice() async {
-    if (_currentPlayer != widget.userID) return;
-    setState(() => _isRolling = true);
-    _controller.forward(from: 0);
-    await Future.delayed(const Duration(milliseconds: 800));
+  if (_currentPlayer != widget.userID) return;
+  setState(() {
+    _isRolling = true;
+  });
+  _controller.forward(from: 0);
+  await Future.delayed(const Duration(milliseconds: 800));
 
-    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    final mine = await _dbService.getDice(widget.userID, widget.gameID);
-    setState(() => _diceValues = mine);
+  await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+  final mine = await _dbService.getDice(widget.userID, widget.gameID);
 
-    await _dbService.setPlayer(widget.userID, widget.gameID);
-    setState(() => _isRolling = false);
-  }
+  await _dbService.setPlayer(widget.userID, widget.gameID);
+
+  setState(() {
+    _diceValues = mine;
+    _isRolling = false;
+    _hasRolled = true;     // ← mark that we’ve rolled
+  });
+}
 
   Future<void> _callBluff() async {
     if (_currentPlayer != widget.userID || _bidQuantity == null) return;
@@ -123,7 +136,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   void _userBet() {
-    _origQty = _bidQuantity ?? 0;
+    _origQty = _bidQuantity ?? 1;
     _origFace = _bidFace ?? 1;
     _tempQty = _origQty + 1;
     _tempFace = _origFace;
@@ -207,10 +220,10 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
                     style: const TextStyle(color: Colors.amber, fontSize: 16),
                   ),
                 ),
+              if (_currentPlayer == widget.userID && !_isRolling && !_hasRolled)
               ElevatedButton(
-                onPressed: _isRolling ? null : _rollDice,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent),
+                onPressed: _rollDice,
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
                 child: const Text("Roll Dice"),
               ),
               const SizedBox(height: 12),
