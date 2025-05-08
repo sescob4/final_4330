@@ -68,18 +68,14 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   void _listenToTurnChanges() {
-    final ref = FirebaseDatabase.instance
-        .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
-    _turnSubscription = ref.onValue.listen((evt) {
-      final cp = evt.snapshot.value?.toString();
-      setState(() {
-        _currentPlayer = cp;
-        if (cp == widget.userID) {
-          _hasRolled = false;
-        }
-      });
+  final ref = FirebaseDatabase.instance
+      .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
+  _turnSubscription = ref.onValue.listen((evt) {
+    setState(() {
+      _currentPlayer = evt.snapshot.value?.toString();
     });
-  }
+  });
+}
 
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
