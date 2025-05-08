@@ -4,7 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../dice_pageMultiUSER.dart';
 import '../liars_deck_game_ai.dart';
+import '../testerAMY.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import 'settings.dart';
@@ -361,26 +363,24 @@ class _GameLoadingQueue extends State<GameQUEUE>{
         .listen((event) {
       final data = event.snapshot.value;
 
-      if (data is Map && data.length >= 4) {
+      if (data is Map && data.length >= 1) {
         print("game full with players!!!!!!!!!!!!!! continue to game");
 
           // Stop listening
           _assignementListener?.cancel();
 
           if (widget.gameChosen == "deck") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LiarsDeckGamePage(gameId: sessionID),
-              ),
-            );
+            ///ACTION ADD IN DECK PAGE
           } else {
-            Navigator.pushReplacement(
+            /// ACTIONS Front end may change the bottom section within the //
+            /// This is make you go to the page after clicking multi user in dice
+            /// //////////////// can change this////////////////////////////////////
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => DicePage(),
-              ),
+              MaterialPageRoute(builder: (context) => TestDiceFunctionsPage(userID: widget.userID, gameID: sessionID,)),
             );
+            //////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////
           }
         }
       }
@@ -484,9 +484,9 @@ class QueueDeck {
 
                   }
 
-                  if( players< 1){
+                  if( players< 4){
                     print("Found game -> checking game to add player");
-                    await playerList.child(userId).set([0,0,0]);
+                    await playerList.child(userId).set([0,0,0,0]);
 
                     if((players+1)>= 4){
                       await _DiceSessions.child(sessionID).child("gameLock").set(true);
@@ -566,7 +566,7 @@ class QueueDeck {
 
                   }
 
-                  if( players< 1){
+                  if( players< 4){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
 
