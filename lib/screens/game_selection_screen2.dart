@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../dice_pageMultiUSER.dart';
 import '../liars_deck_game_ai.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
@@ -368,19 +369,16 @@ class _GameLoadingQueue extends State<GameQUEUE>{
           _assignementListener?.cancel();
 
           if (widget.gameChosen == "deck") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => LiarsDeckGamePage(gameId: sessionID),
-              ),
-            );
+
           } else {
             Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DicePage(),
-              ),
-            );
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LiarsDiceGamePage(
+                    userID: 'someUserId',
+                    gameID: 'someGameId',
+                  ),
+                ));
           }
         }
       }

@@ -359,5 +359,5 @@ Future<String?> joinQueueAndCheck(String username) async {
       });
     }
   }
-  Fututre<void>
+
 }

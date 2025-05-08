@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:final_4330/Databaseservice.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -22,6 +24,8 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
   int _betAmount = 1;
   int _betFace = 1;
   String _statusMessage = '';
+  String? _currentPlayer;
+  StreamSubscription<DatabaseEvent>? _turnSubscription;
 
   @override
   void initState() {
@@ -31,21 +35,33 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
       duration: const Duration(milliseconds: 800),
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _loadDice();
+    _loadGameData();
+    _listenToTurnChanges();
   }
 
-  Future<void> _loadDice() async {
+  Future<void> _loadGameData() async {
     final dice = await _dbService.getDice(widget.userID, widget.gameID);
+    final currentPlayer = await _dbService.getCurrentTurnPlayer(widget.gameID);
     setState(() {
       _diceValues = dice;
+      _currentPlayer = currentPlayer;
+    });
+  }
+
+  void _listenToTurnChanges() {
+    final ref = FirebaseDatabase.instance.ref("dice/gameSessions/${widget.gameID}/currentPlayer");
+    _turnSubscription = ref.onValue.listen((event) {
+      setState(() {
+        _currentPlayer = event.snapshot.value?.toString();
+      });
     });
   }
 
   Future<void> _rollDice() async {
+    if (_currentPlayer != widget.userID) return;
     setState(() => _isRolling = true);
     _controller.forward(from: 0);
     await Future.delayed(const Duration(milliseconds: 800));
-
     final newDice = await _dbService.writeDiceForAll(widget.userID, widget.gameID);
     setState(() {
       _diceValues = newDice;
@@ -54,6 +70,7 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
   }
 
   Future<void> _placeBet() async {
+    if (_currentPlayer != widget.userID) return;
     await _dbService.placeDiceBet(widget.userID, widget.gameID, _betAmount, _betFace);
     setState(() {
       _statusMessage = "Bet Placed: $_betAmount of $_betFace";
@@ -61,6 +78,7 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
   }
 
   Future<void> _callBluff() async {
+    if (_currentPlayer != widget.userID) return;
     final success = await _dbService.checkDiceCall(widget.userID, widget.gameID);
     setState(() {
       _statusMessage = success ? "Bluff failed! Enough dice found." : "Bluff successful! Not enough dice.";
@@ -89,11 +107,13 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
   @override
   void dispose() {
     _controller.dispose();
+    _turnSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isMyTurn = _currentPlayer == widget.userID;
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
       appBar: AppBar(
@@ -105,7 +125,12 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 20),
-            Text("Your Dice", style: Theme.of(context).textTheme.headline6?.copyWith(color: Colors.white)),
+            Text(
+              isMyTurn ? "Your Turn" : "Waiting for Turn...",
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text("Your Dice", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -113,7 +138,7 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
             ),
             const SizedBox(height: 30),
             ElevatedButton(
-              onPressed: _isRolling ? null : _rollDice,
+              onPressed: isMyTurn && !_isRolling ? _rollDice : null,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
               child: const Text("Roll Dice"),
             ),
@@ -127,7 +152,7 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
                   value: _betAmount,
                   dropdownColor: Colors.black,
                   items: List.generate(10, (i) => i + 1).map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
-                  onChanged: (val) => setState(() => _betAmount = val ?? 1),
+                  onChanged: isMyTurn ? (val) => setState(() => _betAmount = val ?? 1) : null,
                 ),
                 const SizedBox(width: 20),
                 const Text("Face:", style: TextStyle(color: Colors.white)),
@@ -136,18 +161,18 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
                   value: _betFace,
                   dropdownColor: Colors.black,
                   items: List.generate(6, (i) => i + 1).map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
-                  onChanged: (val) => setState(() => _betFace = val ?? 1),
+                  onChanged: isMyTurn ? (val) => setState(() => _betFace = val ?? 1) : null,
                 ),
               ],
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _placeBet,
+              onPressed: isMyTurn ? _placeBet : null,
               child: const Text("Place Bet"),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: _callBluff,
+              onPressed: isMyTurn ? _callBluff : null,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               child: const Text("Call Bluff"),
             ),
