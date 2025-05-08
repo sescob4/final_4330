@@ -355,13 +355,13 @@ Future<String?> joinQueueAndCheck(String username) async {
     final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameId/playersAndDice");
     final snapshot = await ref.once();
     final data = snapshot.snapshot.value;
-    int playerLives = 0;
+    int players = 0;
 
     if(data is int){
-      playerLives = data;
+      players = data;
     }
 
-    return playerLives;
+    return players;
   }
 
   //ACTIONS TODOS
