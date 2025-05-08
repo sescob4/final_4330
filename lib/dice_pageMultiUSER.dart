@@ -210,7 +210,14 @@ Widget build(BuildContext context) {
   /// Push a new bet [qty] × [face] into the DB, then advance the turn.
 Future<void> _placeBet(int qty, int face) async {
   if (_currentPlayer != widget.userID) return;      // only on your turn
+
+  // 1) write the bet + advance turn in the DB
   await _dbService.placeDiceBet(widget.userID, widget.gameID, qty, face);
+
+  // 2) (optional) explicitly rotate here if placeDiceBet didn't:
+  // await _dbService.setPlayer(widget.userID, widget.gameID);
+
+  // 3) update your local state so UI shows the new bet immediately
   setState(() {
     _bidQuantity = qty;
     _bidFace     = face;
