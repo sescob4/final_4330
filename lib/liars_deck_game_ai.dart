@@ -491,7 +491,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           ),
           // Table center circle
           Positioned(
-            left: center.dx - radius,
+            left: center.dx - radius - 40, // shifted 40 pixels left
             top: center.dy - radius,
             child: Image.asset(
               'assets/cardtable.png',
@@ -500,10 +500,11 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               fit: BoxFit.cover,
             ),
           ),
+
           // Played cards at center (hidden using card backs)
           Positioned(
-            top: center.dy - 31,
-            left: center.dx - ((game.tableCards.length - 1) * 20 + 104) / 2,
+            top: center.dy - 28,
+            left: center.dx - ((game.tableCards.length - 1) * 20 + 120) / 2,
             child: SizedBox(
               width: (game.tableCards.length - 1) * 20.0 + 100,
               height: 62,
