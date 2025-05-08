@@ -390,4 +390,64 @@ Future<String?> joinQueueAndCheck(String username) async {
     'gamesWon': gamesWon,
   }, SetOptions(merge: true)); // merge to avoid overwriting other user fields
 }
+//ACTIONS TODOS
+//ACTION: Make next player (other user ID) be able to also roll the dice after the bluff call
+//ACTION: Need to make total dice for each player = 5
+//ACTION:Need to add lives feature
+//ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////EXAMPLES BELOW///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// void _addLog(String entry) {
+//     history.add(entry);
+//     WidgetsBinding.instance.addPostFrameCallback((_) {
+//       if (_scrollController.hasClients) {
+//         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+//       }
+//     });
+//   }
+
+// _addLog('You rolled: ${allDice[0].join(', ')}')
+
+// if (turnIndex == 0) {
+//             _addLog('Your turn: Bet or Call');
+//           } else {
+//             _addLog('CPU $turnIndex starts betting');
+//             Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+//           }
+//         });
+//       }
+//     });
+//   }
+
+  // _addLog('You bet $bidQuantity × $bidFace');
+
+// _addLog('You called bluff on ${bidQuantity!} × ${bidFace!}');
+
+// void _handleCpuCall() {
+//     final cpuIdx = turnIndex;
+//     _addLog('CPU $cpuIdx calls bluff');
+//     // immediately resolve the call (this resets turnIndex, hasRolled, etc.)
+//     _resolveCall(turnIndex);
+//   }
+
+//   void _handleCpuBet() {
+//     final cpuIdx = turnIndex;
+//     final oldQty = bidQuantity ?? 0;
+//     final oldFace = bidFace ?? 1;
+//     bool raiseQty = _rand.nextBool();
+//     if (!raiseQty && oldFace >= 6) raiseQty = true;
+//     final newQty = raiseQty ? oldQty + 1 : oldQty;
+//     final newFace = raiseQty ? oldFace : min(oldFace + 1, 6);
+//     setState(() { bidQuantity = newQty; bidFace = newFace; });
+//     final msg = 'CPU $cpuIdx bets $newQty × $newFace';
+//     _addLog(msg);
+//     ScaffoldMessenger.of(context)
+//       .showSnackBar(SnackBar(content: Text(msg)))
+//       .closed
+//       .then((_) => _nextTurn());
+//   }
+
+
+
 }
