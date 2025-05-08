@@ -308,5 +308,11 @@ Future<String?> joinQueueAndCheck(String username) async {
 
 //+++++++++++++++++++++++++++++++++++++++++deck amy datavase above+++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Lora's Functions
+  Future<void> putDownCards(String userID, String gameID, List<String> cards) async {
+  DatabaseReferenc ref = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/playersAndCards/$userID");
+
+  await ref.set(cards);
+}
 
 }
