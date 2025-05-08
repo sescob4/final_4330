@@ -71,12 +71,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   final ref = FirebaseDatabase.instance
       .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
   _turnSubscription = ref.onValue.listen((evt) {
-    final cp = evt.snapshot.value?.toString();
     setState(() {
-      _currentPlayer = cp;
-      if (cp == widget.userID) {
-        _hasRolled = false;  // ← new turn, allow rolling again
-      }
+      _currentPlayer = evt.snapshot.value?.toString();
     });
   });
 }
@@ -129,8 +125,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
     setState(() {
-      _bidQuantity = null;
-      _bidFace = null;
+      _bidQuantity = 1;
+      _bidFace = 1;
     });
     await _dbService.setPlayer(widget.userID, widget.gameID);
   }
