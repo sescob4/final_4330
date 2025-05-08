@@ -71,12 +71,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   final ref = FirebaseDatabase.instance
       .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
   _turnSubscription = ref.onValue.listen((evt) {
-    final cp = evt.snapshot.value?.toString();
     setState(() {
-      _currentPlayer = cp;
-      if (cp == widget.userID) {
-        _hasRolled = false;  // ← new turn, allow rolling again
-      }
+      _currentPlayer = evt.snapshot.value?.toString();
     });
   });
 }
@@ -84,8 +80,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/betDeclared");
-    _betSubscription = ref.onValue.listen((event) {
-      final v = event.snapshot.value;
+    _betSubscription = ref.onValue.listen((evt) {
+      final v = evt.snapshot.value;
       if (v is List && v.length == 2) {
         setState(() {
           _bidQuantity = v[0] as int;
@@ -93,32 +89,32 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
         });
       } else {
         setState(() {
-          _bidQuantity = null;
-          _bidFace = null;
+          _bidQuantity = 1;
+          _bidFace = 1;
         });
       }
     });
   }
 
   Future<void> _rollDice() async {
-  if (_currentPlayer != widget.userID) return;
-  setState(() {
-    _isRolling = true;
-  });
-  _controller.forward(from: 0);
-  await Future.delayed(const Duration(milliseconds: 800));
+    if (_currentPlayer != widget.userID) return;
+    setState(() {
+      _isRolling = true;
+    });
+    _controller.forward(from: 0);
+    await Future.delayed(const Duration(milliseconds: 800));
 
-  await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-  final mine = await _dbService.getDice(widget.userID, widget.gameID);
+    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+    final mine = await _dbService.getDice(widget.userID, widget.gameID);
 
-  await _dbService.setPlayer(widget.userID, widget.gameID);
+    await _dbService.setPlayer(widget.userID, widget.gameID);
 
-  setState(() {
-    _diceValues = mine;
-    _isRolling = false;
-    _hasRolled = true;     // ← mark that we’ve rolled
-  });
-}
+    setState(() {
+      _diceValues = mine;
+      _isRolling = false;
+      _hasRolled = true;
+    });
+  }
 
   Future<void> _callBluff() async {
     if (_currentPlayer != widget.userID || _bidQuantity == null) return;
@@ -129,17 +125,17 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
     setState(() {
-      _bidQuantity = null;
-      _bidFace = null;
+      _bidQuantity = 1;
+      _bidFace = 1;
     });
     await _dbService.setPlayer(widget.userID, widget.gameID);
   }
 
   void _userBet() {
-    _origQty = _bidQuantity ?? 1;
-    _origFace = _bidFace ?? 1;
-    _tempQty = _origQty + 1;
-    _tempFace = _origFace;
+    _origQty = 1;
+    _origFace = 1;
+    _tempQty = 1;
+    _tempFace = 1;
     _lockMode = _LockMode.none;
     setState(() => _showBetControls = true);
   }
@@ -221,24 +217,21 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
                   ),
                 ),
               if (_currentPlayer == widget.userID && !_isRolling && !_hasRolled)
-              ElevatedButton(
-                onPressed: _rollDice,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-                child: const Text("Roll Dice"),
-              ),
+                ElevatedButton(
+                  onPressed: _rollDice,
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent),
+                  child: const Text("Roll Dice"),
+                ),
               const SizedBox(height: 12),
               if (_showBetControls)
                 _buildInlineBetControls()
               else if (!_isRolling && _currentPlayer == widget.userID)
                 ElevatedButton(
                   onPressed: _userBet,
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-                  child: Text(
-                    _bidQuantity != null
-                        ? "Bet: ${_bidQuantity}×${_bidFace}"
-                        : "Place Bet",
-                  ),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber),
+                  child: const Text("Place Bet"),
                 ),
               if (!_isRolling &&
                   _currentPlayer == widget.userID &&
@@ -288,8 +281,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon:
-                    Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
+                icon: Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minHeight: 20),
                 onPressed: () {
@@ -301,8 +293,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
                 },
               ),
               IconButton(
-                icon:
-                    Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
+                icon: Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minHeight: 20),
                 onPressed: () {
@@ -335,8 +326,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon:
-                    Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
+                icon: Icon(Icons.arrow_drop_up, color: Colors.amber, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minHeight: 20),
                 onPressed: () {
@@ -348,8 +338,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
                 },
               ),
               IconButton(
-                icon:
-                    Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
+                icon: Icon(Icons.arrow_drop_down, color: Colors.amber, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minHeight: 20),
                 onPressed: () {
@@ -364,7 +353,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: (_tempQty > _origQty || _tempFace > _origFace)
+            onPressed: (_tempQty > _origQty || _tempFace > _origFace || true)
                 ? _confirmBet
                 : null,
             style: ElevatedButton.styleFrom(
