@@ -364,6 +364,28 @@ Future<String?> joinQueueAndCheck(String username) async {
 
     return players;
   }
+  Future<void> writeToLog(String gameID, String message) async{
+    final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/chat");
+    await ref.push().set(message);
+
+  }
+  Future<String> readLastFromLOG(String gameID) async{
+    final ref = FirebaseDatabase.instance
+        .ref("dice/gameSessions/$gameID/chat").orderByKey()
+        .limitToLast(1);
+
+    final snap = await ref.get();
+    String message = "error";
+    if(snap.exists){
+      for(final child in snap.children){
+        if(child.value is String){
+          message = child.value as String;
+        }
+      }
+
+    }
+    return message;
+  }
 
   //ACTIONS TODOS
 //ACTION: Make next player (other user ID) be able to also roll the dice after the bluff call
@@ -378,8 +400,12 @@ Future<String?> joinQueueAndCheck(String username) async {
   * */
 
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
-
+  //DONE IN DATABASESERVICE LOG
+  /* - create write message to log
+  *  - create read last message from log*/
 //ACTION: player character ID add it
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////EXAMPLES BELOW///////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////

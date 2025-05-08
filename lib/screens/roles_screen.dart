@@ -1,3 +1,4 @@
+import 'package:final_4330/Databaseservice.dart';
 import 'package:final_4330/main.dart';
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
@@ -16,6 +17,7 @@ class RolesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int characterID = 0;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -75,6 +77,8 @@ class RolesScreen extends StatelessWidget {
                       children: roles.map((role) {
                         return GestureDetector(
                           onTap: () {
+                            DatabaseService dp = new DatabaseService();
+                            characterID = roles.indexOf(role);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
