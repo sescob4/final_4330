@@ -151,6 +151,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   final ScrollController _scroll = ScrollController();
 
   bool gameOver = false; // true when full game ends, not just round
+  bool showRevealedCards = false;
 
   bool started = false, aiBusy = false;
   static const aiDelay = Duration(seconds: 3);
@@ -317,9 +318,17 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
   void _callBluff() {
     _showOverlay('You CALLED BLUFF!');
-    final msg = game.callBluff(game.players[0]);
-    setState(() => _addLog(msg));
-    _checkWinner();
+    setState(() {
+      showRevealedCards = true;
+    });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!mounted) return;
+      final msg = game.callBluff(game.players[0]);
+      setState(() {
+        _addLog(msg);
+      });
+      _checkWinner();
+    });
   }
 
   Widget _card(DeckCard c, {bool selectable = false}) => GestureDetector(
@@ -501,7 +510,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             ),
           ),
 
-          // Played cards at center (hidden using card backs)
+          // Played cards at center (revealed on bluff)
           Positioned(
             top: center.dy - 28,
             left: center.dx - ((game.tableCards.length - 1) * 20 + 120) / 2,
@@ -514,7 +523,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   (i) => Positioned(
                     left: i * 20.0,
                     child: SvgPicture.asset(
-                      'assets/cardback.svg',
+                      showRevealedCards
+                          ? game.tableCards[i].assetPath
+                          : 'assets/cardback.svg',
                       width: 42,
                       height: 62,
                     ),
@@ -526,7 +537,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
           // AI1 (left, closer to table)
           Positioned(
-            left: 200,
+            left: 190,
             top: center.dy - 40,
             child: _hand(
               game.players[1],
@@ -538,7 +549,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
           // AI2 (top center)
           Positioned(
-            left: 395,
+            left: 385,
             top: 40,
             child: _hand(
               game.players[2],
@@ -550,7 +561,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
           // AI3 (right, closer to table)
           Positioned(
-            right: 220,
+            right: 200,
             top: center.dy - 40,
             child: _hand(
               game.players[3],
