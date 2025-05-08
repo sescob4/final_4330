@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:final_4330/Databaseservice.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'widgets/dice_face.dart';
 
 class DicePageMultiUSER extends StatefulWidget {
   final String userID;
@@ -162,7 +163,16 @@ Widget build(BuildContext context) {
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: _diceValues.map((d) => _buildDiceFace(d)).toList(),
+              children: _diceValues.map((value) {
+                return ScaleTransition(
+                  scale: _animation,
+                  child: SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: DiceFace(value: value),
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 30),
             if (_bidQuantity != null)
