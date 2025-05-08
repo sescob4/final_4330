@@ -475,8 +475,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: const Color(0xFF3E2723),
-        body: started ? _buildTable(context) : _buildIntro(),
+        body: _buildTable(context),
       );
+
   final AudioPlayer _player = AudioPlayer();
   Widget _buildIntro() => Center(
         child: ElevatedButton(
@@ -507,6 +508,28 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           Positioned.fill(
             child: Image.asset('assets/table1.png', fit: BoxFit.cover),
           ),
+
+          // overlay “Start Game” button until the user taps it
+          if (!started)
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await _player.play(AssetSource('sound/click-4.mp3'));
+                  _startGame();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange[700],
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  textStyle: const TextStyle(fontSize: 20),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Start Game'),
+              ),
+            ),
+
           // Header
           Positioned(
             top: padTop,
