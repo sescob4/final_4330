@@ -33,6 +33,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   bool _hasRolled = false;
   String? _currentPlayer;
 
+  int _lives = 0; // Lives from database
+
   StreamSubscription<DatabaseEvent>? _turnSubscription;
   StreamSubscription<DatabaseEvent>? _betSubscription;
 
@@ -53,136 +55,128 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
 
-    _loadGameData();
+    _loadInitialData();
     _listenToTurnChanges();
     _listenToBetChanges();
   }
 
-  Future<void> _loadGameData() async {
-    final dice = await _dbService.getDice(widget.userID, widget.gameID);
+  Future<void> _loadInitialData() async {
+    await _refreshDice();
+    await _refreshLives();
     final currentPlayer = await _dbService.getCurrentTurnPlayer(widget.gameID);
-    setState(() {
-      _diceValues = dice;
-      _currentPlayer = currentPlayer;
-    });
+    setState(() => _currentPlayer = currentPlayer);
+  }
+
+  Future<void> _refreshDice() async {
+    final dice = await _dbService.getDice(widget.userID, widget.gameID);
+    setState(() => _diceValues = dice);
+  }
+
+  Future<void> _refreshLives() async {
+    final lives = await _dbService.getLifesDB(widget.userID, widget.gameID);
+    setState(() => _lives = lives);
   }
 
   void _listenToTurnChanges() {
-  final ref = FirebaseDatabase.instance
-      .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
-  _turnSubscription = ref.onValue.listen((evt) {
-    setState(() {
-      _currentPlayer = evt.snapshot.value?.toString();
+    final ref = FirebaseDatabase.instance
+        .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
+    _turnSubscription = ref.onValue.listen((evt) {
+      final cp = evt.snapshot.value?.toString();
+      setState(() {
+        _currentPlayer = cp;
+        _hasRolled = false; // reset when turn changes
+      });
+      if (cp == widget.userID) {
+        _refreshDice();
+        _refreshLives();
+      }
     });
-  });
-}
+  }
 
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/betDeclared");
     _betSubscription = ref.onValue.listen((evt) {
       final v = evt.snapshot.value;
-      if (v is List && v.length == 2) {
-        setState(() {
+      setState(() {
+        if (v is List && v.length == 2) {
           _bidQuantity = v[0] as int;
           _bidFace = v[1] as int;
-        });
-      } else {
-        setState(() {
+        } else {
           _bidQuantity = 1;
           _bidFace = 1;
-        });
-      }
+        }
+      });
     });
   }
 
   Future<void> _rollDice() async {
     if (_currentPlayer != widget.userID) return;
-    setState(() {
-      _isRolling = true;
-    });
+    setState(() => _isRolling = true);
     _controller.forward(from: 0);
     await Future.delayed(const Duration(milliseconds: 800));
 
     await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    final mine = await _dbService.getDice(widget.userID, widget.gameID);
+    await _refreshDice();
 
-    
-
+    await _dbService.setPlayer(widget.userID, widget.gameID);
     setState(() {
-      _diceValues = mine;
       _isRolling = false;
       _hasRolled = true;
     });
   }
 
   Future<void> _callBluff() async {
-  if (_currentPlayer != widget.userID || _bidQuantity == null) return;
-  await _resolveCall();
-}
-
-
-  Future<void> _resolveCall() async {
-  final qty = _bidQuantity!;
-  final face = _bidFace!;
-
-  // 1) Load all players' dice
-  final refPlayers = FirebaseDatabase.instance
-      .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
-  final snap = await refPlayers.once();
-  final data = snap.snapshot.value;
-  if (data is! Map) return;
-
-  // 2) Count how many of that face were rolled
-  int actualCount = 0;
-  for (var entry in data.entries) {
-    final diceList = entry.value;
-    if (diceList is List) {
-      for (var d in List<int>.from(diceList)) {
-        if (d == face) actualCount++;
-      }
-    }
+    if (_currentPlayer != widget.userID || _bidQuantity == null) return;
+    await _resolveCall();
   }
 
-  // 3) Find who made the bet
-  final lastSnap = await FirebaseDatabase.instance
-      .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
-      .once();
-  final bettorId = lastSnap.snapshot.value?.toString();
+  Future<void> _resolveCall() async {
+    final qty = _bidQuantity!;
+    final face = _bidFace!;
+    final refPlayers = FirebaseDatabase.instance
+        .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
+    final snap = await refPlayers.once();
+    final data = snap.snapshot.value;
+    if (data is! Map) return;
 
-  // 4) Decide who loses a life
-  final callerId = widget.userID;
-  final loserId = (actualCount >= qty) ? callerId : bettorId;
-  if (loserId == null) return;
+    int actualCount = 0;
+    for (var entry in data.entries) {
+      final diceList = entry.value;
+      if (diceList is List) {
+        for (var d in List<int>.from(diceList)) {
+          if (d == face) actualCount++;
+        }
+      }
+    }
+    final lastSnap = await FirebaseDatabase.instance
+        .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
+        .once();
+    final bettorId = lastSnap.snapshot.value?.toString();
+    final callerId = widget.userID;
+    final loserId = (actualCount >= qty) ? callerId : bettorId;
+    if (loserId == null) return;
 
-  // 5) Subtract a life in the DB
-  final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
-
-  // 6) Notify everyone
-  final youCalled = (loserId == callerId);
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    content: Text(
-      youCalled
-        ? "Your call was wrong! You lose a life ($livesLeft left)."
-        : "Bluff caught! Opponent loses a life ($livesLeft left)."
-    ),
-  ));
-
-  // 7) Reset local state
-  setState(() {
-    _bidQuantity = null;
-    _bidFace = null;
-    _hasRolled = false;
-    _showBetControls = false;
-  });
-
-  // 8) Advance to next turn
-  await _dbService.setPlayer(callerId, widget.gameID);
-}
+    final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        loserId == callerId
+            ? "You lose a life! ($livesLeft left)"
+            : "Opponent loses a life! ($livesLeft left)",
+      ),
+    ));
+    await _refreshLives();
+    setState(() {
+      _bidQuantity = 1;
+      _bidFace = 1;
+    });
+    await _dbService.setPlayer(widget.userID, widget.gameID);
+  }
 
   void _userBet() {
-    _origQty = 1;
-    _origFace = 1;
+    if (!_hasRolled) return;
+    _origQty = 0;
+    _origFace = 0;
     _tempQty = 1;
     _tempFace = 1;
     _lockMode = _LockMode.none;
@@ -200,6 +194,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
       _bidQuantity = _tempQty;
       _bidFace = _tempFace;
       _showBetControls = false;
+      _hasRolled = false;
     });
   }
 
@@ -223,6 +218,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
           Positioned.fill(
             child: Image.asset('assets/table1.png', fit: BoxFit.cover),
           ),
+          _buildHeartBox(_lives),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -268,31 +264,24 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
               if (_currentPlayer == widget.userID && !_isRolling && !_hasRolled)
                 ElevatedButton(
                   onPressed: _rollDice,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
                   child: const Text("Roll Dice"),
                 ),
               const SizedBox(height: 12),
               if (_showBetControls)
                 _buildInlineBetControls()
-              else if (!_isRolling && _currentPlayer == widget.userID)
+              else if (_currentPlayer == widget.userID && _hasRolled)
                 ElevatedButton(
                   onPressed: _userBet,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
                   child: const Text("Place Bet"),
                 ),
-              if (!_isRolling &&
-                  _currentPlayer == widget.userID &&
-                  _bidQuantity != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: ElevatedButton(
-                    onPressed: _callBluff,
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent),
-                    child: const Text("Call Bluff"),
-                  ),
+              const SizedBox(height: 12),
+              if (_currentPlayer == widget.userID && _bidQuantity != null && !_showBetControls)
+                ElevatedButton(
+                  onPressed: _callBluff,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  child: const Text("Call Bluff"),
                 ),
             ],
           ),
@@ -322,8 +311,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
               borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
-              child: Text('$_tempQty',
-                  style: const TextStyle(color: Colors.white, fontSize: 18)),
+              child: Text('$_tempQty', style: const TextStyle(color: Colors.white, fontSize: 18)),
             ),
           ),
           Column(
@@ -367,8 +355,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
               borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
-              child: Text('$_tempFace',
-                  style: const TextStyle(color: Colors.white, fontSize: 18)),
+              child: Text('$_tempFace', style: const TextStyle(color: Colors.white, fontSize: 18)),
             ),
           ),
           Column(
@@ -402,12 +389,9 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: (_tempQty > _origQty || _tempFace > _origFace || true)
-                ? _confirmBet
-                : null,
+            onPressed: _confirmBet,
             style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
             child: const Text('Confirm'),
           ),
           const SizedBox(width: 8),
@@ -422,4 +406,45 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
       ),
     );
   }
+
+  /// Heart box showing current lives at top
+  Widget _buildHeartBox(int lives) {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.brown.shade800,
+            border: Border(
+              left: const BorderSide(color: Colors.amber, width: 3),
+              right: const BorderSide(color: Colors.amber, width: 3),
+              bottom: const BorderSide(color: Colors.amber, width: 3),
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              lives,
+              (_) => const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 1),
+                child: Icon(
+                  Icons.favorite,
+                  size: 30,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
