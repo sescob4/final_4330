@@ -135,6 +135,8 @@ flutter:
     - assets/splat2.svg
     - assets/splat3.svg
     - assets/cardtable.png
+    - assets/wanted_button_bg.png
+    
 
     
   #roles:

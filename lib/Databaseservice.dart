@@ -391,6 +391,7 @@ Future<String?> joinQueueAndCheck(String username) async {
   }, SetOptions(merge: true)); // merge to avoid overwriting other user fields
 }
 //ACTIONS TODOS
+//ACTION: Make next player (other user ID) be able to also roll the dice after the bluff call
 //ACTION: Need to make total dice for each player = 5
 //ACTION:Need to add lives feature
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
