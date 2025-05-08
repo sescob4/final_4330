@@ -490,7 +490,7 @@ class QueueDeck {
 
                   if( players< 2){
                     print("Found game -> checking game to add player");
-                    await playerList.child(userId).set([0,0,0,0]);
+                    await playerList.child(userId).set([0,0,0,0,0]);
 
                     if((players+1)>= 2){
                       await _DiceSessions.child(sessionID).child("gameLock").set(true);
@@ -521,7 +521,7 @@ class QueueDeck {
                 "gameLock": false,
                 "timestamp": ServerValue.timestamp,
                 "playersAndDice":{
-                  userId: [0,0,0,0]
+                  userId: [0,0,0,0,0]
                 },
                 "playersLife":{
                   userId: 3

@@ -366,8 +366,12 @@ Future<String?> joinQueueAndCheck(String username) async {
 
   //ACTIONS TODOS
 //ACTION: Make next player (other user ID) be able to also roll the dice after the bluff call
+  //DONE IN GAME SELECTION LINES 491 and 495
 //ACTION: Need to make total dice for each player = 5
+  //DONE IN GAME SELECTION LINES 524 and 493
 //ACTION:Need to add lives feature
+  //DONE IN DATABASESERVICE
+
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
 //ACTION: player id add it
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
