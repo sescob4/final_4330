@@ -134,6 +134,7 @@ flutter:
     - assets/splat1.svg
     - assets/splat2.svg
     - assets/splat3.svg
+    - assets/cardtable.png
 
     
   #roles:

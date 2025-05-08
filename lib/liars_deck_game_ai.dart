@@ -202,7 +202,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       aiBusy = false;
       gameOver = true;
 
-      final db = DatabaseService(); 
+      final db = DatabaseService();
       if (winner.name == 'You') {
         db.recordGameResult(didWin: true);
         _showOverlay('YOU WIN!');
@@ -493,11 +493,11 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
           Positioned(
             left: center.dx - radius,
             top: center.dy - radius,
-            child: Container(
-              width: radius * 2,
+            child: Image.asset(
+              'assets/cardtable.png',
+              width: radius * 2.7,
               height: radius * 2,
-              decoration: const BoxDecoration(
-                  color: Color(0xFFBCAAA4), shape: BoxShape.circle),
+              fit: BoxFit.cover,
             ),
           ),
           // Played cards at center (hidden using card backs)
@@ -634,26 +634,26 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             left: 8,
             bottom: 8,
             child: gameOver
-             ? Column(
+                ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ElevatedButton(
-                        onPressed:  () async {
+                        onPressed: () async {
                           await _player.play(AssetSource('sound/click-4.mp3'));
                           Navigator.pushNamed(context, '/home');
                         },
                         child: const Text('Go Home'),
                       ),
                       const SizedBox(height: 8),
-                 ElevatedButton(
-                    onPressed: () async {
-                      await _player.play(AssetSource('sound/click-4.mp3'));
-                      _restartGame();
-                    },
-                    child: const Text('Play Again'),
-                  ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          await _player.play(AssetSource('sound/click-4.mp3'));
+                          _restartGame();
+                        },
+                        child: const Text('Play Again'),
+                      ),
                     ],
-             )
+                  )
                 : game.roundOver
                     ? ElevatedButton(
                         onPressed: () async {
