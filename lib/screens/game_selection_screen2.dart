@@ -484,7 +484,7 @@ class QueueDeck {
 
                   }
 
-                  if( players< 4){
+                  if( players< 1){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
 
@@ -566,7 +566,7 @@ class QueueDeck {
 
                   }
 
-                  if( players< 4){
+                  if( players< 1){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
 

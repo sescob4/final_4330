@@ -13,15 +13,10 @@ class DatabaseService {
       "guest_${DateTime.now().millisecondsSinceEpoch}";
   }
 
-
-
-
-
-
   Future<String> getCurrentUsername() async {
-  final uid = getCurrentUserId();
-  return await _getUsernameByUid(uid);
-}
+    final uid = getCurrentUserId();
+    return await _getUsernameByUid(uid);
+  }
   // Game session management
   Future<String> createNewGame() async {
     final newGameRef = _db.child('deck/gameSessions').push();
@@ -183,130 +178,160 @@ Future<String?> joinQueueAndCheck(String username) async {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////// amy dice below||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-  Future<void> deleteUser(String userID, String gameID, String gameChosen)async{
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////// DICE GAME FIREBASE DATABASE FUNCTIONS /////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Removes a player from the game session.
+// If the user is the creator, update the creator to the next player.
+  Future<void> deleteUser(String userID, String gameID, String gameChosen) async {
     final ref = await FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID/createdBy").once();
     final data = ref.snapshot.value;
-    if(data == userID){
+
+    if (data == userID) {
+      // If user is the creator, get a new creator
       DatabaseReference ref = FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID");
       String newCreated = await getNextPlayer(userID, gameID);
       ref.update({"createdBy": newCreated});
       await FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID/playersAndDice/$userID").remove();
-
-
-    }else{
+    } else {
+      // If user is not the creator, just remove them
       await FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID/playersAndDice/$userID").remove();
-
     }
-    /* ACTION ask team what should be edited for when user is out and also figure out how to account for lives on user side--*/
-
   }
-  Future<void> deleteGame(String userID, String gameID, String gameChosen) async{
-    final ref = await FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID");
+
+// Deletes an entire game session from the database
+  Future<void> deleteGame(String userID, String gameID, String gameChosen) async {
+    final ref = FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID");
     ref.remove();
   }
-  Future<void> writeDiceForAll(String userID, String gameID) async{
+
+// Writes new dice values for all players if the current user is the game creator
+  Future<List<int>> writeDiceForAll(String userID, String gameID) async {
     final canWrite = await FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/createdBy").once();
     final canWrite2 = canWrite.snapshot.value;
-    if(canWrite2 == userID){
-      DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
 
+    if (canWrite2 == userID) {
+      DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
       DatabaseEvent event = await ref.once();
       final data = event.snapshot.value;
       final Random rand = Random();
-      if(data is Map){
-        for(var entry in (data as Map).entries){
+
+      // Iterate over each player and assign random dice values
+      if (data is Map) {
+        for (var entry in (data as Map).entries) {
           final playerID = entry.key;
           final diceList = entry.value;
-          if(diceList is List){
-            final updatedDiceList = List.generate(diceList.length, (_) => rand.nextInt(6)+1);
+
+          // Randomize each dice value (1–6)
+          if (diceList is List) {
+            final updatedDiceList = List.generate(diceList.length, (_) => rand.nextInt(6) + 1);
             await ref.child(playerID).set(updatedDiceList);
           }
         }
       }
+    } else {
+      print("error in writeDiceForALL");
     }
+
+    // Return current user's dice after writing
+    return getDice(userID, gameID);
   }
 
-  Future<void> placeDiceBet(String userID, String gameID, int amount, int faceValue) async{
+// Sets the current bet made by a player and transitions the turn
+  Future<void> placeDiceBet(String userID, String gameID, int amount, int faceValue) async {
     DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID");
     await ref.update({"betDeclared": [amount, faceValue]});
     await setPlayer(userID, gameID);
-
   }
-  Future<void> setPlayer(String userID, String gameID)async {
+
+// Rotates turn by moving to the next player in the list
+  Future<void> setPlayer(String userID, String gameID) async {
     DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID");
     DatabaseEvent event = await ref.once();
     final data = event.snapshot.value;
-    if(data is Map){
+
+    if (data is Map) {
       String? previousPlayer = data["currentPlayer"];
       String? nextPlayer = await getNextPlayer(userID, gameID);
-      await ref.update({"currentPlayer": nextPlayer,
-        "lastPlayer":previousPlayer});
+      await ref.update({
+        "currentPlayer": nextPlayer,
+        "lastPlayer": previousPlayer
+      });
     }
   }
-  Future<String> getNextPlayer(String currentUserID, String gameID)async{
+
+// Determines which player should go next in the sequence
+  Future<String> getNextPlayer(String currentUserID, String gameID) async {
     final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
     final snapshot = await ref.once();
     final data = snapshot.snapshot.value;
 
-    if(data is Map){
+    if (data is Map) {
       final playerMap = data.keys.toList();
       int index = playerMap.indexOf(currentUserID);
-      int next = (index+1 )% playerMap.length;
+      int next = (index + 1) % playerMap.length;
       return playerMap[next];
     }
+
     print("error in the get next player database service!!");
     return "errorrrr";
   }
-  Future<bool> checkDiceCall(String userID, String gameID) async{
+
+// Verifies if a call on a bet was valid by counting matching dice
+  Future<bool> checkDiceCall(String userID, String gameID) async {
     DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID");
     DatabaseEvent event = await ref.once();
     final data = event.snapshot.value;
-    if(data is Map){
+
+    if (data is Map) {
       List<int> betDeclare = List<int>.from(data["betDeclared"]);
-      int ones =0;
-      int twos=0;
-      int threes=0;
-      int fours=0;
-      int fives=0;
-      int sixs=0;
 
-      final playersAndDice = Map<String,dynamic>.from(data["playersAndDice"]);
+      // Counters for dice faces
+      int ones = 0, twos = 0, threes = 0, fours = 0, fives = 0, sixs = 0;
 
-      playersAndDice.forEach((playerID, dicelist){
+      final playersAndDice = Map<String, dynamic>.from(data["playersAndDice"]);
+
+      // Tally dice values across all players
+      playersAndDice.forEach((playerID, dicelist) {
         final dice = List<int>.from(dicelist);
-        var di;
-        for(di in dice){
-          if(di==1){ones++;}
-          if(di==2){twos++;}
-          if(di == 3){threes++;}
-          if(di == 4){fours++;}
-          if(di == 5){fives++;}
-          if(di == 6){sixs++;}
+        for (var die in dice) {
+          if (die == 1) ones++;
+          if (die == 2) twos++;
+          if (die == 3) threes++;
+          if (die == 4) fours++;
+          if (die == 5) fives++;
+          if (die == 6) sixs++;
         }
       });
-      if(betDeclare[1] == 1){ if(betDeclare[0]==ones){ return true;}}
-      if(betDeclare[1]== 2){ if(betDeclare[0]==twos){return true;}}
-      if(betDeclare[1]==3){ if(betDeclare[0]==threes){return true;}}
-      if(betDeclare[1]==4){ if(betDeclare[0]==fours){return true;}}
-      if(betDeclare[1]==5){ if(betDeclare[0]==fives){return true;}}
-      if(betDeclare[1]==6){ if(betDeclare[0]==sixs){return true;}}
-/* ACTION: ASK TEAM about logic for this does the bet have to be exact or less or greater???????
-*
-*
-*
-* */
+
+      // Check if bet is valid based on actual dice counts
+      if (betDeclare[1] == 1 && betDeclare[0] <= ones) return true;
+      if (betDeclare[1] == 2 && betDeclare[0] <= twos) return true;
+      if (betDeclare[1] == 3 && betDeclare[0] <= threes) return true;
+      if (betDeclare[1] == 4 && betDeclare[0] <= fours) return true;
+      if (betDeclare[1] == 5 && betDeclare[0] <= fives) return true;
+      if (betDeclare[1] == 6 && betDeclare[0] <= sixs) return true;
+
       return false;
     }
+
+    print("error in check call!!!!!!!");
     return false;
   }
 
-//|||||||||||||||||||||||||||||||||||||||||dice amy database above|||||||||||||||||||||||||||||
-//+++++++++++++++++++++++++++++++++++++++++deck amy datavase below+++++++++++++++++++++++++++++++++++++
+// Retrieves a list of dice values for the current user
+  Future<List<int>> getDice(String userID, String gameID) async {
+    final data = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice/$userID");
+    final snap = await data.get();
+    final list = snap.value;
 
+    if (list is List) {
+      return List<int>.from(list);
+    }
 
-//+++++++++++++++++++++++++++++++++++++++++deck amy datavase above+++++++++++++++++++++++++++++++++++++
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    print("error in getDice");
+    return [];
+  }
 
 }
