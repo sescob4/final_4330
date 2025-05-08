@@ -1,31 +1,31 @@
 import 'dart:async';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:final_4330/Databaseservice.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/animation.dart';
 
-class LiarsDiceGamePage extends StatefulWidget {
+class DicePageMultiUSER extends StatefulWidget {
   final String userID;
   final String gameID;
+  
 
-  const LiarsDiceGamePage({super.key, required this.userID, required this.gameID});
+  const DicePageMultiUSER({super.key, required this.userID, required this.gameID});
 
   @override
-  State<LiarsDiceGamePage> createState() => _LiarsDiceGamePageState();
+  State<DicePageMultiUSER> createState() => _DicePageMultiUSERState();
 }
 
-class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTickerProviderStateMixin {
+class _DicePageMultiUSERState extends State<DicePageMultiUSER> with SingleTickerProviderStateMixin {
   final DatabaseService _dbService = DatabaseService();
   late AnimationController _controller;
   late Animation<double> _animation;
   List<int> _diceValues = [];
   bool _isRolling = false;
-  int _betAmount = 1;
-  int _betFace = 1;
-  String _statusMessage = '';
   String? _currentPlayer;
   StreamSubscription<DatabaseEvent>? _turnSubscription;
+  StreamSubscription<DatabaseEvent>? _betSub;
+  int? _bidQuantity;
+  int? _bidFace;
 
   @override
   void initState() {
@@ -37,6 +37,7 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _loadGameData();
     _listenToTurnChanges();
+    _listenToBetChanges();
   }
 
   Future<void> _loadGameData() async {
@@ -57,36 +58,134 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
     });
   }
 
+void _listenToBetChanges() {
+  final ref = FirebaseDatabase.instance
+    .ref("dice/gameSessions/${widget.gameID}/betDeclared");
+  _betSub = ref.onValue.listen((evt) {
+    final v = evt.snapshot.value;
+    if (v is List && v.length == 2) {
+      setState(() {
+        _bidQuantity = v[0] as int;
+        _bidFace     = v[1] as int;
+      });
+    }
+  });
+}
+
+
+
+
   Future<void> _rollDice() async {
-    if (_currentPlayer != widget.userID) return;
-    setState(() => _isRolling = true);
-    _controller.forward(from: 0);
-    await Future.delayed(const Duration(milliseconds: 800));
+  // 1) only the current player can roll
+  if (_currentPlayer != widget.userID) return;
 
+  setState(() => _isRolling = true);
+  _controller.forward(from: 0);
+  await Future.delayed(const Duration(milliseconds: 800));
 
-    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    final newDice = await _dbService.getDice(widget.userID, widget.gameID);
-    setState(() {
-      _diceValues = newDice;
-      _isRolling = false;
-    });
+  // 2) use your real writeDiceForAll:
+  await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+
+  // 3) fetch *your* new dice faces:
+  final mine = await _dbService.getDice(widget.userID, widget.gameID);
+  setState(() => _diceValues = mine);
+
+  // 4) rotate the turn:
+  await _dbService.setPlayer(widget.userID, widget.gameID);
+
+  setState(() => _isRolling = false);
+}
+
+  
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _turnSubscription?.cancel();
+    super.dispose();
+    _betSub?.cancel();
   }
 
-  Future<void> _placeBet() async {
-    if (_currentPlayer != widget.userID) return;
-    await _dbService.placeDiceBet(widget.userID, widget.gameID, _betAmount, _betFace);
-    setState(() {
-      _statusMessage = "Bet Placed: $_betAmount of $_betFace";
-    });
-  }
+  @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            'assets/table1.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            Text(
+              "Your Turn",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Your Dice",
+              style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _diceValues.map((d) => _buildDiceFace(d)).toList(),
+            ),
+            const SizedBox(height: 30),
+            if (_bidQuantity != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                "Current Bet: ${_bidQuantity}×${_bidFace}",
+                style: const TextStyle(color: Colors.amber, fontSize: 16),
+              ),
+            ),
 
-  Future<void> _callBluff() async {
-    if (_currentPlayer != widget.userID) return;
-    final success = await _dbService.checkDiceCall(widget.userID, widget.gameID);
-    setState(() {
-      _statusMessage = success ? "Bluff failed! Enough dice found." : "Bluff successful! Not enough dice.";
-    });
-  }
+          ElevatedButton(
+            onPressed: _isRolling ? null : _rollDice,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
+            child: const Text("Roll Dice"),
+            ),
+
+            // ─── Roll Dice Button ───────────────────────────────
+            ElevatedButton(
+              onPressed: _isRolling ? null : _rollDice,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
+              child: const Text("Roll Dice"),
+            ),
+
+            // ─── Place Bet Button ───────────────────────────────
+            if (!_isRolling && _currentPlayer == widget.userID)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ElevatedButton(
+                  onPressed: _showBetDialog,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                  child: Text(
+                    _bidQuantity != null
+                      ? "Bet: ${_bidQuantity}×${_bidFace}"
+                      : "Place Bet"
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 
   Widget _buildDiceFace(int value) {
     return ScaleTransition(
@@ -107,83 +206,87 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _turnSubscription?.cancel();
-    super.dispose();
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final isMyTurn = _currentPlayer == widget.userID;
-    return Scaffold(
-      backgroundColor: const Color(0xFF2E2E2E),
-      appBar: AppBar(
-        title: const Text("Liar's Dice Game"),
-        backgroundColor: Colors.black87,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            Text(
-              isMyTurn ? "Your Turn" : "Waiting for Turn...",
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text("Your Dice", style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: _diceValues.map((d) => _buildDiceFace(d)).toList(),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: isMyTurn && !_isRolling ? _rollDice : null,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent),
-              child: const Text("Roll Dice"),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Amount:", style: TextStyle(color: Colors.white)),
-                const SizedBox(width: 8),
-                DropdownButton<int>(
-                  value: _betAmount,
-                  dropdownColor: Colors.black,
-                  items: List.generate(10, (i) => i + 1).map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
-                  onChanged: isMyTurn ? (val) => setState(() => _betAmount = val ?? 1) : null,
-                ),
-                const SizedBox(width: 20),
-                const Text("Face:", style: TextStyle(color: Colors.white)),
-                const SizedBox(width: 8),
-                DropdownButton<int>(
-                  value: _betFace,
-                  dropdownColor: Colors.black,
-                  items: List.generate(6, (i) => i + 1).map((e) => DropdownMenuItem(value: e, child: Text(e.toString()))).toList(),
-                  onChanged: isMyTurn ? (val) => setState(() => _betFace = val ?? 1) : null,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: isMyTurn ? _placeBet : null,
-              child: const Text("Place Bet"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: isMyTurn ? _callBluff : null,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-              child: const Text("Call Bluff"),
-            ),
-            const SizedBox(height: 20),
-            Text(_statusMessage, style: const TextStyle(color: Colors.white)),
-          ],
+  /// Push a new bet [qty] × [face] into the DB, then advance the turn.
+Future<void> _placeBet(int qty, int face) async {
+  if (_currentPlayer != widget.userID) return;      // only on your turn
+  await _dbService.placeDiceBet(widget.userID, widget.gameID, qty, face);
+  setState(() {
+    _bidQuantity = qty;
+    _bidFace     = face;
+  });
+}
+
+
+void _showBetDialog() {
+  int qty  = 1;
+  int face = 1;
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Place Your Bet"),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          const Text("Qty:"),
+          const SizedBox(width: 8),
+          DropdownButton<int>(
+            value: qty,
+            items: List.generate( (5*4)+1, (i)=> i+1 )
+                     .map((n) => DropdownMenuItem(value: n, child: Text("$n"))).toList(),
+            onChanged: (v) => qty = v!,
+          )
+        ]),
+        Row(children: [
+          const Text("Face:"),
+          const SizedBox(width: 8),
+          DropdownButton<int>(
+            value: face,
+            items: List.generate(6, (i)=> i+1)
+                     .map((n) => DropdownMenuItem(value: n, child: Text("$n"))).toList(),
+            onChanged: (v) => face = v!,
+          )
+        ]),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+        ElevatedButton(
+          onPressed: () {
+            _placeBet(qty, face);
+            Navigator.pop(context);
+          },
+          child: const Text("Bet"),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+
+Future<void> _callBluff() async {
+  // only while there’s a bet outstanding
+  if (_bidQuantity == null) return;
+
+  final wasTrue = await _dbService.checkDiceCall(widget.userID, widget.gameID);
+  final msg = wasTrue
+    ? "Bluff failed—bet was correct!"
+    : "Bluff succeeded—bet was false!";
+  ScaffoldMessenger.of(context)
+    .showSnackBar(SnackBar(content: Text(msg)));
+
+  // advance to next round (you'll want to reset _bidQuantity/_bidFace)
+  setState(() {
+    _bidQuantity = null;
+    _bidFace     = null;
+  });
+  await _dbService.setPlayer(widget.userID, widget.gameID);
+}
+
+// In your DBService, add:
+Future<void> clearBet(String gameID) async {
+  await FirebaseDatabase.instance
+    .ref("dice/gameSessions/$gameID")
+    .update({"betDeclared": [0,0]});
+}
+
+
+
 }

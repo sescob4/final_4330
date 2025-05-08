@@ -179,6 +179,8 @@ class UserClassification extends StatelessWidget {
   final String gameChosen;
   const UserClassification({super.key, required this.gameChosen});
 
+
+
   void _showUserClasses(BuildContext context) {
     showDialog(
       context: context,
@@ -376,9 +378,11 @@ class _GameLoadingQueue extends State<GameQUEUE>{
             /// This is make you go to the page after clicking multi user in dice
             /// //////////////// can change this////////////////////////////////////
             Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => TestDiceFunctionsPage(userID: widget.userID, gameID: sessionID,)),
-            );
+            context,
+            MaterialPageRoute(
+            builder: (context) => DicePageMultiUSER(userID: widget.userID, gameID: sessionID),
+            ),
+          );
             //////////////////////////////////////////////////////////////////////
             //////////////////////////////////////////////////////////////////////
           }
@@ -510,7 +514,7 @@ class QueueDeck {
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
                 "createdBy": userId,
-                "currentPlayer": "",
+                "currentPlayer": userId,
                 "lastPlayer": "",
                 "chat": ["Starting Game Chat....."],
               "betDeclared": [0,0],// 2 dice of 3 this is how it would go
