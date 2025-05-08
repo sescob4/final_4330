@@ -6,6 +6,7 @@ class AudioManager {
   factory AudioManager() => _instance;
 
   late final AudioPlayer player;
+  double _volume = 0.5;
 
   AudioManager._internal() {
     player = AudioPlayer();
@@ -26,7 +27,14 @@ class AudioManager {
     }
   }
 
+  Future<void> setVolume(double volume) async {
+    _volume = volume;
+    await player.setVolume(volume);
+  }
+
   Future<void> seekToStart() async {
     await player.seek(Duration.zero);
   }
+
+  double get volume => _volume;
 }

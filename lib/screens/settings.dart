@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:final_4330/screens/audio.dart';
 
 //This is a placeholder screen for now, not fully implemented
 
@@ -37,12 +38,12 @@ class _SettingsPageState extends State<SettingsPage> {
     await prefs.setDouble('sfxVolume', sfxVolume);
   }
 
-    // Add logout function
+  // Add logout function
   void logout() async {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Log Out'),
+        title: const Text('Log Out', style: TextStyle(color: Colors.white)),
         content: const Text('Are you sure you want to log out?',
             style: TextStyle(color: Colors.amber)),
         actions: [
@@ -64,7 +65,7 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Quit Game'),
+        title: const Text('Quit Game', style: TextStyle(color: Colors.white)),
         content: const Text('Are you sure you want to quit?',
             style: TextStyle(color: Colors.amber)),
         actions: [
@@ -100,6 +101,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 setState(() {
                   musicVolume = val;
                 });
+                AudioManager().setVolume(val);
                 saveSettings(); // Save immediately when changed
               },
               min: 0,
@@ -123,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage> {
               divisions: 10,
               label: '${(sfxVolume * 100).round()}%',
             ),
-            
+
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: quitGame,
@@ -132,9 +134,9 @@ class _SettingsPageState extends State<SettingsPage> {
             // Logout button
             const SizedBox(height: 20),
             ElevatedButton(
-               onPressed: logout,
-               child: const Text('Log Out'),
-             ),
+              onPressed: logout,
+              child: const Text('Log Out'),
+            ),
           ],
         ),
       ),

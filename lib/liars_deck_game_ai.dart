@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:final_4330/screens/settings.dart';
 
 // MODEL
 enum CardType { ace, queen, king, joker }
@@ -467,6 +468,22 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             child: Text('TABLE: ${game.tableType.name.toUpperCase()}S',
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          //settings button
+          Positioned(
+            top: padTop,
+            right: 8,
+            child: IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () async {
+                await _player.play(AssetSource('sound/click-4.mp3'));
+                if (!mounted) return;
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                );
+                setState(() {}); // Refresh state after return
+              },
+            ),
           ),
           // Table center circle
           Positioned(
