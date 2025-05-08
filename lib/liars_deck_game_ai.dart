@@ -234,6 +234,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
   void _nextRound() {
     setState(() {
+      showRevealedCards = false; // <-- reset here
       game.startRound();
       selected.clear();
       _addLog('New round: ${game.tableType.name.toUpperCase()}s');
@@ -254,7 +255,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     }
 
     final ai = game.players[game.currentPlayer];
-
     if (ai.hand.isEmpty) {
       game.advanceTurn();
       aiBusy = false;
@@ -266,35 +266,50 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     final prevPlayer = (prevIdx >= 0 && prevIdx < game.players.length)
         ? game.players[prevIdx]
         : null;
-
     final prevDumped = prevPlayer != null &&
         !prevPlayer.eliminated &&
         prevPlayer.hand.isEmpty &&
         game.tableCards.isNotEmpty;
-
     final bluff =
         prevDumped || (game.tableCards.isNotEmpty && game.rng.nextBool());
 
-    final msg = bluff
-        ? game.callBluff(ai)
-        : game.playCards(
-            ai,
-            ai.hand
-                .take(min(
-                    ai.hand.length,
-                    game.rng.nextInt(ai.hand
-                                .where((c) => c.type != CardType.joker)
-                                .isEmpty
-                            ? 1
-                            : 4) +
-                        1))
-                .toList());
+    if (bluff) {
+      // AI called bluff
+      final msg = game.callBluff(ai);
+      _showOverlay('${ai.name} CALLED BLUFF!');
+      setState(() {
+        _addLog(msg);
+      });
 
-    _showOverlay(bluff ? '${ai.name} CALLED BLUFF!' : '${ai.name} PLAYED');
-    setState(() => _addLog(msg));
-    _checkWinner();
-    aiBusy = false;
-    _maybeScheduleAI();
+      // After a short delay, flip the cards face-up
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        setState(() {
+          showRevealedCards = true;
+        });
+        _checkWinner();
+      });
+
+      aiBusy = false;
+    } else {
+      // AI plays cards normally
+      final count = min(
+        ai.hand.length,
+        game.rng.nextInt(
+              ai.hand.where((c) => c.type != CardType.joker).isEmpty ? 1 : 4,
+            ) +
+            1,
+      );
+      final cards = ai.hand.take(count).toList();
+      final msg = game.playCards(ai, cards);
+      _showOverlay('${ai.name} PLAYED');
+      setState(() {
+        _addLog(msg);
+      });
+      _checkWinner();
+      aiBusy = false;
+      _maybeScheduleAI();
+    }
   }
 
   void _tapCard(DeckCard c) async {
@@ -310,22 +325,28 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     if (selected.isEmpty) return;
     final msg = game.playCards(game.players[0], selected.toList());
     setState(() {
+      showRevealedCards = false;
       _addLog(msg);
       selected.clear();
     });
-    _maybeScheduleAI();
+    Future.delayed(const Duration(milliseconds: 800), _maybeScheduleAI);
   }
 
-  void _callBluff() async {
+  void _callBluff() {
     _showOverlay('You CALLED BLUFF!');
     final msg = game.callBluff(game.players[0]);
-
     setState(() {
-      showRevealedCards = true; // set this AFTER cards are finalized
       _addLog(msg);
     });
 
-    _checkWinner();
+    // after 800ms, flip the cards
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      setState(() {
+        showRevealedCards = true;
+      });
+      _checkWinner();
+    });
   }
 
   Widget _card(DeckCard c, {bool selectable = false}) {
@@ -530,25 +551,19 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               width: (game.tableCards.length - 1) * 20.0 + 100,
               height: 62,
               child: Stack(
-                children: List.generate(
-                  game.tableCards.length,
-                  (i) => Positioned(
+                children: List.generate(game.tableCards.length, (i) {
+                  return Positioned(
                     left: i * 20.0,
-                    child: showRevealedCards
-                        ? SvgPicture.asset(
-                            game.tableCards[i].assetPath,
-                            width: 42,
-                            height: 62,
-                            fit: BoxFit.cover,
-                          )
-                        : SvgPicture.asset(
-                            'assets/cardback.svg',
-                            width: 42,
-                            height: 62,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                ),
+                    child: SvgPicture.asset(
+                      showRevealedCards
+                          ? game.tableCards[i].assetPath
+                          : 'assets/cardback.svg',
+                      width: 42,
+                      height: 62,
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                }),
               ),
             ),
           ),
