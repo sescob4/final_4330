@@ -71,8 +71,13 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   final ref = FirebaseDatabase.instance
       .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
   _turnSubscription = ref.onValue.listen((evt) {
+    final cp = evt.snapshot.value?.toString();
     setState(() {
-      _currentPlayer = evt.snapshot.value?.toString();
+      _currentPlayer = cp;
+      if (cp == widget.userID) {
+        // it's your turn to roll *once*
+        
+      }
     });
   });
 }
@@ -96,25 +101,25 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     });
   }
 
-  Future<void> _rollDice() async {
-    if (_currentPlayer != widget.userID) return;
-    setState(() {
-      _isRolling = true;
-    });
-    _controller.forward(from: 0);
-    await Future.delayed(const Duration(milliseconds: 800));
+ Future<void> _rollDice() async {
+  if (_currentPlayer != widget.userID) return;
+  setState(() => _isRolling = true);
 
-    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    final mine = await _dbService.getDice(widget.userID, widget.gameID);
+  _controller.forward(from: 0);
+  await Future.delayed(const Duration(milliseconds: 800));
 
-    
+  // 1) creator randomizes everyone
+  await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+  // 2) everyone fetches their own dice
+  final mine = await _dbService.getDice(widget.userID, widget.gameID);
 
-    setState(() {
-      _diceValues = mine;
-      _isRolling = false;
-      _hasRolled = true;
-    });
-  }
+  setState(() {
+    _diceValues = mine;
+    _hasRolled  = true;
+    _isRolling = false;
+    _hasRolled = true;   // hide Roll button till next turn
+  });
+}
 
   Future<void> _callBluff() async {
   if (_currentPlayer != widget.userID || _bidQuantity == null) return;
