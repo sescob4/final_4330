@@ -184,6 +184,11 @@ Future<String?> joinQueueAndCheck(String username) async {
 
 // Removes a player from the game session.
 // If the user is the creator, update the creator to the next player.
+  Future<String?> getCurrentTurnPlayer(String gameID) async {
+    final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/currentPlayer");
+    final snapshot = await ref.get();
+    return snapshot.value?.toString();
+  }
   Future<void> deleteUser(String userID, String gameID, String gameChosen) async {
     final ref = await FirebaseDatabase.instance.ref("$gameChosen/gameSessions/$gameID/createdBy").once();
     final data = ref.snapshot.value;
