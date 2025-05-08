@@ -630,13 +630,26 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             left: 8,
             bottom: 8,
             child: gameOver
-                ? ElevatedButton(
+             ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton(
+                        onPressed:  () async {
+                          await _player.play(AssetSource('sound/click-4.mp3'));
+                          Navigator.pushNamed(context, '/home');
+                        },
+                        child: const Text('Go Home'),
+                      ),
+                      const SizedBox(height: 8),
+                 ElevatedButton(
                     onPressed: () async {
                       await _player.play(AssetSource('sound/click-4.mp3'));
                       _restartGame();
                     },
                     child: const Text('Play Again'),
-                  )
+                  ),
+                    ],
+             )
                 : game.roundOver
                     ? ElevatedButton(
                         onPressed: () async {
