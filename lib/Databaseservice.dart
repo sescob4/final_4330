@@ -344,5 +344,50 @@ Future<String?> joinQueueAndCheck(String username) async {
       });
     }
   }
+  // This is saving the wins/losses to the database
+  Future<void> recordGameResult({required bool didWin}) async {
+  final userId = getCurrentUserId();
+  final userStatsRef = _db.child('deck/userStats/$userId');
+   final firestoreRef = FirebaseFirestore.instance.collection('users').doc(userId);
 
+  // ---- Update Realtime Database (if needed) ----
+  final snapshot = await userStatsRef.get();
+  int wins = 0;
+  int losses = 0;
+  if (snapshot.exists) {
+    final data = Map<String, dynamic>.from(snapshot.value as Map);
+    wins = data['wins'] ?? 0;
+    losses = data['losses'] ?? 0;
+  }
+
+  if (didWin) {
+    wins += 1;
+  } else {
+    losses += 1;
+  }
+
+  await userStatsRef.set({
+    'wins': wins,
+    'losses': losses,
+    'lastUpdated': ServerValue.timestamp,
+  });
+
+  // ---- Update Firestore for UserStatsScreen ----
+  final doc = await firestoreRef.get();
+  int gamesPlayed = 0;
+  int gamesWon = 0;
+  if (doc.exists) {
+    final data = doc.data()!;
+    gamesPlayed = (data['gamesPlayed'] ?? 0) + 1;
+    gamesWon = (data['gamesWon'] ?? 0) + (didWin ? 1 : 0);
+  } else {
+    gamesPlayed = 1;
+    gamesWon = didWin ? 1 : 0;
+  }
+
+  await firestoreRef.set({
+    'gamesPlayed': gamesPlayed,
+    'gamesWon': gamesWon,
+  }, SetOptions(merge: true)); // merge to avoid overwriting other user fields
+}
 }

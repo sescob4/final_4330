@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:final_4330/screens/settings.dart';
+import 'package:final_4330/Databaseservice.dart';
 
 // MODEL
 enum CardType { ace, queen, king, joker }
@@ -201,9 +202,12 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       aiBusy = false;
       gameOver = true;
 
+      final db = DatabaseService(); 
       if (winner.name == 'You') {
+        db.recordGameResult(didWin: true);
         _showOverlay('YOU WIN!');
       } else {
+        db.recordGameResult(didWin: false);
         _showOverlay('YOU LOSE!');
       }
     }
