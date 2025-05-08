@@ -309,10 +309,24 @@ Future<String?> joinQueueAndCheck(String username) async {
 //+++++++++++++++++++++++++++++++++++++++++deck amy datavase above+++++++++++++++++++++++++++++++++++++
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Lora's Functions
-  Future<void> putDownCards(String userID, String gameID, List<String> cards) async {
-  DatabaseReferenc ref = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/playersAndCards/$userID");
+Future<void> putDownCardsAndLog(String userID, String gameID, List<String> cards) async {
+  final DatabaseReference playerRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/playersAndCards/$userID");
+  final DatabaseReference logRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/cardActions");
+  final username = await _getUsernameByUid(userID);
 
-  await ref.set(cards);
+  // Save card list to current state
+  await playerRef.set(cards);
+
+  // Log each card with timestamp and metadata
+  for (final card in cards) {
+    await logRef.push().set({
+      'userId': userID,
+      'username': username,
+      'card': card,
+      'timestamp': ServerValue.timestamp,
+    });
+  }
 }
+
 
 }
