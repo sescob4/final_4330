@@ -324,7 +324,7 @@ Future<String?> joinQueueAndCheck(String username) async {
     final snapshot = await ref.once();
     final data = snapshot.snapshot.value;
     if(data is Map) {
-      data
+      
     }
   }
 
