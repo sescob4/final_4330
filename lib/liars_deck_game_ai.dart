@@ -317,42 +317,56 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   }
 
   void _callBluff() async {
-  _showOverlay('You CALLED BLUFF!');
-  final msg = game.callBluff(game.players[0]);
+    _showOverlay('You CALLED BLUFF!');
+    final msg = game.callBluff(game.players[0]);
 
-  setState(() {
-    showRevealedCards = true; // set this AFTER cards are finalized
-    _addLog(msg);
-  });
+    setState(() {
+      showRevealedCards = true; // set this AFTER cards are finalized
+      _addLog(msg);
+    });
 
-  _checkWinner();
-}
+    _checkWinner();
+  }
 
+  Widget _card(DeckCard c, {bool selectable = false}) {
+    final isSelected = selected.contains(c);
 
-  Widget _card(DeckCard c, {bool selectable = false}) => GestureDetector(
-        onTap: selectable ? () => _tapCard(c) : null,
-        child: Container(
-          width: 48, // increased size
-          height: 72,
-          margin: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: selectable && selected.contains(c)
-                  ? Colors.blueAccent
-                  : Colors.transparent,
-              width: 2,
-            ),
-            borderRadius: BorderRadius.circular(6),
+    return GestureDetector(
+      onTap: selectable ? () => _tapCard(c) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        margin: const EdgeInsets.all(4),
+        width: 48,
+        height: 72,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blueAccent.withOpacity(0.2) : null,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? Colors.blueAccent : Colors.transparent,
+            width: 2,
           ),
-          clipBehavior: Clip.hardEdge, // clip anything outside
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.7),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 3),
+                  )
+                ]
+              : [],
+        ),
+        child: Transform.scale(
+          scale: isSelected ? 1.05 : 1.0,
           child: SvgPicture.asset(
             c.assetPath,
-            width: 48,
-            height: 72,
-            fit: BoxFit.cover, // fill the container
+            fit: BoxFit.cover,
           ),
         ),
-      );
+      ),
+    );
+  }
 
   Widget _hand(Player p,
       {required bool horizontal,
@@ -508,7 +522,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
             ),
           ),
 
-          // Played cards at center (revealed on bluff)
+          // Played cards at center (face down until bluff is called)
           Positioned(
             top: center.dy - 28,
             left: center.dx - ((game.tableCards.length - 1) * 20 + 120) / 2,
@@ -520,13 +534,19 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   game.tableCards.length,
                   (i) => Positioned(
                     left: i * 20.0,
-                    child: SvgPicture.asset(
-                      showRevealedCards
-                          ? game.tableCards[i].assetPath
-                          : 'assets/cardback.svg',
-                      width: 42,
-                      height: 62,
-                    ),
+                    child: showRevealedCards
+                        ? SvgPicture.asset(
+                            game.tableCards[i].assetPath,
+                            width: 42,
+                            height: 62,
+                            fit: BoxFit.cover,
+                          )
+                        : SvgPicture.asset(
+                            'assets/cardback.svg',
+                            width: 42,
+                            height: 62,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
               ),
