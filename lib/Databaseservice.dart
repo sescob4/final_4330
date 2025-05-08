@@ -248,7 +248,7 @@ Future<String?> joinQueueAndCheck(String username) async {
     }
   }
 
-// Determines which player should go next in the sequence
+// Determines which player should go next in the sequence and return there ID
   Future<String> getNextPlayer(String currentUserID, String gameID) async {
     final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
     final snapshot = await ref.once();
@@ -355,13 +355,14 @@ Future<String?> joinQueueAndCheck(String username) async {
     final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameId/playersAndDice");
     final snapshot = await ref.once();
     final data = snapshot.snapshot.value;
-    int playerLives = 0;
+    int players = 0;
 
-    if(data is int){
-      playerLives = data;
+    if(data is Map){
+      final playerMap = data.keys.toList();
+      players = playerMap.length;
     }
 
-    return playerLives;
+    return players;
   }
 
   //ACTIONS TODOS
@@ -371,9 +372,14 @@ Future<String?> joinQueueAndCheck(String username) async {
   //DONE IN GAME SELECTION LINES 524 and 493
 //ACTION:Need to add lives feature
   //DONE IN DATABASESERVICE
+  /*   - created lostLifeDB where you subtract a life from their lives and returns how many they have left
+       - created getLifeDB where you get users lives left from data base and returns an int
+       - created a getNUM of Player DB that returns the number of players in playersAndDice
+  * */
 
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
-//ACTION: player id add it
+
+//ACTION: player character ID add it
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////EXAMPLES BELOW///////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
