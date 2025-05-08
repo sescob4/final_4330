@@ -62,7 +62,10 @@ class _LiarsDiceGamePageState extends State<LiarsDiceGamePage> with SingleTicker
     setState(() => _isRolling = true);
     _controller.forward(from: 0);
     await Future.delayed(const Duration(milliseconds: 800));
-    final newDice = await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+
+
+    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+    final newDice = await _dbService.getDice(widget.userID, widget.gameID);
     setState(() {
       _diceValues = newDice;
       _isRolling = false;

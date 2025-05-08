@@ -9,7 +9,7 @@ class DatabaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   String getCurrentUserId() {
-    return _auth.currentUser?.uid ?? 
+    return _auth.currentUser?.uid ??
       "guest_${DateTime.now().millisecondsSinceEpoch}";
   }
 
@@ -32,7 +32,7 @@ class DatabaseService {
     });
     return gameId;
   }
-  
+
   // Game lock state management
   Stream<bool> listenToLock(String gameId) {
     final lockRef = _db.child('deck/gameSessions/$gameId/gameLock');
@@ -41,25 +41,25 @@ class DatabaseService {
       return lockValue is bool ? lockValue : false;
     });
   }
-  
+
   Future<void> lockGame(String gameId) async {
     await _db.child('deck/gameSessions/$gameId/gameLock').set(true);
   }
-  
+
   Future<void> unlockGame(String gameId) async {
     await _db.child('deck/gameSessions/$gameId/gameLock').set(false);
   }
-  
+
   Future<bool> canAct(String gameId) async {
     final snapshot = await _db.child('deck/gameSessions/$gameId/gameLock').get();
     return !(snapshot.value as bool? ?? false);
   }
-  
+
   // Card actions
   Future<void> writeCardPutDown(String card, String gameId) async {
     final userId = getCurrentUserId();
     final username = await _getUsernameByUid(userId);
-    
+
     // Add to game history with timestamp
     await _db.child("deck/gameSessions/$gameId/cardActions").push().set({
       'userId': userId,
@@ -67,7 +67,7 @@ class DatabaseService {
       'card': card,
       'timestamp': ServerValue.timestamp,
     });
-    
+
     // Update current state
     await _db.child("deck/gameSessions/$gameId/playersAndCards/$userId").set({
       'username': username,
@@ -80,7 +80,7 @@ Future<String?> joinQueueAndCheck(String username) async {
   final userId = getCurrentUserId();
   final queueRef = _db.child("deck/queue");
   final newEntry = await queueRef.push();
-  
+
   await newEntry.set({
     "uid": userId,
     "username": username,
@@ -89,27 +89,27 @@ Future<String?> joinQueueAndCheck(String username) async {
 
   // Get queue lock reference
   final lockRef = _db.child("deck/queueLock");
-  
+
   // Try to acquire the lock first
   final lockSnapshot = await lockRef.get();
   if (lockSnapshot.exists && lockSnapshot.value == true) {
     return null; // Someone else has the lock, bail out
   }
-  
+
   // Set the lock
   await lockRef.set(true);
-  
+
   try {
     // Check if we have enough players
     final snapshot = await queueRef.get();
     final players = snapshot.children.toList();
-    
+
     if (players.length >= 4) {
       // Create game session
       final gameRef = _db.child("deck/gameSessions").push();
       final gameId = gameRef.key!;
       final playersData = <String, dynamic>{};
-      
+
       // Get first 4 players
       for (var p in players.take(4)) {
         final uid = p.child("uid").value.toString();
@@ -120,7 +120,7 @@ Future<String?> joinQueueAndCheck(String username) async {
           'lastAction': null
         };
       }
-      
+
       // Set up new game
       await gameRef.set({
         "gameLock": false,
@@ -129,17 +129,17 @@ Future<String?> joinQueueAndCheck(String username) async {
         "cardDownStack": "",
         "createdAt": ServerValue.timestamp
       });
-      
+
       // Remove players from queue
       for (var p in players.take(4)) {
         await queueRef.child(p.key!).remove();
       }
-      
+
       // Unlock queue and return game ID
       await lockRef.set(false);
       return gameId;
     }
-    
+
     // Not enough players, unlock and return null
     await lockRef.set(false);
     return null;
@@ -154,7 +154,7 @@ Future<String?> joinQueueAndCheck(String username) async {
     if (uid.startsWith('guest_')) {
       return 'Guest Player';
     }
-    
+
     try {
       final snapshot = await _db.child('users/$uid/username').get();
       return snapshot.exists ? snapshot.value.toString() : 'Guest Player';
@@ -162,20 +162,7 @@ Future<String?> joinQueueAndCheck(String username) async {
       return 'Guest Player';
     }
   }
-  
-  // Game state management
-  Stream<Map<String, dynamic>> listenToGameState(String gameId) {
-    return _db.child('deck/gameSessions/$gameId').onValue.map((event) {
-      final snapshot = event.snapshot;
-      if (!snapshot.exists || snapshot.value == null) {
-        return <String, dynamic>{};
-      }
-      
-      // Convert DataSnapshot to Map
-      final data = Map<String, dynamic>.from(snapshot.value as Map);
-      return data;
-    });
-  }
+
 
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +199,7 @@ Future<String?> joinQueueAndCheck(String username) async {
   }
 
 // Writes new dice values for all players if the current user is the game creator
-  Future<List<int>> writeDiceForAll(String userID, String gameID) async {
+  Future<void> writeDiceForAll(String userID, String gameID) async {
     final canWrite = await FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/createdBy").once();
     final canWrite2 = canWrite.snapshot.value;
 
@@ -239,8 +226,6 @@ Future<String?> joinQueueAndCheck(String username) async {
       print("error in writeDiceForALL");
     }
 
-    // Return current user's dice after writing
-    return getDice(userID, gameID);
   }
 
 // Sets the current bet made by a player and transitions the turn
