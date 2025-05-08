@@ -107,7 +107,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     await _dbService.writeDiceForAll(widget.userID, widget.gameID);
     final mine = await _dbService.getDice(widget.userID, widget.gameID);
 
-    await _dbService.setPlayer(widget.userID, widget.gameID);
+    
 
     setState(() {
       _diceValues = mine;
