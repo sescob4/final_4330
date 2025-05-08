@@ -313,18 +313,11 @@ Future<String?> joinQueueAndCheck(String username) async {
       if(betDeclare[1]==4){ if(betDeclare[0]==fours){return true;}}
       if(betDeclare[1]==5){ if(betDeclare[0]==fives){return true;}}
       if(betDeclare[1]==6){ if(betDeclare[0]==sixs){return true;}}
-/* ACTION: ASK TEAM about logic for this does the bet have to be exact or less or greater???????
-*
-*
-*
-* */
       return false;
     }
-
     print("error in check call!!!!!!!");
     return false;
   }
-
 // Retrieves a list of dice values for the current user
   Future<List<int>> getDice(String userID, String gameID) async {
     final data = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice/$userID");
@@ -338,7 +331,11 @@ Future<String?> joinQueueAndCheck(String username) async {
     print("error in getDice");
     return [];
   }
-  //'s Functions
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////// DECK GAME FIREBASE DATABASE FUNCTIONS /////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  //Lora's Functions
   Future<void> putDownCardsAndLog(String userID, String gameID, List<String> cards) async {
     final DatabaseReference playerRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/playersAndCards/$userID");
     final DatabaseReference logRef = FirebaseDatabase.instance.ref("deck/gameSessions/$gameID/cardActions");
@@ -357,4 +354,5 @@ Future<String?> joinQueueAndCheck(String username) async {
       });
     }
   }
+  Fututre<void>
 }

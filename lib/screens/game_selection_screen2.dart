@@ -361,7 +361,7 @@ class _GameLoadingQueue extends State<GameQUEUE>{
         .listen((event) {
       final data = event.snapshot.value;
 
-      if (data is Map && data.length >= 4) {
+      if (data is Map && data.length >= 1) {
         print("game full with players!!!!!!!!!!!!!! continue to game");
 
           // Stop listening
@@ -484,7 +484,7 @@ class QueueDeck {
 
                   }
 
-                  if( players< 1){
+                  if( players< 4){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
 
@@ -566,7 +566,7 @@ class QueueDeck {
 
                   }
 
-                  if( players< 1){
+                  if( players< 4){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
 

@@ -53,7 +53,7 @@ class _dicePlayer extends State<dice_pageMultiUSER> with SingleTickerProviderSta
       body: Center(
         child:Column(
           children: [
-            ElevatedButton(onPressed: onPressed, child: child)
+            ElevatedButton(onPressed: onPressed, child: child),
             
           ],
         ),
