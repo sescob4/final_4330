@@ -72,7 +72,29 @@ void _listenToBetChanges() {
   });
 }
 
+Future<void> _callBluff() async {
+  if (_currentPlayer != widget.userID || _bidQuantity == null) return;
 
+  // 1) Check the bet
+  final wasCorrect = await _dbService.checkDiceCall(widget.userID, widget.gameID);
+  final msg = wasCorrect
+    ? 'Call failed: bet was correct!'
+    : 'You caught a bluff!';
+
+  // 2) Show the result
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(msg))
+  );
+
+  // 3) Clear local bet state
+  setState(() {
+    _bidQuantity = null;
+    _bidFace     = null;
+  });
+
+  // 4) Advance the turn in the DB
+  await _dbService.setPlayer(widget.userID, widget.gameID);
+}
 
 
   Future<void> _rollDice() async {
@@ -179,6 +201,17 @@ Widget build(BuildContext context) {
                   ),
                 ),
               ),
+
+            // ─── Call Bluff Button ───────────────────────────────
+            if (!_isRolling && _currentPlayer == widget.userID && _bidQuantity != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: ElevatedButton(
+                  onPressed: _callBluff,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  child: const Text("Call Bluff"),
+                ),
+              ),
           ],
         ),
       ],
@@ -268,24 +301,24 @@ void _showBetDialog() {
   );
 }
 
-Future<void> _callBluff() async {
-  // only while there’s a bet outstanding
-  if (_bidQuantity == null) return;
+// Future<void> _callBluff() async {
+//   // only while there’s a bet outstanding
+//   if (_bidQuantity == null) return;
 
-  final wasTrue = await _dbService.checkDiceCall(widget.userID, widget.gameID);
-  final msg = wasTrue
-    ? "Bluff failed—bet was correct!"
-    : "Bluff succeeded—bet was false!";
-  ScaffoldMessenger.of(context)
-    .showSnackBar(SnackBar(content: Text(msg)));
+//   final wasTrue = await _dbService.checkDiceCall(widget.userID, widget.gameID);
+//   final msg = wasTrue
+//     ? "Bluff failed—bet was correct!"
+//     : "Bluff succeeded—bet was false!";
+//   ScaffoldMessenger.of(context)
+//     .showSnackBar(SnackBar(content: Text(msg)));
 
-  // advance to next round (you'll want to reset _bidQuantity/_bidFace)
-  setState(() {
-    _bidQuantity = null;
-    _bidFace     = null;
-  });
-  await _dbService.setPlayer(widget.userID, widget.gameID);
-}
+//   // advance to next round (you'll want to reset _bidQuantity/_bidFace)
+//   setState(() {
+//     _bidQuantity = null;
+//     _bidFace     = null;
+//   });
+//   await _dbService.setPlayer(widget.userID, widget.gameID);
+// }
 
 // In your DBService, add:
 Future<void> clearBet(String gameID) async {
