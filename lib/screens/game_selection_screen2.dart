@@ -478,6 +478,7 @@ class QueueDeck {
                 if(sessionID != null){
 
                 final DatabaseReference playerList = _DiceSessions.child(sessionID).child("playersAndDice");
+                final DatabaseReference playersLIFEList = _DiceSessions.child(sessionID).child("playersLife");
                 final playerSnap = await playerList.get();
                 print("got player list");
 
@@ -491,6 +492,7 @@ class QueueDeck {
                   if( players< 2){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0,0,0]);
+                    await playersLIFEList.child(userId).set(3);
 
                     if((players+1)>= 2){
                       await _DiceSessions.child(sessionID).child("gameLock").set(true);
@@ -577,6 +579,7 @@ class QueueDeck {
                   if( players< 2){
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0,0,0]);
+
 
                     if((players+1)>= 2){
                       await _DeckSessions.child(sessionID).child("gameLock").set(true);
