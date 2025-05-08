@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'widgets/dice_face.dart';
 import 'widgets/player_profile.dart';
 import 'widgets/player_area.dart';
+import 'package:final_4330/Databaseservice.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -26,6 +27,7 @@ class DicePage extends StatefulWidget {
 class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin {
   // ───────────────────────────────────────────────────────────────────────────
   // State fields
+  late final DatabaseService db = DatabaseService(); // Initialize the database service
   late List<List<int>> allDice;         // All players' dice values
   late List<bool> alive;                // Alive flags per player
   late List<int> lives;                 // Lives remaining per player
@@ -91,7 +93,6 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     alive = List.filled(numPlayers, true);
     lives = List.filled(numPlayers, 3);
 
-    // Debugging logs
     print('Game initialized:');
     print('allDice: $allDice');
     print('alive: $alive');
@@ -103,6 +104,9 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
     bidFace = null;
     _showBetControls = false;
     history.clear();
+
+    // Update dice game played count (this call should only increment the played counter)
+    db.recordGameResult(didWin: false);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
