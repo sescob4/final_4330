@@ -302,12 +302,12 @@ Future<String?> joinQueueAndCheck(String username) async {
         }
       });
 
-      if(betDeclare[1] == 1){ if(betDeclare[0]==ones){ return true;}}
-      if(betDeclare[1]== 2){ if(betDeclare[0]==twos){return true;}}
-      if(betDeclare[1]==3){ if(betDeclare[0]==threes){return true;}}
-      if(betDeclare[1]==4){ if(betDeclare[0]==fours){return true;}}
-      if(betDeclare[1]==5){ if(betDeclare[0]==fives){return true;}}
-      if(betDeclare[1]==6){ if(betDeclare[0]==sixs){return true;}}
+      if(betDeclare[1] == 1){ if(betDeclare[0]>=ones){ return true;}}
+      if(betDeclare[1]== 2){ if(betDeclare[0]>=twos){return true;}}
+      if(betDeclare[1]==3){ if(betDeclare[0]>=threes){return true;}}
+      if(betDeclare[1]==4){ if(betDeclare[0]>=fours){return true;}}
+      if(betDeclare[1]==5){ if(betDeclare[0]>=fives){return true;}}
+      if(betDeclare[1]==6){ if(betDeclare[0]>=sixs){return true;}}
       return false;
     }
     print("error in check call!!!!!!!");
