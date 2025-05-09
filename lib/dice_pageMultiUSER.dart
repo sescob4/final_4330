@@ -159,7 +159,8 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     final bettorId = lastSnap.snapshot.value?.toString();
     final callerId = widget.userID;
     final loserId = (actualCount >= qty) ? callerId : bettorId;
-    if (loserId == callerId) return; //if callerID
+    if (loserId == null) return;
+    //if callerID
           // loseLifeDB(callerid,gameid);
           //  writeDiceForAll();
           //bet(); -- this will auto to next playe in db
