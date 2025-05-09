@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:final_4330/screens/settings.dart';
 import 'package:final_4330/Databaseservice.dart';
+import 'widgets/profile_picture_deck.dart';
 
 // MODEL
 enum CardType { ace, queen, king, joker }
@@ -25,10 +26,13 @@ class DeckCard {
 class Player {
   final String name;
   final bool isAI;
+  final int roleNumber;
   List<DeckCard> hand = [];
   int rouletteChambers = 1;
   bool eliminated = false;
-  Player(this.name, {this.isAI = false});
+
+  Player(this.name, {this.isAI = false, required this.roleNumber});
+
   bool spin(Random rng) {
     final shot = rng.nextInt(6) < rouletteChambers;
     rouletteChambers = min(6, rouletteChambers + 1);
@@ -56,11 +60,15 @@ class LiarsDeckGameState {
 
   void _ensurePlayers() {
     if (players.isNotEmpty) return;
+
+    final rng = Random();
+    final aiRoles = [1, 2, 4]..shuffle();
+
     players = [
-      Player('You'),
-      Player('AI1', isAI: true),
-      Player('AI2', isAI: true),
-      Player('AI3', isAI: true),
+      Player('You', roleNumber: 3),
+      Player('AI1', isAI: true, roleNumber: aiRoles[0]),
+      Player('AI2', isAI: true, roleNumber: aiRoles[1]),
+      Player('AI3', isAI: true, roleNumber: aiRoles[2]),
     ];
   }
 
@@ -450,19 +458,52 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: lblCol,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Name and (x/6)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Text(
+                    p.name,
+                    style: TextStyle(
+                      color: highlight ? Colors.green : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                Text(
+                  '(${p.rouletteChambers}/6)',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 11,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            const SizedBox(width: 6),
+            // Profile picture
+            PlayerProfileSimple(
+              roleNumber: p.roleNumber,
+              isCurrentTurn: highlight,
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         isUser
             ? Row(mainAxisSize: MainAxisSize.min, children: cards)
             : SizedBox(
-                width: totalWidth, height: 62, child: Stack(children: cards)),
+                width: totalWidth,
+                height: 62,
+                child: Stack(children: cards),
+              ),
       ],
     );
   }
@@ -505,7 +546,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       return Stack(
         children: [
           Positioned.fill(
-            child: Image.asset('assets/table1.png', fit: BoxFit.cover),
+            child: Image.asset('assets/tab2.png', fit: BoxFit.cover),
           ),
           // Header
           Positioned(
@@ -606,24 +647,50 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
           // You (bottom - label and cards centered under table)
           Positioned(
-            top: center.dy + radius + 15,
+            top: center.dy + radius - 10,
             left: 0,
             right: 0,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '${game.players[0].name} (${game.players[0].rouletteChambers}/6)',
-                  style: TextStyle(
-                    color: game.players[0].eliminated
-                        ? Colors.orangeAccent
-                        : game.currentPlayer == 0 && !game.roundOver
-                            ? Colors.green
-                            : Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Name + (x/6)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: Text(
+                            game.players[0].name,
+                            style: TextStyle(
+                              color: game.currentPlayer == 0 && !game.roundOver
+                                  ? Colors.green
+                                  : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '(${game.players[0].rouletteChambers}/6)',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 6),
+                    PlayerProfileSimple(
+                      roleNumber: game.players[0].roleNumber,
+                      isCurrentTurn: game.currentPlayer == 0 && !game.roundOver,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 if (!game.players[0].eliminated)
