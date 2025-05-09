@@ -1,16 +1,32 @@
-# final_4330
+# Liar's Bar
+A social party game built with Flutter, that is designed for bluffing and deception. Players take turns drawing cards or rolling dice and trying to 
+deceive others while uncovering the truth. This game is able to be played with multiplayer or with AI.
 
-A new Flutter project.
+## Features
+- **Game Modes:** Liar's Deck and Liar's Dice
+- **Role Selection:** Choose from four different roles
+- **User Stats:** Track wins, games played, and win percentage
+- **Multiplayer and AI support**
+- **Firebase or anonymous login**
+- **Cross-Platform:** Works on Android, IOS, and Web
+- **Settings:** Adjustable music and SFX volume
+- **Smooth UI and real-time updates using Firebase**
+
+## User Progression
+Each player has personal stats that are stored into the Firebase, including:
+- Total Wins
+- Numer of Games Played
+- Win Percentage Rate
+
+These stats do not reset unless the account is deleted from the Firebase Database.
 
 ## Getting Started
+### Prerequisites 
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- Dart (comes with Flutter)
+- Firebase project (for multiplayer and user authentication)
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Installation
+1. Close the repository:
+git clone https://github.com/sescob4/final_4330
+cd final_4330

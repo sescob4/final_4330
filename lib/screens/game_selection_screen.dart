@@ -34,7 +34,6 @@ class GameSelectionPage extends StatelessWidget {
               label:
                   const Text('Settings', style: TextStyle(color: Colors.white)),
               onPressed: () {
-                Navigator.pop(context);
                 Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
