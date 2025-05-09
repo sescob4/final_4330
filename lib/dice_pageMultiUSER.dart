@@ -165,11 +165,18 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     });
   }
 
-  Future<void> _resolveCall() async {
+  Future<void> _refreshLives() async {
+    final lives = await _dbService.getLifesDB(widget.userID, widget.gameID);
+    setState(() => _lives = lives);
+  }
+
+  
+
+Future<void> _resolveCall() async {
     final qty = _bidQuantity!;
     final face = _bidFace!;
     final refPlayers = FirebaseDatabase.instance
-        .ref('dice/gameSessions/${widget.gameID}/playersAndDice');
+        .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
     final snap = await refPlayers.once();
     final data = snap.snapshot.value;
     if (data is! Map) return;
@@ -184,7 +191,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
       }
     }
     final lastSnap = await FirebaseDatabase.instance
-        .ref('dice/gameSessions/${widget.gameID}/lastPlayer')
+        .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
         .once();
     final bettorId = lastSnap.snapshot.value?.toString();
     final callerId = widget.userID;
@@ -195,10 +202,16 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
         loserId == callerId
-            ? 'You lose a life! ($livesLeft left)'
-            : 'Opponent loses a life! ($livesLeft left)',
+            ? "You lose a life! ($livesLeft left)"
+            : "Opponent loses a life! ($livesLeft left)",
       ),
     ));
+    await _refreshLives();
+    setState(() {
+      _bidQuantity = 1;
+      _bidFace = 1;
+    });
+    await _dbService.setPlayer(widget.userID, widget.gameID);
   }
 
   Future<void> _callBluff() async {
