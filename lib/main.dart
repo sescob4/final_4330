@@ -256,13 +256,17 @@ class HomePage extends StatelessWidget {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.settings, color: Colors.white),
-                          onPressed: () {
+                          onPressed: () async {
+                            final player = AudioPlayer();
+                            await player.play(AssetSource('sound/click-4.mp3'));
                             Navigator.pushNamed(context, '/settings');
                           },
                         ),
                         IconButton(
                           icon: const Icon(Icons.logout, color: Colors.white),
                           onPressed: () async {
+                            final player = AudioPlayer();
+                            await player.play(AssetSource('sound/click-4.mp3'));
                             await FirebaseAuth.instance.signOut();
                             Navigator.pushReplacementNamed(context, '/login');
                           },
@@ -285,7 +289,9 @@ class HomePage extends StatelessWidget {
                           shadowColor: Colors.transparent,
                           padding: EdgeInsets.zero,
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          final player = AudioPlayer();
+                          await player.play(AssetSource('sound/click-4.mp3'));
                           Navigator.pushNamed(context, '/userstats');
                         },
                         child: const Text(

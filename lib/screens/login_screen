@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -294,7 +295,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : (_isSignUp ? _signUp : _signIn),
+                                onPressed: _isLoading 
+                                ? null 
+                                : () async {
+                                  final player = AudioPlayer();
+                                  await player.play(AssetSource('sound/click-4.mp3'));
+                                  if (_isSignUp) {
+                                    _signUp();
+                                  } else {
+                                    _signIn();
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.amber,
                                   foregroundColor: Colors.brown.shade900,
@@ -330,7 +341,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: TextStyle(fontSize: 12,color: Colors.amber.shade200),
                                 ),
                                 TextButton(
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    final player = AudioPlayer();
+                                    await player.play(AssetSource('sound/click-4.mp3'));
                                     setState(() {
                                       _isSignUp = !_isSignUp;
                                       _errorMessage = null;
@@ -350,7 +363,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 10),
                             Center(
                               child: TextButton(
-                                onPressed: _isLoading ? null : _signInAnonymously,
+                                onPressed: _isLoading 
+                                    ? null 
+                                    : () async {
+                                      final player = AudioPlayer();
+                                      await player.play(AssetSource('sound/click-4.mp3'));
+                                      _signInAnonymously();
+                                    },
                                 child: Text(
                                   'Continue as Guest',
                                   style: TextStyle(
