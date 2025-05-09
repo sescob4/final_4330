@@ -6,6 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:final_4330/screens/settings.dart';
 import 'package:final_4330/Databaseservice.dart';
 import 'widgets/profile_picture_deck.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 // MODEL
 enum CardType { ace, queen, king, joker }
@@ -140,6 +141,7 @@ class LiarsDeckGameState {
         attempts < players.length);
   }
 }
+
 // Test
 // UI PAGE
 class LiarsDeckGamePage extends StatefulWidget {
@@ -171,6 +173,71 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   void initState() {
     super.initState();
     game = LiarsDeckGameState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadAssets();
+    });
+  }
+
+  Future<void> _preloadAssets() async {
+    // Preload SVG card and splat assets
+    final svgAssets = [
+      'assets/cardback.svg',
+      'assets/ace.svg',
+      'assets/queen.svg',
+      'assets/king.svg',
+      'assets/joker.svg',
+      'assets/splat1.svg',
+      'assets/splat2.svg',
+      'assets/splat3.svg',
+    ];
+
+    for (final path in svgAssets) {
+      final loader = SvgAssetLoader(path);
+      await svg.cache
+          .putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+    }
+
+    // Preload PNG table background
+    await precacheImage(const AssetImage('assets/tab2.png'), context);
+
+    // Preload roulette GIFs
+    for (int i = 1; i <= 6; i++) {
+      await precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
+      if (i < 6) {
+        await precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
+      }
+    }
+  }
+
+  void _precacheSvgs() {
+    const svgAssets = [
+      'assets/cardback.svg',
+      'assets/ace.svg',
+      'assets/queen.svg',
+      'assets/king.svg',
+      'assets/joker.svg',
+      'assets/splat1.svg',
+      'assets/splat2.svg',
+      'assets/splat3.svg',
+    ];
+
+    for (final path in svgAssets) {
+      final loader = SvgAssetLoader(path);
+      svg.cache.putIfAbsent(
+        loader.cacheKey(null),
+        () => loader.loadBytes(null),
+      );
+    }
+
+    // Raster images and GIFs still use precacheImage:
+    for (int i = 1; i <= 6; i++) {
+      precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
+      if (i < 6) {
+        precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
+      }
+    }
+    precacheImage(const AssetImage('assets/tab2.png'), context);
   }
 
   void _addLog(String s) {
@@ -191,18 +258,17 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   }
 
   Widget _rouletteImage() {
-  if (rouletteGifPath == null) return const SizedBox.shrink();
+    if (rouletteGifPath == null) return const SizedBox.shrink();
 
-  return Image.asset(
-    rouletteGifPath!,
-    width: 300,
-    height: 300,
-    fit: BoxFit.cover,
-    gaplessPlayback: true,
-  );
-}
-
-
+    return Image.asset(
+      rouletteGifPath!,
+      width: 275,
+      height: 275,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      filterQuality: FilterQuality.none, // prevents smoothing on every frame
+    );
+  }
 
   void _showOverlay(String msg) {
     setState(() {
@@ -291,7 +357,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     });
 
     // After full animation, log result and check winner
-    Future.delayed(const Duration(milliseconds: 6500), () {
+    Future.delayed(const Duration(milliseconds: 30000), () {
       if (!mounted) return;
       setState(() {
         showRouletteGif = false;
@@ -369,13 +435,14 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     }
   }
 
-  void _tapCard(DeckCard c) async {
+  void _tapCard(DeckCard c) {
     if (!game.isHumanTurn()) return;
-    await _player.play(AssetSource('sound/card_sound_effect.mp3'));
-
+    // 1) update UI immediately
     setState(() {
       selected.contains(c) ? selected.remove(c) : selected.add(c);
     });
+    // 2) fire-and-forget sound
+    _player.play(AssetSource('sound/card_sound_effect.mp3'));
   }
 
   void _playSelected() {
@@ -792,10 +859,12 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                         children: [
                           ElevatedButton(
                             onPressed: game.isHumanTurn() && selected.isNotEmpty
-                                ? () async {
-                                    await _player
-                                        .play(AssetSource('sound/click-4.mp3'));
+                                ? () {
+                                    // 1) run game logic + UI
                                     _playSelected();
+                                    // 2) play click sound without blocking
+                                    _player
+                                        .play(AssetSource('sound/click-4.mp3'));
                                   }
                                 : null,
                             child: const Text('Play Cards'),
@@ -804,10 +873,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                           ElevatedButton(
                             onPressed: game.isHumanTurn() &&
                                     game.tableCards.isNotEmpty
-                                ? () async {
-                                    await _player
-                                        .play(AssetSource('sound/click-4.mp3'));
+                                ? () {
                                     _callBluff();
+                                    _player
+                                        .play(AssetSource('sound/click-4.mp3'));
                                   }
                                 : null,
                             child: const Text('Call Bluff'),
@@ -840,30 +909,29 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               ),
             ),
 
-          // Roulette GIF overlay
-          // Roulette GIF overlay with styled box
+          // Roulette GIF overlay with a vector skull icon above
           if (showRouletteGif && rouletteGifPath != null)
             Positioned.fill(
-              child: Container(
-                color: Colors.black.withOpacity(0.75), // darker background
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.redAccent, width: 3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.8),
-                          blurRadius: 12,
-                          spreadRadius: 1,
-                        ),
-                      ],
+              child: Stack(
+                children: [
+                  // darkened background
+                  Container(color: Colors.black87),
+                  // skull icon at top center
+                  Positioned(
+                    top: 40,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: FaIcon(
+                        FontAwesomeIcons.skull,
+                        size: 48,
+                        color: Colors.white,
+                      ),
                     ),
-                    child: _rouletteImage(),
                   ),
-                ),
+                  // the roulette GIF itself
+                  Center(child: _rouletteImage()),
+                ],
               ),
             ),
 
