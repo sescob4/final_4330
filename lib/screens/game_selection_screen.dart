@@ -1,9 +1,11 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import '../liars_deck_game_ai.dart';
 import 'settings.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../Databaseservice.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage extends StatelessWidget {
   const GameSelectionPage({super.key});
@@ -59,7 +61,8 @@ class GameSelectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Choose Your Game',
+        title: const Text(
+          'Choose Your Game',
           style: TextStyle(
             color: Colors.amber,
             fontSize: 24,

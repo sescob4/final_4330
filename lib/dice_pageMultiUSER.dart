@@ -15,8 +15,9 @@ const int dicePerPlayer = 5;
 class DicePageMultiUSER extends StatefulWidget {
   final String userID;
   final String gameID;
+  final int role;
 
-  const DicePageMultiUSER({super.key, required this.userID, required this.gameID});
+  const DicePageMultiUSER({super.key, required this.userID, required this.gameID, required this.role});
 
   @override
   State<DicePageMultiUSER> createState() => _DicePageMultiUSERState();
@@ -159,8 +160,26 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     final callerId = widget.userID;
     final loserId = (actualCount >= qty) ? callerId : bettorId;
     if (loserId == null) return;
+    //if callerID
+          // loseLifeDB(callerid,gameid);
+          //  writeDiceForAll();
+          //bet(); -- this will auto to next playe in db
+      //else loserid == bettorid
+          // loseLifeDB(bettorid, gameid);
+          // setplayer(callerID,gameid);--- this will shift to the other player
 
-    final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
+          //listener on other player side
+          // - will notice the change and see it is its turn
+          // - call to get number of lives from db --- getLifesDB
+            //if lowere than current grab local lives and compre to the db
+                  //roll dice --writeDiceFor all
+            //else
+                  //get option to bet or call
+
+
+
+
+    final livesLeft = await _dbService.loseLifeDB(loserId ?? '', widget.gameID);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
         loserId == callerId

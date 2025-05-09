@@ -450,6 +450,8 @@ class DatabaseService {
     return message;
   }
 
+
+
   //ACTIONS TODOS
 //ACTION: Make next player (other user ID) be able to also roll the dice after the bluff call
   //DONE IN GAME SELECTION LINES 491 and 495
@@ -462,11 +464,12 @@ class DatabaseService {
        - created a getNUM of Player DB that returns the number of players in playersAndDice
   * */
 
+
+
 //ACTION:need to add chat box feature that records what player did what bet or call, who lost a life because of it
   //DONE IN DATABASESERVICE LOG
   /* - create write message to log
   *  - create read last message from log*/
-//ACTION: player character ID add it
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////EXAMPLES BELOW///////////////////////////////////////////////////////////
