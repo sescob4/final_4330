@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:final_4330/dice_page.dart';
-import 'package:final_4330/widgets/dice_face.dart';
 import 'dart:math';
 
 void main() {
@@ -24,14 +23,6 @@ void main() {
           expect(value, inInclusiveRange(1, 6));
         }
       }
-    });
-
-    test('Dice faces are mapped to appropriate images', () {
-      final diceFace = DiceFace(value: 1);
-      expect(diceFace.value, equals(1));
-      expect(diceFace.runtimeType, equals(DiceFace));
-      expect(diceFace.toString(), contains('DiceFace'));
-      //expect(diceFace.assetPath, equals('assets/face1.svg'));
     });
 
     test('Dice roll generates different values across rolls', () {

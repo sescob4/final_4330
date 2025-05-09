@@ -8,14 +8,12 @@ import 'widgets/dice_face.dart';
 import 'widgets/player_profile.dart';
 import 'widgets/player_area.dart';
 import 'package:final_4330/Databaseservice.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 enum _LockMode { none, qty, face }
-
-const int numPlayers = 4; // Total players: You + 3 CPUs
-const int dicePerPlayer = 5; // Dice per player
+const int numPlayers = 4;       // Total players: You + 3 CPUs
+const int dicePerPlayer = 5;    // Dice per player
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DicePage: Main game screen widget
@@ -26,19 +24,17 @@ class DicePage extends StatefulWidget {
   State<DicePage> createState() => _DicePageState();
 }
 
-class _DicePageState extends State<DicePage>
-    with SingleTickerProviderStateMixin {
+class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin {
   // ───────────────────────────────────────────────────────────────────────────
   // State fields
-  late final DatabaseService db =
-      DatabaseService(); // Initialize the database service
-  late List<List<int>> allDice; // All players' dice values
-  late List<bool> alive; // Alive flags per player
-  late List<int> lives; // Lives remaining per player
-  int turnIndex = 0; // 0 = You, 1–3 = CPUs
-  bool hasRolled = false; // Has current player rolled?
-  int? bidQuantity; // Current bid quantity
-  int? bidFace; // Current bid face
+  late final DatabaseService db = DatabaseService(); // Initialize the database service
+  late List<List<int>> allDice;         // All players' dice values
+  late List<bool> alive;                // Alive flags per player
+  late List<int> lives;                 // Lives remaining per player
+  int turnIndex = 0;                    // 0 = You, 1–3 = CPUs
+  bool hasRolled = false;               // Has current player rolled?
+  int? bidQuantity;                     // Current bid quantity
+  int? bidFace;                         // Current bid face
   _LockMode _lockMode = _LockMode.none;
 
   // Rolling animation state
@@ -138,22 +134,16 @@ class _DicePageState extends State<DicePage>
           children: [
             TextButton.icon(
               icon: const Icon(Icons.settings, color: Colors.white),
-              label:
-                  const Text('Settings', style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                final player = AudioPlayer();
-                await player.play(AssetSource('sound/click-4.mp3'));
+              label: const Text('Settings', style: TextStyle(color: Colors.white)),
+              onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/settings');
               },
             ),
             TextButton.icon(
               icon: const Icon(Icons.home, color: Colors.white),
-              label: const Text('Main Menu',
-                  style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                final player = AudioPlayer();
-                await player.play(AssetSource('sound/click-4.mp3'));
+              label: const Text('Main Menu', style: TextStyle(color: Colors.white)),
+              onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/home');
               },
@@ -167,13 +157,11 @@ class _DicePageState extends State<DicePage>
   // ───────────────────────────────────────────────────────────────────────────
   // User actions: roll, bet, call
   void rollDice() {
-    if (turnIndex != 0 || hasRolled || _rolling)
-      return; // Prevent rolling if it's not the user's turn or already rolled
+    if (turnIndex != 0 || hasRolled || _rolling) return; // Prevent rolling if it's not the user's turn or already rolled
     _rolling = true;
 
     final finalRoll = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
-    int ticks =
-        (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
+    int ticks = (_rollAnimDuration.inMilliseconds ~/ _rollAnimInterval.inMilliseconds);
     int count = 0;
 
     Timer.periodic(_rollAnimInterval, (timer) {
@@ -187,8 +175,7 @@ class _DicePageState extends State<DicePage>
         setState(() {
           allDice[0] = finalRoll;
           for (var i = 1; i < numPlayers; i++) {
-            allDice[i] =
-                List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
+            allDice[i] = List.generate(dicePerPlayer, (_) => _rand.nextInt(6) + 1);
           }
           hasRolled = true;
           _rolling = false;
@@ -219,8 +206,8 @@ class _DicePageState extends State<DicePage>
     if (turnIndex != 0 || !hasRolled) return;
     setState(() {
       _showBetControls = true;
-      _tempQty = bidQuantity ?? 1; // Start from last bid quantity or 1
-      _tempFace = bidFace ?? 1; // Start from last bid face or 1
+      _tempQty = bidQuantity ?? 1;  // Start from last bid quantity or 1
+      _tempFace = bidFace ?? 1;      // Start from last bid face or 1
       _origQty = _tempQty;
       _origFace = _tempFace;
       _lockMode = _LockMode.none;
@@ -265,10 +252,7 @@ class _DicePageState extends State<DicePage>
       final expected = totalDice / 6;
       final rawChance = (bidQuantity! - expected) / (totalDice - expected);
       final callChance = rawChance.clamp(0.0, 1.0);
-      if (_rand.nextDouble() < callChance) {
-        _handleCpuCall();
-        return;
-      }
+      if (_rand.nextDouble() < callChance) { _handleCpuCall(); return; }
     }
     _handleCpuBet();
   }
@@ -288,16 +272,13 @@ class _DicePageState extends State<DicePage>
     if (!raiseQty && oldFace >= 6) raiseQty = true;
     final newQty = raiseQty ? oldQty + 1 : oldQty;
     final newFace = raiseQty ? oldFace : min(oldFace + 1, 6);
-    setState(() {
-      bidQuantity = newQty;
-      bidFace = newFace;
-    });
+    setState(() { bidQuantity = newQty; bidFace = newFace; });
     final msg = 'CPU $cpuIdx bets $newQty × $newFace';
     _addLog(msg);
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)))
-        .closed
-        .then((_) => _nextTurn());
+      .showSnackBar(SnackBar(content: Text(msg)))
+      .closed
+      .then((_) => _nextTurn());
   }
 
   void _resolveCall(int caller) {
@@ -355,41 +336,42 @@ class _DicePageState extends State<DicePage>
         : '$loserName eliminated';
 
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(
-            content:
-                Text('Call: needed $qty×$face, found $actual — $resultMsg')))
+        .showSnackBar(
+          SnackBar(content: Text(
+            'Call: needed $qty×$face, found $actual — $resultMsg'
+          ))
+        )
         .closed
         .then((_) {
-      setState(() {
-        // clear the previous bid
-        bidQuantity = null;
-        bidFace = null;
-        hasRolled = false;
+          setState(() {
+            // clear the previous bid
+            bidQuantity = null;
+            bidFace = null;
+            hasRolled = false;
 
-        // Set the turnIndex to the loser of the previous round
-        turnIndex = loser;
+            // Set the turnIndex to the loser of the previous round
+            turnIndex = loser;
 
-        // Ensure the turnIndex points to an alive player
-        while (!alive[turnIndex]) {
-          turnIndex = (turnIndex + 1) % numPlayers;
-        }
+            // Ensure the turnIndex points to an alive player
+            while (!alive[turnIndex]) {
+              turnIndex = (turnIndex + 1) % numPlayers;
+            }
 
-        // Log the next round
-        _addLog(
-            '${loserName == "You" ? "You" : "CPU $loser"} will roll the dice and start the next round.');
+            // Log the next round
+            _addLog('${loserName == "You" ? "You" : "CPU $loser"} will roll the dice and start the next round.');
 
-        // If the loser is the user, allow them to roll
-        if (turnIndex == 0) {
-          _addLog('Your turn: Roll the dice.');
-        } else {
-          // If the loser is a CPU, simulate their roll and betting
-          Future.delayed(const Duration(milliseconds: 400), () {
-            rollDice();
-            Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+            // If the loser is the user, allow them to roll
+            if (turnIndex == 0) {
+              _addLog('Your turn: Roll the dice.');
+            } else {
+              // If the loser is a CPU, simulate their roll and betting
+              Future.delayed(const Duration(milliseconds: 400), () {
+                rollDice();
+                Future.delayed(const Duration(milliseconds: 400), _cpuAction);
+              });
+            }
           });
-        }
-      });
-    });
+        });
   }
 
   void _checkGameOver() {
@@ -416,9 +398,7 @@ class _DicePageState extends State<DicePage>
         content: Text(message, style: const TextStyle(color: Colors.white)),
         actions: [
           TextButton(
-            onPressed: () async {
-              final player = AudioPlayer();
-              await player.play(AssetSource('sound/click-4.mp3'));
+            onPressed: () {
               Navigator.of(context).pop();
               _initGameState(); // Reset the game
             },
@@ -448,7 +428,6 @@ class _DicePageState extends State<DicePage>
       Future.delayed(const Duration(milliseconds: 400), _cpuAction);
     }
   }
-
   // ────────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -458,478 +437,422 @@ class _DicePageState extends State<DicePage>
       statusBarIconBrightness: Brightness.light,
     ));
 
-    final media = MediaQuery.of(context).size;
+    final media    = MediaQuery.of(context).size;
     final baseSize = min(media.width * 0.6, media.height * 0.6);
-    final tableSize = baseSize * 0.8;
+    final tableSize   = baseSize * 0.8;
     final tableOffset = Offset(0, -baseSize * 0.1);
 
     return Scaffold(
-      body: Stack(
+       body: Stack( 
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/table1.png',
-              fit: BoxFit.cover,
+          
+        Positioned.fill(
+        child: Image.asset(
+          'assets/table1.png',
+          fit: BoxFit.cover,
+        ),
+      ),
+_buildHeartBox(lives[0]),
+_buildHeartBox(lives[0]),
+      Positioned(
+        top: MediaQuery.of(context).padding.top + 8,
+        left: 8,
+        child: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white, size: 32),
+          onPressed: _showGameMenu,
+          tooltip: 'Game Menu',
+        ),
+      ),
+      Positioned(
+        top: MediaQuery.of(context).padding.top + 40, // Changed from 60 to 40
+        left: 16,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PlayerProfile(
+              name: 'CPU 1',
+              roleNumber: 1,
+              lives: lives[1],
+              isCurrentTurn: turnIndex == 1,
             ),
-          ),
-          _buildHeartBox(lives[0]),
-          _buildHeartBox(lives[0]),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 8,
-            child: IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white, size: 32),
-                tooltip: 'Game Menu',
-                onPressed: () async {
-                  final player = AudioPlayer();
-                  await player.play(AssetSource('sound/click-4.mp3'));
-                  _showGameMenu();
-                }),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top +
-                40, // Changed from 60 to 40
-            left: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                PlayerProfile(
-                  name: 'CPU 1',
-                  roleNumber: 1,
-                  lives: lives[1],
-                  isCurrentTurn: turnIndex == 1,
-                ),
-                PlayerProfile(
-                  name: 'CPU 2',
-                  roleNumber: 2,
-                  lives: lives[2],
-                  isCurrentTurn: turnIndex == 2,
-                ),
-                PlayerProfile(
-                  name: 'CPU 3',
-                  roleNumber: 3,
-                  lives: lives[3],
-                  isCurrentTurn: turnIndex == 3,
-                ),
-                PlayerProfile(
-                  name: 'You',
-                  roleNumber: 4,
-                  lives: lives[0],
-                  isCurrentTurn: turnIndex == 0,
-                ),
-              ],
+            PlayerProfile(
+              name: 'CPU 2',
+              roleNumber: 2,
+              lives: lives[2],
+              isCurrentTurn: turnIndex == 2,
             ),
-          ),
-          Row(
-            children: [
-              // ── LEFT: game area in a scrollable SafeArea ────────────────
-              Expanded(
-                flex: 2,
-                child: SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: Container(
-                          width: double.infinity, // Take full width
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 0),
-
-                              // Center dice area
-                              Center(
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      PlayerArea(
-                                        name: '',
-                                        isCurrent: true,
-                                        diceValues: allDice[0],
-                                        small: false,
-                                        lives: lives[0],
-                                      ),
-                                    ],
+            PlayerProfile(
+              name: 'CPU 3',
+              roleNumber: 3,
+              lives: lives[3],
+              isCurrentTurn: turnIndex == 3,
+            ),
+            PlayerProfile(
+              name: 'You',
+              roleNumber: 4,
+              lives: lives[0],
+              isCurrentTurn: turnIndex == 0,
+            ),
+          ],
+        ),
+      ),
+      Row(
+        children: [
+          // ── LEFT: game area in a scrollable SafeArea ────────────────
+          Expanded(
+            flex: 2,
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity, // Take full width
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 0),
+                          
+                          // Center dice area
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  PlayerArea(
+                                    name: '',
+                                    isCurrent: true,
+                                    diceValues: allDice[0],
+                                    small: false,
+                                    lives: lives[0],
                                   ),
-                                ),
+                                ],
                               ),
-
-                              const SizedBox(height: 12),
-
-                              // Center controls
-                              Center(
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 4),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (!hasRolled && !_rolling)
-                                        _buildRollButton(),
-                                      if (turnIndex == 0 &&
-                                          hasRolled &&
-                                          !_showBetControls)
-                                        _buildUserControls(),
-                                      if (_showBetControls)
-                                        _buildInlineBetControls(),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              // ── RIGHT: collapsible history log ───────────────────────────
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: _showComments
-                    ? MediaQuery.of(context).size.width * 0.25
-                    : 50,
-                child: Column(
-                  children: [
-                    // Comments toggle button
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        icon: Icon(
-                          _showComments
-                              ? Icons.comment
-                              : Icons.comment_outlined,
-                          color: Colors.white,
-                        ),
-                        onPressed: () async {
-                          final player = AudioPlayer();
-                          await player.play(AssetSource('sound/click-4.mp3'));
-                          setState(() {
-                            _showComments = !_showComments;
-                          });
-                        },
-                        tooltip:
-                            _showComments ? 'Hide Comments' : 'Show Comments',
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Center controls
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!hasRolled && !_rolling) _buildRollButton(),
+                                  if (turnIndex == 0 && hasRolled && !_showBetControls) 
+                                    _buildUserControls(),
+                                  if (_showBetControls) _buildInlineBetControls(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    // Comments list
-                    if (_showComments)
-                      Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(
-                              top: 8, left: 8, right: 8, bottom: 35),
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.withOpacity(
-                                0.5), // ← this is the translucent fill
-                            borderRadius:
-                                BorderRadius.circular(8), // ← round the corners
-                          ),
-                          child: Scrollbar(
-                            controller: _scrollController,
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.only(bottom: 8),
-                              itemCount: history.length,
-                              itemBuilder: (_, i) => Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 2),
-                                child: Text(
-                                  history[i],
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 11),
-                                ),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // ── RIGHT: collapsible history log ───────────────────────────
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: _showComments ? MediaQuery.of(context).size.width * 0.25 : 50,
+            child: Column(
+              children: [
+                // Comments toggle button
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: Icon(
+                      _showComments ? Icons.comment : Icons.comment_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showComments = !_showComments;
+                      });
+                    },
+                    tooltip: _showComments ? 'Hide Comments' : 'Show Comments',
+                  ),
+                ),
+                // Comments list
+                if (_showComments)
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 8, left: 8, right: 8, bottom: 35),
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.5),    // ← this is the translucent fill
+                      borderRadius: BorderRadius.circular(8),  // ← round the corners
+                      ),
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.only(bottom: 8),
+                          itemCount: history.length,
+                          itemBuilder: (_, i) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Text(
+                              history[i],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11
                               ),
                             ),
                           ),
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
+        ],
+    ),
     );
   }
 
   Widget _buildTable(double size) => SizedBox(
-        width: size,
-        height: size,
-        child: Stack(clipBehavior: Clip.none, children: [
-          Positioned.fill(
-            child: Container(
-                decoration: const BoxDecoration(
-                    color: Color(0x99795000), shape: BoxShape.circle)),
-          ),
-          for (var i = 0; i < numPlayers; i++)
-            Align(
-              alignment: _playerAlignment(i),
-              child: alive[i]
-                  ? PlayerArea(
-                      name: i == 0 ? 'You' : 'CPU $i',
-                      isCurrent: i == 0,
-                      diceValues: i == 0 ? allDice[0] : null,
-                      small: i != 0,
-                      lives: lives[i],
-                    )
-                  : _outBox(label: i == 0 ? 'You' : 'CPU ${i + 1}'),
-            ),
-        ]),
-      );
+    width: size,
+    height: size,
+    child: Stack(clipBehavior: Clip.none, children: [
+      Positioned.fill(
+        child: Container(decoration: const BoxDecoration(color: Color(0x99795000), shape: BoxShape.circle)),
+      ),
+      for (var i = 0; i < numPlayers; i++)
+        Align(
+          alignment: _playerAlignment(i),
+          child: alive[i]
+            ? PlayerArea(
+                name: i == 0 ? 'You' : 'CPU $i',
+                isCurrent: i == 0,
+                diceValues: i == 0 ? allDice[0] : null,
+                small: i != 0,
+                 lives: lives[i],
+              )
+            : _outBox(label: i == 0 ? 'You' : 'CPU ${i + 1}'),
+        ),
+    ]),
+  );
 
   Widget _buildRollButton() => ElevatedButton(
-        onPressed: (lives[0] > 0)
-            ? () async {
-                final player = AudioPlayer();
-                await player.play(AssetSource('sound/dice-roll_effect.mp3'));
-                rollDice();
-              }
-            : null, // Disable if user has no lives
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amber,
-          foregroundColor: Colors.brown.shade900,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-        ),
-        child: const Text('Roll Dice'),
-      );
+    onPressed: (lives[0] > 0) ? rollDice : null, // Disable if user has no lives
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.amber,
+      foregroundColor: Colors.brown.shade900,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+    ),
+    child: const Text('Roll Dice'),
+  );
 
   Widget _buildUserControls() => Align(
-        alignment: Alignment.center,
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          ElevatedButton(
-            onPressed: (lives[0] > 0)
-                ? () async {
-                    final player = AudioPlayer();
-                    await player.play(AssetSource('sound/click-4.mp3'));
-                    _userBet();
-                  }
-                : null, // Disable if user has no lives
-            child: const Text('Bet'),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton(
-            onPressed: (lives[0] > 0)
-                ? () async {
-                    final player = AudioPlayer();
-                    await player.play(AssetSource('sound/click-4.mp3'));
-                    _userCall();
-                  }
-                : null, // Disable if user has no lives
-            child: const Text('Call'),
-          ),
-        ]),
-      );
+    alignment: Alignment.center,
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      ElevatedButton(
+        onPressed: (lives[0] > 0) ? _userBet : null, // Disable if user has no lives
+        child: const Text('Bet'),
+      ),
+      const SizedBox(width: 16),
+      ElevatedButton(
+        onPressed: (lives[0] > 0) ? _userCall : null, // Disable if user has no lives
+        child: const Text('Call'),
+      ),
+    ]),
+  );
 
+ 
 // Inline‐bet controls (mutually resetting fields)
-  Widget _buildInlineBetControls() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.brown.shade800,
-        border: Border.all(color: Colors.amber),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── Qty display + arrows ────────────────────────────
-          Container(
-            width: 40,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.brown.shade700,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Center(
-              child: Text(
-                '$_tempQty',
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-              ),
+Widget _buildInlineBetControls() {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: Colors.brown.shade800,
+      border: Border.all(color: Colors.amber),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Qty display + arrows ────────────────────────────
+        Container(
+          width: 40, height: 20,
+          decoration: BoxDecoration(
+            color: Colors.brown.shade700,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text('$_tempQty',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Qty ↑
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_drop_up,
-                  color: Colors.amber,
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 20),
-                onPressed: () {
-                  setState(() {
-                    // 1) reset face to original
-                    _tempFace = _origFace;
-                    // 2) now lock qty and increment
-                    _lockMode = _LockMode.qty;
-                    if (_tempQty < dicePerPlayer * numPlayers) _tempQty++;
-                  });
-                },
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Qty ↑
+            IconButton(
+              icon: Icon(Icons.arrow_drop_up,
+                color: Colors.amber,
+                size: 20,
               ),
-              // Qty ↓
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.amber,
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 20),
-                onPressed: () {
-                  setState(() {
-                    // 1) reset face
-                    _tempFace = _origFace;
-                    // 2) lock qty and decrement
-                    _lockMode = _LockMode.qty;
-                    if (_tempQty > (bidQuantity ?? 0) + 1) _tempQty--;
-                  });
-                },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // 1) reset face to original
+                  _tempFace = _origFace;
+                  // 2) now lock qty and increment
+                  _lockMode = _LockMode.qty;
+                  if (_tempQty < dicePerPlayer * numPlayers) _tempQty++;
+                });
+              },
+            ),
+            // Qty ↓
+            IconButton(
+              icon: Icon(Icons.arrow_drop_down,
+                color: Colors.amber,
+                size: 20,
               ),
-            ],
-          ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // 1) reset face
+                  _tempFace = _origFace;
+                  // 2) lock qty and decrement
+                  _lockMode = _LockMode.qty;
+                  if (_tempQty > (bidQuantity ?? 0) + 1) _tempQty--;
+                });
+              },
+            ),
+          ],
+        ),
 
-          const SizedBox(width: 8),
-          const Text('×', style: TextStyle(color: Colors.amber, fontSize: 24)),
-          const SizedBox(width: 8),
+        const SizedBox(width: 8),
+        const Text('×', style: TextStyle(color: Colors.amber, fontSize: 24)),
+        const SizedBox(width: 8),
 
-          // ── Face display + arrows ────────────────────────────
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.brown.shade700,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Center(
-              child: Text(
-                '$_tempFace',
-                style: const TextStyle(color: Colors.white, fontSize: 18),
-              ),
+        // ── Face display + arrows ────────────────────────────
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            color: Colors.brown.shade700,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Text('$_tempFace',
+              style: const TextStyle(color: Colors.white, fontSize: 18),
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Face ↑
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_drop_up,
-                  color: Colors.amber,
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 20),
-                onPressed: () {
-                  setState(() {
-                    // reset qty first
-                    _tempQty = _origQty;
-                    // lock face and increment only if less than 6
-                    _lockMode = _LockMode.face;
-                    if (_tempFace < 6) _tempFace++;
-                  });
-                },
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Face ↑
+            IconButton(
+              icon: Icon(Icons.arrow_drop_up,
+                color: Colors.amber,
+                size: 20,
               ),
-              // Face ↓
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.amber,
-                  size: 20,
-                ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minHeight: 20),
-                onPressed: () {
-                  setState(() {
-                    // reset qty
-                    _tempQty = _origQty;
-                    // lock face and decrement
-                    _lockMode = _LockMode.face;
-                    if (_tempFace > (bidFace ?? 1) + 1) _tempFace--;
-                  });
-                },
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // reset qty first
+                  _tempQty = _origQty;
+                  // lock face and increment only if less than 6
+                  _lockMode = _LockMode.face;
+                  if (_tempFace < 6) _tempFace++;
+                });
+              },
+            ),
+            // Face ↓
+            IconButton(
+              icon: Icon(Icons.arrow_drop_down,
+                color: Colors.amber,
+                size: 20,
               ),
-            ],
-          ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minHeight: 20),
+              onPressed: () {
+                setState(() {
+                  // reset qty
+                  _tempQty = _origQty;
+                  // lock face and decrement
+                  _lockMode = _LockMode.face;
+                  if (_tempFace > (bidFace ?? 1) + 1) _tempFace--;
+                });
+              },
+            ),
+          ],
+        ),
 
-          const SizedBox(width: 12),
-          // ── Confirm / Cancel ─────────────────────────────────────────
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: (_tempQty > (bidQuantity ?? 0) ||
-                        _tempFace > (bidFace ?? 1))
-                    ? () async {
-                        final player = AudioPlayer();
-                        await player.play(AssetSource('sound/click-4.mp3'));
-                        _confirmBet();
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                child: const Text('Confirm'),
+        const SizedBox(width: 12),
+        // ── Confirm / Cancel ─────────────────────────────────────────
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: (_tempQty > (bidQuantity ?? 0) || _tempFace > (bidFace ?? 1))
+                ? _confirmBet
+                : null,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-              const SizedBox(width: 8),
-              TextButton(
-                onPressed: () async {
-                  final player = AudioPlayer();
-                  await player.play(AssetSource('sound/click-4.mp3'));
-                  _cancelBet();
-                },
-                style: TextButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-                child: const Text('Cancel'),
+              child: const Text('Confirm'),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: _cancelBet,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+
 
 // Updated _playerAlignment method
-  Alignment _playerAlignment(int idx) {
-    if (idx < 0 || idx >= numPlayers) {
-      print('Invalid player index: $idx');
-      return Alignment.center;
-    }
-
-    switch (idx) {
-      case 0:
-        return const Alignment(0.0, 0.8); // You at bottom
-      case 1:
-        return const Alignment(-0.8, 0.0); // CPU1 on left
-      case 2:
-        return const Alignment(0.0, -0.8); // CPU2 on top
-      case 3:
-        return const Alignment(0.8, 0.0); // CPU3 on right
-      default:
-        return Alignment.center;
-    }
+Alignment _playerAlignment(int idx) {
+  if (idx < 0 || idx >= numPlayers) {
+    print('Invalid player index: $idx');
+    return Alignment.center;
   }
 
+  switch (idx) {
+    case 0:
+      return const Alignment(0.0, 0.8); // You at bottom
+    case 1:
+      return const Alignment(-0.8, 0.0); // CPU1 on left
+    case 2:
+      return const Alignment(0.0, -0.8); // CPU2 on top
+    case 3:
+      return const Alignment(0.8, 0.0); // CPU3 on right
+    default:
+      return Alignment.center;
+  }
+}
+
   Widget _outBox({required String label}) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-            color: Colors.grey.shade700,
-            borderRadius: BorderRadius.circular(8)),
-        child: Text(label, style: const TextStyle(color: Colors.white)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(8)),
+    child: Text(label, style: const TextStyle(color: Colors.white)),
+  );
 
   Widget _buildHeartBox(int lives) {
     return Positioned(
@@ -938,8 +861,7 @@ class _DicePageState extends State<DicePage>
       right: 0,
       child: Center(
         child: Container(
-          padding:
-              const EdgeInsets.only(top: 6, bottom: 6, left: 12, right: 12),
+          padding: const EdgeInsets.only(top: 6, bottom: 6, left: 12, right: 12),
           decoration: BoxDecoration(
             color: Colors.brown.shade800,
             border: Border(

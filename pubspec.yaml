@@ -113,7 +113,6 @@ flutter:
     - assets/door1.png
     - assets/door2.png
     - assets/table.png
-    - assets/tab2.png
     - assets/in2.png
     - assets/in3.png
     - assets/ba4.png    
@@ -138,19 +137,6 @@ flutter:
     - assets/cardtable.png
     - assets/wanted_button_bg.png
     
-  #roulette
-    - assets/chamber1win.gif
-    - assets/chamber1win.webp
-    - assets/chamber2win.gif
-    - assets/chamber3win.gif
-    - assets/chamber4win.gif
-    - assets/chamber5win.gif
-    - assets/chamber1loss.gif
-    - assets/chamber2loss.gif
-    - assets/chamber3loss.gif
-    - assets/chamber4loss.gif
-    - assets/chamber5loss.gif
-    - assets/chamber6loss.gif
 
     
   #roles:
@@ -194,6 +180,4 @@ flutter:
     - assets/sound/card_sound_effect.mp3
     - assets/sound/revolver_spin_sound.mp3
     - assets/sound/dice-roll_effect.mp3
-    - assets/sound/dice_bet_sound.mp3
-    - assets/sound/revolver-spin-96947.mp3
     
