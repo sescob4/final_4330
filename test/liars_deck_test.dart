@@ -14,11 +14,11 @@ void main() {
 
   group('Player Tests', () {
     test('spin eliminates player correctly', () {
-      final p = Player('Tester');
+      final p = Player('Tester', roleNumber: 0);
       final rng = Random(1);
       final eliminated = p.spin(rng);
       expect(p.rouletteChambers, 2);
-      expect(p.eliminated, eliminated);
+      expect(p.eliminated, !eliminated);
     });
   });
 
