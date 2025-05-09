@@ -37,12 +37,13 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   bool _hasRolled = false;
   String? _currentPlayer;
   int _lives = 0;
+  int _previousLives = 0;
   bool _isFirstRoll = true;
   bool _justLostLife = false;
 
   StreamSubscription<DatabaseEvent>? _turnSubscription;
   StreamSubscription<DatabaseEvent>? _betSubscription;
-  StreamSubscription<DatabaseEvent>? _diceSubscription; // ← added
+  StreamSubscription<DatabaseEvent>? _diceSubscription;
 
   int? _bidQuantity;
   int? _bidFace;
@@ -64,33 +65,41 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     _loadInitialData();
     _listenToTurnChanges();
     _listenToBetChanges();
-    _listenToDiceChanges(); // ← start listening here
+    _listenToDiceChanges();
   }
 
   Future<void> _loadInitialData() async {
-    // initial one-time fetch
-    _refreshDice();
-    _refreshLives();
+    print("🔄 Loading initial data...");
+    await _refreshDice();
+    await _refreshLives();
     final cp = await _dbService.getCurrentTurnPlayer(widget.gameID);
+    print("🎯 Current player from DB: $cp");
     setState(() => _currentPlayer = cp);
   }
 
   Future<void> _refreshDice() async {
+    print("🎲 Refreshing dice...");
     final dice = await _dbService.getDice(widget.userID, widget.gameID);
+    print("🎲 Dice values: $dice");
     setState(() => _diceValues = dice);
   }
 
   Future<void> _refreshLives() async {
+    print("❤️ Refreshing lives...");
     final lives = await _dbService.getLifesDB(widget.userID, widget.gameID);
-    setState(() => _lives = lives);
+    print("❤️ Lives: $lives");
+    setState(() {
+      _previousLives = _lives;
+      _lives = lives;
+    });
   }
 
-  /// Listen for *any* change to playersAndDice; update just your slice.
   void _listenToDiceChanges() {
     final ref = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
     _diceSubscription = ref.onValue.listen((evt) {
       final data = evt.snapshot.value;
+      print("📡 Dice change detected: $data");
       if (data is Map && data[widget.userID] is List) {
         setState(() {
           _diceValues = List<int>.from(data[widget.userID] as List);
@@ -102,23 +111,32 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   void _listenToTurnChanges() {
     final ref = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
-    _turnSubscription = ref.onValue.listen((evt) {
+
+    _turnSubscription = ref.onValue.listen((evt) async {
       final cp = evt.snapshot.value?.toString();
-      setState(() {
-        _currentPlayer = cp;
-        if (cp == widget.userID) {
-          // new turn for you
-          _hasRolled = false;
+      setState(() => _currentPlayer = cp);
+      print("📍 Current player updated: $cp");
+
+      if (cp == widget.userID) {
+        _hasRolled = false;
+        await _refreshLives(); // updates _lives and _previousLives
+
+        if (_lives < _previousLives) {
+          _justLostLife = true;
+          _isFirstRoll = true;
+          print("⚠️ You lost a life — need to roll before betting");
         }
-      });
+      }
     });
   }
+
 
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/betDeclared");
     _betSubscription = ref.onValue.listen((evt) {
       final v = evt.snapshot.value;
+      print("💬 Bet changed: $v");
       setState(() {
         if (v is List && v.length == 2) {
           _bidQuantity = v[0] as int;
@@ -132,37 +150,45 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   Future<void> _rollDice() async {
-  if (_currentPlayer != widget.userID) return;
-  setState(() => _isRolling = true);
+    if (_currentPlayer != widget.userID) return;
 
-  _controller.forward(from: 0);
-  await Future.delayed(const Duration(milliseconds: 800));
+    if (!_justLostLife && !_isFirstRoll && _hasRolled) {
+      // Already rolled this round, skip
+      return;
+    }
+    print("🎲 Rolling dice for ${widget.userID}");
+    setState(() => _isRolling = true);
 
-  // only the starter’s very first roll, or whoever just lost a life,
-  // should re‐randomize everybody’s dice in the DB:
-  if (_isFirstRoll || _justLostLife) {
-    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    _isFirstRoll = false;
-    _justLostLife = false;
+    _controller.forward(from: 0);
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (_isFirstRoll || _justLostLife) {
+      print("🔄 Re-rolling all players' dice");
+      await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+      _isFirstRoll = false;
+      _justLostLife = false;
+    }
+
+    final mine = await _dbService.getDice(widget.userID, widget.gameID);
+    print("🎲 Rolled dice: $mine");
+    setState(() {
+      _diceValues = mine;
+      _hasRolled = true;
+      _isRolling = false;
+    });
   }
-
-  // fetch your own dice (listener will also keep you up to date)
-  final mine = await _dbService.getDice(widget.userID, widget.gameID);
-  setState(() {
-    _diceValues = mine;
-    _hasRolled = true;
-    _isRolling = false;
-  });
-}
 
   Future<void> _callBluff() async {
     if (_currentPlayer != widget.userID || _bidQuantity == null) return;
+    print("🕵️‍♂️ Calling bluff");
     await _resolveCall();
   }
 
   Future<void> _resolveCall() async {
     final qty = _bidQuantity!;
     final face = _bidFace!;
+    print("🧾 Resolving call: bet was $qty × $face");
+
     final refPlayers = FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
     final snap = await refPlayers.once();
@@ -178,6 +204,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
         }
       }
     }
+    print("📊 Actual count of face $face: $actualCount");
 
     final lastSnap = await FirebaseDatabase.instance
         .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
@@ -188,18 +215,12 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     if (loserId == null) return;
 
     final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          loserId == callerId
-              ? "You lose a life! ($livesLeft left)"
-              : "Opponent loses a life! ($livesLeft left)",
-        ),
-      ),
-    );
+    print("☠️ $loserId lost a life. Remaining: $livesLeft");
+
     if (loserId == widget.userID) {
-    _justLostLife = true;
-}
+      _justLostLife = true;
+    }
+
     setState(() {
       _bidQuantity = null;
       _bidFace = null;
@@ -215,36 +236,64 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     _tempQty = 1;
     _tempFace = 1;
     _lockMode = _LockMode.none;
+    print("🎯 Ready to place bet");
     setState(() => _showBetControls = true);
   }
 
   Future<void> _confirmBet() async {
+    print("🎯 Confirming bet: $_tempQty × $_tempFace");
+
+    // Optional: enforce increasing bet rule
+    if (_bidQuantity != null) {
+      final currentQty = _bidQuantity!;
+      final currentFace = _bidFace!;
+      final isInvalid = _tempQty < currentQty ||
+          (_tempQty == currentQty && _tempFace <= currentFace);
+      if (isInvalid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("You must raise the bet!")),
+        );
+        return;
+      }
+    }
+
     await _dbService.placeDiceBet(
       widget.userID,
       widget.gameID,
       _tempQty,
       _tempFace,
     );
+
+    // Set turn to next player
+    await _dbService.setPlayer(widget.userID, widget.gameID);
+
     setState(() {
       _bidQuantity = _tempQty;
       _bidFace = _tempFace;
       _showBetControls = false;
-      _hasRolled = false; // after bet, next turn begins
+      _hasRolled = false;
+      _justLostLife = false;
+      _isFirstRoll = false;
     });
   }
 
+
+
   void _cancelBet() {
+    print("❌ Cancelled bet UI");
     setState(() => _showBetControls = false);
   }
 
   @override
   void dispose() {
+    print("🧹 Disposing listeners and controller");
     _controller.dispose();
     _turnSubscription?.cancel();
     _betSubscription?.cancel();
-    _diceSubscription?.cancel(); // ← cancel dice listener
+    _diceSubscription?.cancel();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -343,31 +392,102 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
         border: Border.all(color: Colors.amber),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Qty display
-          Container(
-            width: 40,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.brown.shade700,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Center(
-              child: Text(
-                '$_tempQty',
-                style:
-                    const TextStyle(color: Colors.white, fontSize: 18),
-              ),
-            ),
+          const Text(
+            "Adjust Your Bet",
+            style: TextStyle(color: Colors.amber, fontSize: 16),
           ),
-          // ... rest of your inline controls ...
-          // (unchanged)
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  const Text("Qty", style: TextStyle(color: Colors.white)),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove, color: Colors.white),
+                        onPressed: () {
+                          if (_tempQty > 1) {
+                            setState(() => _tempQty--);
+                          }
+                        },
+                      ),
+                      Text(
+                        '$_tempQty',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        onPressed: () {
+                          setState(() => _tempQty++);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(width: 20),
+              Column(
+                children: [
+                  const Text("Face", style: TextStyle(color: Colors.white)),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove, color: Colors.white),
+                        onPressed: () {
+                          if (_tempFace > 1) {
+                            setState(() => _tempFace--);
+                          }
+                        },
+                      ),
+                      Text(
+                        '$_tempFace',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        onPressed: () {
+                          if (_tempFace < 6) {
+                            setState(() => _tempFace++);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: _confirmBet,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: const Text("Confirm"),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: _cancelBet,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                ),
+                child: const Text("Cancel"),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
+
 
   /// Heart box showing current lives at top
   Widget _buildHeartBox(int lives) {

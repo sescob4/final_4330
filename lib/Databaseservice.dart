@@ -198,7 +198,7 @@ Future<String?> joinQueueAndCheck(String username) async {
     ref.remove();
   }
 
-// Writes new dice values for all players if the current user is the game creator
+// Writes new dice values for all players
   Future<void> writeDiceForAll(String userID, String gameID) async {
     final canWrite = await FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/createdBy").once();
     final canWrite2 = canWrite.snapshot.value;
@@ -255,7 +255,7 @@ Future<String?> joinQueueAndCheck(String username) async {
     }
   }
 
-// Determines which player should go next in the sequence and return there ID
+// Determines which player should go next in the sequence based on the list index and return there ID
   Future<String> getNextPlayer(String currentUserID, String gameID) async {
     final ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
     final snapshot = await ref.once();
