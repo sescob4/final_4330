@@ -34,10 +34,16 @@ class Player {
   Player(this.name, {this.isAI = false, required this.roleNumber});
 
   bool spin(Random rng) {
-    final shot = rng.nextInt(6) < rouletteChambers;
+    bool shot;
+
+    if (rouletteChambers >= 6) {
+      shot = true;
+    } else {
+      shot = rng.nextInt(6) < rouletteChambers;
+    }
+
     rouletteChambers = min(6, rouletteChambers + 1);
-    eliminated |= shot;
-    return shot;
+    return shot; // don't set `eliminated` here anymore
   }
 }
 
@@ -161,6 +167,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   bool gameOver = false; // true when full game ends, not just round
   bool showRevealedCards = false;
 
+  bool showRouletteGif = false;
+  String? rouletteGifPath;
+
   bool started = false, aiBusy = false;
   static const aiDelay = Duration(seconds: 3);
 
@@ -171,6 +180,14 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   void initState() {
     super.initState();
     game = LiarsDeckGameState();
+
+    // Precache roulette GIFs
+    for (var i = 1; i <= 6; i++) {
+      if (i < 6) {
+        precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
+      }
+      precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
+    }
   }
 
   void _addLog(String s) {
@@ -250,6 +267,49 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     _maybeScheduleAI();
   }
 
+  void _handleBluffResult(String msg, Player spinner) {
+    final chamberUsed = spinner.rouletteChambers.clamp(1, 6);
+    final isLoss = msg.contains('ELIMINATED');
+    final gifName = 'chamber${chamberUsed}${isLoss ? "loss" : "win"}.gif';
+
+    setState(() {
+      showRevealedCards = false;
+      showRouletteGif = false;
+      rouletteGifPath = null;
+    });
+
+    // Flip cards face-up after short delay
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      setState(() => showRevealedCards = true);
+    });
+
+    // Show GIF after a bit more delay
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      setState(() {
+        rouletteGifPath = 'assets/$gifName';
+        showRouletteGif = true;
+      });
+    });
+
+    // After full animation, log result and check winner
+    Future.delayed(const Duration(milliseconds: 6500), () {
+      if (!mounted) return;
+      setState(() {
+        showRouletteGif = false;
+        rouletteGifPath = null;
+        _addLog(msg);
+      });
+
+      if (msg.contains('ELIMINATED')) {
+        spinner.eliminated = true;
+      }
+
+      _checkWinner();
+    });
+  }
+
   void _maybeScheduleAI() {
     if (aiBusy || game.isHumanTurn() || game.roundOver) return;
     aiBusy = true;
@@ -282,22 +342,12 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
         prevDumped || (game.tableCards.isNotEmpty && game.rng.nextBool());
 
     if (bluff) {
-      // AI called bluff
       final msg = game.callBluff(ai);
       _showOverlay('${ai.name} CALLED BLUFF!');
-      setState(() {
-        _addLog(msg);
-      });
-
-      // After a short delay, flip the cards face-up
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (!mounted) return;
-        setState(() {
-          showRevealedCards = true;
-        });
-        _checkWinner();
-      });
-
+      final spinner = msg.contains('${ai.name} was')
+          ? ai
+          : game.players[game.lastPlayerIdx];
+      _handleBluffResult(msg, spinner);
       aiBusy = false;
     } else {
       // AI plays cards normally
@@ -343,18 +393,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   void _callBluff() {
     _showOverlay('You CALLED BLUFF!');
     final msg = game.callBluff(game.players[0]);
-    setState(() {
-      _addLog(msg);
-    });
-
-    // after 800ms, flip the cards
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (!mounted) return;
-      setState(() {
-        showRevealedCards = true;
-      });
-      _checkWinner();
-    });
+    final spinner = msg.contains('You was')
+        ? game.players[0]
+        : game.players[game.lastPlayerIdx];
+    _handleBluffResult(msg, spinner);
   }
 
   Widget _card(DeckCard c, {bool selectable = false}) {
@@ -798,6 +840,40 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 ),
               ),
             ),
+
+          // Roulette GIF overlay
+          // Roulette GIF overlay with styled box
+          if (showRouletteGif && rouletteGifPath != null)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.75), // darker background
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.redAccent, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.8),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      rouletteGifPath!,
+                      width: 240,
+                      height: 240,
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // Start Button overlay
           if (!started)
             Positioned.fill(

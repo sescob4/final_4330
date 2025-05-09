@@ -138,6 +138,19 @@ flutter:
     - assets/cardtable.png
     - assets/wanted_button_bg.png
     
+  #roulette
+    - assets/chamber1win.gif
+    - assets/chamber1win.webp
+    - assets/chamber2win.gif
+    - assets/chamber3win.gif
+    - assets/chamber4win.gif
+    - assets/chamber5win.gif
+    - assets/chamber1loss.gif
+    - assets/chamber2loss.gif
+    - assets/chamber3loss.gif
+    - assets/chamber4loss.gif
+    - assets/chamber5loss.gif
+    - assets/chamber6loss.gif
 
     
   #roles:
