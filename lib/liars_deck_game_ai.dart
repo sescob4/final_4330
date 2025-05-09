@@ -205,7 +205,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
   void _checkWinner() {
     final alive = game.players.where((p) => !p.eliminated).toList();
-    if (alive.length == 1) {
+    if (alive.length == 1 || game.players[0].eliminated) {
       final winner = alive.first;
       game.roundOver = true;
       aiBusy = false;
@@ -516,18 +516,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: const Color(0xFF3E2723),
-        body: started ? _buildTable(context) : _buildIntro(),
+        body: _buildTable(context),
       );
   final AudioPlayer _player = AudioPlayer();
-  Widget _buildIntro() => Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            await _player.play(AssetSource('sound/click-4.mp3'));
-            _startGame();
-          },
-          child: const Text("Start Liar's Deck"),
-        ),
-      );
 
   Widget _buildTable(BuildContext ctx) {
     final padTop = MediaQuery.of(ctx).padding.top;
@@ -536,12 +527,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       final radius = constraints.maxWidth * 0.10;
       final center =
           Offset(constraints.maxWidth / 2, constraints.maxHeight / 2);
-
-      const cardH = 54.0, cardW = 36.0, gap = 4.0, pad = 4.0;
-      double vTop(Player p) =>
-          center.dy - ((p.hand.length * (cardH + gap)) / 2) - pad;
-      double hLeft(Player p) =>
-          center.dx - ((p.hand.length * (cardW + gap)) / 2) - pad;
 
       return Stack(
         children: [
@@ -556,7 +541,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          //settings button
+          // Settings button
           Positioned(
             top: padTop,
             right: 8,
@@ -572,22 +557,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               },
             ),
           ),
-          // Table center circle
-          Positioned(
-            left: center.dx - radius - 40, // shifted 40 pixels left
-            top: center.dy - radius,
-            child: Image.asset(
-              'assets/cardtable.png',
-              width: radius * 2.7,
-              height: radius * 2,
-              fit: BoxFit.cover,
-            ),
-          ),
-
           // Played cards at center (face down until bluff is called)
           Positioned(
-            top: center.dy - 28,
-            left: center.dx - ((game.tableCards.length - 1) * 20 + 120) / 2,
+            top: center.dy - 44,
+            left: center.dx - ((game.tableCards.length - 1) * 20 + 95) / 2,
             child: SizedBox(
               width: (game.tableCards.length - 1) * 20.0 + 100,
               height: 62,
@@ -608,11 +581,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               ),
             ),
           ),
-
-          // AI1 (left, closer to table)
+          // AI players
           Positioned(
             left: 190,
-            top: center.dy - 40,
+            top: center.dy - 80,
             child: _hand(
               game.players[1],
               horizontal: true,
@@ -620,11 +592,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               highlight: game.currentPlayer == 1 && !game.roundOver,
             ),
           ),
-
-          // AI2 (top center)
           Positioned(
-            left: 385,
-            top: 40,
+            left: 395,
+            top: 20,
             child: _hand(
               game.players[2],
               horizontal: true,
@@ -632,11 +602,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               highlight: game.currentPlayer == 2 && !game.roundOver,
             ),
           ),
-
-          // AI3 (right, closer to table)
           Positioned(
-            right: 200,
-            top: center.dy - 40,
+            right: 180,
+            top: center.dy - 80,
             child: _hand(
               game.players[3],
               horizontal: true,
@@ -644,11 +612,10 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               highlight: game.currentPlayer == 3 && !game.roundOver,
             ),
           ),
-
-          // You (bottom - label and cards centered under table)
+          // You (bottom center)
           Positioned(
             top: center.dy + radius - 10,
-            left: 0,
+            left: 10,
             right: 0,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -657,7 +624,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Name + (x/6)
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,7 +659,13 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                if (!game.players[0].eliminated)
+                if (game.players[0].eliminated)
+                  SvgPicture.asset(
+                    'assets/splat3.svg',
+                    width: 90,
+                    height: 90,
+                  )
+                else
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -707,8 +679,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
               ],
             ),
           ),
-
-          // Console (right side)
+          // Console
           Positioned(
             top: padTop + 40,
             right: 8,
@@ -742,6 +713,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold)),
           ),
+          // Action buttons
           Positioned(
             left: 8,
             bottom: 8,
@@ -802,9 +774,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                         ],
                       ),
           ),
-
-          // Overlay for "WIN" or "BLUFF"
-          if (overlayMsg != null) ...[
+          // Overlay for WIN or BLUFF
+          if (overlayMsg != null)
             AnimatedOpacity(
               opacity: overlayOpacity,
               duration: const Duration(milliseconds: 500),
@@ -827,20 +798,31 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                 ),
               ),
             ),
-          ],
+          // Start Button overlay
+          if (!started)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
+                    ),
+                    onPressed: () async {
+                      await _player.play(AssetSource('sound/click-4.mp3'));
+                      _startGame();
+                    },
+                    child: const Text(
+                      "Start Liar's Deck",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       );
     });
-  }
-}
-
-class LiarsDeckGamePageAI extends StatelessWidget {
-  const LiarsDeckGamePageAI({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text("Solo Liar's Deck coming soon!")),
-    );
   }
 }
