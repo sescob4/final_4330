@@ -1,4 +1,3 @@
-import 'package:final_4330/Databaseservice.dart';
 import 'package:final_4330/main.dart';
 import 'package:flutter/material.dart';
 import 'game_selection_screen.dart';
@@ -17,7 +16,6 @@ class RolesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int characterID = 0;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -77,12 +75,11 @@ class RolesScreen extends StatelessWidget {
                       children: roles.map((role) {
                         return GestureDetector(
                           onTap: () {
-                            characterID = roles.indexOf(role);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 //pass the selected role if needed
-                                builder: (context) => GameSelectionPage2(role: characterID),
+                                builder: (context) => GameSelectionPage2(),
                               ),
                             );
                           },

@@ -198,31 +198,19 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     });
   }
 
-  Future<void> _loadRouletteGifs() async {
-    for (int i = 1; i <= 6; i++) {
-      if (i < 6) {
-        final winKey = 'chamber${i}win.gif';
-        final winBytes = await rootBundle.load('assets/$winKey');
-        _gifCache[winKey] = winBytes.buffer.asUint8List();
-      }
-
-      final lossKey = 'chamber${i}loss.gif';
-      final lossBytes = await rootBundle.load('assets/$lossKey');
-      _gifCache[lossKey] = lossBytes.buffer.asUint8List();
-    }
-  }
-
   Widget _rouletteImage() {
-    if (rouletteGifPath == null) return const SizedBox.shrink();
+  if (rouletteGifPath == null) return const SizedBox.shrink();
 
-    return Image.asset(
-      rouletteGifPath!,
-      width: 300,
-      height: 300,
-      fit: BoxFit.contain,
-      gaplessPlayback: true,
-    );
-  }
+  return Image.asset(
+    rouletteGifPath!,
+    width: 300,
+    height: 300,
+    fit: BoxFit.cover,
+    gaplessPlayback: true,
+  );
+}
+
+
 
   void _showOverlay(String msg) {
     setState(() {
