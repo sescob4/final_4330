@@ -4,6 +4,7 @@ import 'settings.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../Databaseservice.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage extends StatelessWidget {
   const GameSelectionPage({super.key});
@@ -32,7 +33,6 @@ class GameSelectionPage extends StatelessWidget {
               label:
                   const Text('Settings', style: TextStyle(color: Colors.white)),
               onPressed: () {
-                Navigator.pop(context);
                 Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
@@ -59,7 +59,8 @@ class GameSelectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Choose Your Game',
+        title: const Text(
+          'Choose Your Game',
           style: TextStyle(
             color: Colors.amber,
             fontSize: 24,
