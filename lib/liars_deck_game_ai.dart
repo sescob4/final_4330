@@ -154,7 +154,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   final Set<DeckCard> selected = {};
   final List<String> history = [];
   final ScrollController _scroll = ScrollController();
-  final Map<String, Uint8List> _gifCache = {};
 
   bool gameOver = false; // true when full game ends, not just round
   bool showRevealedCards = false;
