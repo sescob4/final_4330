@@ -200,32 +200,34 @@ Future<String?> joinQueueAndCheck(String username) async {
 
 // Writes new dice values for all players if the current user is the game creator
   Future<void> writeDiceForAll(String userID, String gameID) async {
-  // only the original creator can actually randomize
-  final createdBySnap = await FirebaseDatabase.instance
-    .ref("dice/gameSessions/$gameID/createdBy")
-    .once();
-  if (createdBySnap.snapshot.value != userID) {
-    // not the creator => we’ll still call getDice later, so silently return
-    return;
-  }
+    final canWrite = await FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/createdBy").once();
+    final canWrite2 = canWrite.snapshot.value;
 
-  final ref = FirebaseDatabase.instance
-      .ref("dice/gameSessions/$gameID/playersAndDice");
-  final event = await ref.once();
-  final data = event.snapshot.value;
-  final rand = Random();
+    if (canWrite2 == userID) {
+      DatabaseReference ref = FirebaseDatabase.instance.ref("dice/gameSessions/$gameID/playersAndDice");
+      DatabaseEvent event = await ref.once();
+      final data = event.snapshot.value;
+      final Random rand = Random();
 
-  if (data is Map) {
-    for (var entry in data.entries) {
-      final playerID = entry.key;
-      final diceList = entry.value;
-      if (diceList is List) {
-        final newRoll = List.generate(diceList.length, (_) => rand.nextInt(6) + 1);
-        await ref.child(playerID).set(newRoll);
+      // Iterate over each player and assign random dice values
+      if (data is Map) {
+        for (var entry in (data as Map).entries) {
+          final playerID = entry.key;
+          final diceList = entry.value;
+
+          // Randomize each dice value (1–6)
+          if (diceList is List) {
+            final updatedDiceList = List.generate(diceList.length, (_) => rand.nextInt(6) + 1);
+            await ref.child(playerID).set(updatedDiceList);
+          }
+        }
       }
+    } else {
+      print("error in writeDiceForALL");
     }
+
   }
-}
+
 
 
 
