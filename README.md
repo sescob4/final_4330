@@ -28,5 +28,5 @@ These stats do not reset unless the account is deleted from the Firebase Databas
 
 ### Installation
 1. Close the repository:
-   git clone https://github.com/sescob4/final_4330
-   cd final_4330
+git clone https://github.com/sescob4/final_4330
+cd final_4330
