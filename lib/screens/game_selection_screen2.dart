@@ -36,7 +36,7 @@ class GameSelectionPage2 extends StatelessWidget {
               onPressed: () async {
                 final player = AudioPlayer();
                 await player.play(AssetSource('sound/click-4.mp3'));
-                Navigator.pop(context);
+                //Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
@@ -147,8 +147,8 @@ class GameSelectionPage2 extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                UserClassification(gameChosen: "deck", role: role),
+                            builder: (context) => UserClassification(
+                                gameChosen: "deck", role: role),
                           ),
                         );
                       },
@@ -186,7 +186,8 @@ class GameSelectionPage2 extends StatelessWidget {
 class UserClassification extends StatelessWidget {
   final String gameChosen;
   final int role;
-  const UserClassification({super.key, required this.gameChosen, required this.role});
+  const UserClassification(
+      {super.key, required this.gameChosen, required this.role});
 
   void _showUserClasses(BuildContext context) {
     showDialog(
@@ -203,7 +204,7 @@ class UserClassification extends StatelessWidget {
               label:
                   const Text('Settings', style: TextStyle(color: Colors.white)),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
               },
             ),
@@ -273,7 +274,8 @@ class UserClassification extends StatelessWidget {
                       label: "AI Bot",
                       crownImagePath: "assets/single.png",
                       onTap: () async {
-                        final info = await GameSelectionPage2(role: 0).getUserInfo();
+                        final info =
+                            await GameSelectionPage2(role: 0).getUserInfo();
                         final userId = info['uid']!;
                         final userName = info['username']!;
                         if (gameChosen == "deck") {
@@ -335,11 +337,7 @@ class _GameLoadingQueue extends State<GameQUEUE> {
   Future<void> _beginQueueProcess() async {
     print("Queue Process Begins !");
     final sessionID = await _queueManager.tryJoinQueue(
-      widget.userID,
-      widget.userName,
-      widget.gameChosen,
-      widget.role
-    );
+        widget.userID, widget.userName, widget.gameChosen, widget.role);
     print("queue process ENDSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
     // Listen to the queue path
     final queuePath = widget.gameChosen == "deck"
@@ -365,8 +363,8 @@ class _GameLoadingQueue extends State<GameQUEUE> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  DicePageMultiUSER(userID: widget.userID, gameID: sessionID, role: widget.role),
+              builder: (context) => DicePageMultiUSER(
+                  userID: widget.userID, gameID: sessionID, role: widget.role),
             ),
           );
           //////////////////////////////////////////////////////////////////////
@@ -389,11 +387,15 @@ class _GameLoadingQueue extends State<GameQUEUE> {
 
 //class with functions to get lock and add to a game/queue
 class QueueDeck {
-  final DatabaseReference _lockRefDECK = FirebaseDatabase.instance.ref("deck/queueLock");
-  final DatabaseReference _lockRefDICE = FirebaseDatabase.instance.ref("dice/queueLock");
+  final DatabaseReference _lockRefDECK =
+      FirebaseDatabase.instance.ref("deck/queueLock");
+  final DatabaseReference _lockRefDICE =
+      FirebaseDatabase.instance.ref("dice/queueLock");
 
-  final DatabaseReference _DeckSessions = FirebaseDatabase.instance.ref("deck/gameSessions");
-  final DatabaseReference _DiceSessions = FirebaseDatabase.instance.ref("dice/gameSessions");
+  final DatabaseReference _DeckSessions =
+      FirebaseDatabase.instance.ref("deck/gameSessions");
+  final DatabaseReference _DiceSessions =
+      FirebaseDatabase.instance.ref("dice/gameSessions");
 
   Future<bool> acquireQueueLock(String gameChosen) async {
     if (gameChosen == "dice") {
@@ -423,7 +425,8 @@ class QueueDeck {
     return false;
   }
 
-  Future<String> tryJoinQueue(String userId, String name, String gameChosen, int role) async {
+  Future<String> tryJoinQueue(
+      String userId, String name, String gameChosen, int role) async {
     bool joined = false;
     Map<String, dynamic> newplayer = {"userName": name};
     while (!joined) {
@@ -451,9 +454,12 @@ class QueueDeck {
               } else {
                 print("game lock false try adding player");
                 if (sessionID != null) {
-                  final DatabaseReference playerList = _DiceSessions.child(sessionID).child("playersAndDice");
-                  final DatabaseReference playersLIFEList = _DiceSessions.child(sessionID).child("playersLife");
-                  final DatabaseReference playersRoles = _DiceSessions.child(sessionID).child("playersRole");
+                  final DatabaseReference playerList =
+                      _DiceSessions.child(sessionID).child("playersAndDice");
+                  final DatabaseReference playersLIFEList =
+                      _DiceSessions.child(sessionID).child("playersLife");
+                  final DatabaseReference playersRoles =
+                      _DiceSessions.child(sessionID).child("playersRole");
                   final playerSnap = await playerList.get();
                   print("got player list");
 
@@ -504,7 +510,7 @@ class QueueDeck {
                   userId: [0, 0, 0, 0, 0]
                 },
                 "playersLife": {userId: 3},
-                "playersRole":{userId: role}
+                "playersRole": {userId: role}
               });
 
               final booleanSession = newGameSessionRef.key;
@@ -607,4 +613,3 @@ class QueueDeck {
   }
 }
 //
-
