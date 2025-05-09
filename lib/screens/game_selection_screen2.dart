@@ -13,10 +13,11 @@ import 'settings.dart';
 import '../widgets/frame_button.dart';
 import '../Databaseservice.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage2 extends StatelessWidget {
-  const GameSelectionPage2({super.key});
-
+  GameSelectionPage2({super.key});
+  final AudioPlayer player = AudioPlayer();
   void _showGameMenu(BuildContext context) {
     showDialog(
       context: context,
@@ -31,7 +32,9 @@ class GameSelectionPage2 extends StatelessWidget {
               icon: const Icon(Icons.settings, color: Colors.white),
               label:
                   const Text('Settings', style: TextStyle(color: Colors.white)),
-              onPressed: () {
+              onPressed: () async {
+                final player = AudioPlayer();
+                await player.play(AssetSource('sound/click-4.mp3'));
                 Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/settings');
                 // Navigate to settings page when implemented
@@ -41,7 +44,9 @@ class GameSelectionPage2 extends StatelessWidget {
               icon: const Icon(Icons.home, color: Colors.white),
               label: const Text('Main Menu',
                   style: TextStyle(color: Colors.white)),
-              onPressed: () {
+              onPressed: () async {
+                final player = AudioPlayer();
+                await player.play(AssetSource('sound/click-4.mp3'));
                 Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/home');
               },
@@ -174,12 +179,11 @@ class GameSelectionPage2 extends StatelessWidget {
     );
   }
 }
+
 /////////////////////////////////////working database do not touch below this pretty please !
 class UserClassification extends StatelessWidget {
   final String gameChosen;
   const UserClassification({super.key, required this.gameChosen});
-
-
 
   void _showUserClasses(BuildContext context) {
     showDialog(
@@ -298,7 +302,8 @@ class UserClassification extends StatelessWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => LiarsDeckGamePage(gameId: "AI BOT"),
+                              builder: (_) =>
+                                  LiarsDeckGamePage(gameId: "AI BOT"),
                             ),
                           );
                         } else {
@@ -322,30 +327,31 @@ class UserClassification extends StatelessWidget {
   }
 }
 
-
-class GameQUEUE extends StatefulWidget{
+class GameQUEUE extends StatefulWidget {
   final gameChosen;
   final userID;
   final userName;
 
-  const GameQUEUE({ super.key,
-  required this.gameChosen,
-  required this.userID,
-  required this.userName});
+  const GameQUEUE(
+      {super.key,
+      required this.gameChosen,
+      required this.userID,
+      required this.userName});
 
   @override
   State<GameQUEUE> createState() => _GameLoadingQueue();
 }
 
-class _GameLoadingQueue extends State<GameQUEUE>{
+class _GameLoadingQueue extends State<GameQUEUE> {
   final QueueDeck _queueManager = QueueDeck();
   StreamSubscription<DatabaseEvent>? _assignementListener;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _beginQueueProcess();
   }
+
   Future<void> _beginQueueProcess() async {
     print("Queue Process Begins !");
     final sessionID = await _queueManager.tryJoinQueue(
@@ -359,38 +365,35 @@ class _GameLoadingQueue extends State<GameQUEUE>{
         ? "deck/gameSessions/$sessionID/playersAndCards"
         : "dice/gameSessions/$sessionID/playersAndDice";
 
-    _assignementListener = FirebaseDatabase.instance
-        .ref(queuePath)
-        .onValue
-        .listen((event) {
+    _assignementListener =
+        FirebaseDatabase.instance.ref(queuePath).onValue.listen((event) {
       final data = event.snapshot.value;
 
       if (data is Map && data.length >= 1) {
         print("game full with players!!!!!!!!!!!!!! continue to game");
 
-          // Stop listening
-          _assignementListener?.cancel();
+        // Stop listening
+        _assignementListener?.cancel();
 
-          if (widget.gameChosen == "deck") {
-            ///ACTION ADD IN DECK PAGE
-          } else {
-            /// ACTIONS Front end may change the bottom section within the //
-            /// This is make you go to the page after clicking multi user in dice
-            /// //////////////// can change this////////////////////////////////////
-            Navigator.push(
+        if (widget.gameChosen == "deck") {
+          ///ACTION ADD IN DECK PAGE
+        } else {
+          /// ACTIONS Front end may change the bottom section within the //
+          /// This is make you go to the page after clicking multi user in dice
+          /// //////////////// can change this////////////////////////////////////
+          Navigator.push(
             context,
             MaterialPageRoute(
-            builder: (context) => DicePageMultiUSER(userID: widget.userID, gameID: sessionID),
+              builder: (context) =>
+                  DicePageMultiUSER(userID: widget.userID, gameID: sessionID),
             ),
           );
-            //////////////////////////////////////////////////////////////////////
-            //////////////////////////////////////////////////////////////////////
-          }
+          //////////////////////////////////////////////////////////////////////
+          //////////////////////////////////////////////////////////////////////
         }
       }
-    );
+    });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -401,24 +404,22 @@ class _GameLoadingQueue extends State<GameQUEUE>{
       ),
     );
   }
-
 }
-
-
-
-
 
 //class with functions to get lock and add to a game/queue
 class QueueDeck {
+  final DatabaseReference _lockRefDECK =
+      FirebaseDatabase.instance.ref("deck/queueLock");
+  final DatabaseReference _lockRefDICE =
+      FirebaseDatabase.instance.ref("dice/queueLock");
 
-  final DatabaseReference _lockRefDECK = FirebaseDatabase.instance.ref("deck/queueLock");
-  final DatabaseReference _lockRefDICE = FirebaseDatabase.instance.ref("dice/queueLock");
-
-  final DatabaseReference _DeckSessions = FirebaseDatabase.instance.ref("deck/gameSessions");
-  final DatabaseReference _DiceSessions = FirebaseDatabase.instance.ref("dice/gameSessions");
+  final DatabaseReference _DeckSessions =
+      FirebaseDatabase.instance.ref("deck/gameSessions");
+  final DatabaseReference _DiceSessions =
+      FirebaseDatabase.instance.ref("dice/gameSessions");
 
   Future<bool> acquireQueueLock(String gameChosen) async {
-    if(gameChosen == "dice") {
+    if (gameChosen == "dice") {
       final result = await _lockRefDICE.runTransaction((currentData) {
         if (currentData == true) {
           print("locked" + ServerValue.timestamp.toString());
@@ -429,7 +430,7 @@ class QueueDeck {
         }
       });
       return result.committed;
-    }else if(gameChosen == "deck"){
+    } else if (gameChosen == "deck") {
       final result = await _lockRefDECK.runTransaction((currentData) {
         if (currentData == true) {
           print("locked" + ServerValue.timestamp.toString());
@@ -445,73 +446,74 @@ class QueueDeck {
     return false;
   }
 
-  Future<String> tryJoinQueue(String userId, String name, String gameChosen) async {
+  Future<String> tryJoinQueue(
+      String userId, String name, String gameChosen) async {
     bool joined = false;
-    Map<String, dynamic> newplayer = {
-
-      "userName": name
-    };
+    Map<String, dynamic> newplayer = {"userName": name};
     while (!joined) {
       final lockAcquired = await acquireQueueLock(gameChosen);
 
-
-      if(gameChosen == "dice") {////////////////////////////
+      if (gameChosen == "dice") {
+        ////////////////////////////
         if (!lockAcquired) {
           print("Still locked");
           await Future.delayed(const Duration(seconds: 5));
-        }
-
-        else {
+        } else {
           try {
-            final snapshot = await _DiceSessions.orderByChild("timestamp").limitToLast(5).get();
+            final snapshot = await _DiceSessions.orderByChild("timestamp")
+                .limitToLast(5)
+                .get();
             int addedToGame = 0;
             //this is to see if a session van be added_____________________________________________________
-            for(final session in snapshot.children){
+            for (final session in snapshot.children) {
               //loop through last 5 games to check to see if a spot is open for the players by checkin the lock
-              final data = session.value as Map<dynamic,dynamic>;
+              final data = session.value as Map<dynamic, dynamic>;
               final sessionID = session.key;
 
-              if(data["gameLock"] == true){
+              if (data["gameLock"] == true) {
                 print("gameLock found true continue to next game_>.>>>>>>>");
-              }else{
+              } else {
                 print("game lock false try adding player");
-                if(sessionID != null){
+                if (sessionID != null) {
+                  final DatabaseReference playerList =
+                      _DiceSessions.child(sessionID).child("playersAndDice");
+                  final DatabaseReference playersLIFEList =
+                      _DiceSessions.child(sessionID).child("playersLife");
+                  final playerSnap = await playerList.get();
+                  print("got player list");
 
-                final DatabaseReference playerList = _DiceSessions.child(sessionID).child("playersAndDice");
-                final DatabaseReference playersLIFEList = _DiceSessions.child(sessionID).child("playersLife");
-                final playerSnap = await playerList.get();
-                print("got player list");
-
-                int players = 0;
-                if(playerSnap.exists && playerSnap.value is Map){
+                  int players = 0;
+                  if (playerSnap.exists && playerSnap.value is Map) {
                     final data = playerSnap.value as Map;
                     players = data.length;
-
                   }
 
-                  if( players< 2){
+                  if (players < 2) {
                     print("Found game -> checking game to add player");
-                    await playerList.child(userId).set([0,0,0,0,0]);
+                    await playerList.child(userId).set([0, 0, 0, 0, 0]);
                     await playersLIFEList.child(userId).set(3);
 
-                    if((players+1)>= 2){
-                      await _DiceSessions.child(sessionID).child("gameLock").set(true);
+                    if ((players + 1) >= 2) {
+                      await _DiceSessions.child(sessionID)
+                          .child("gameLock")
+                          .set(true);
                     }
 
                     addedToGame = 1;
-                    print("player added to game "+ sessionID);
+                    print("player added to game " + sessionID);
                     return sessionID;
-
-                  }else{
+                  } else {
                     print("game full cant add to game players");
-                    await _DiceSessions.child(sessionID).child("gameLock").set(true);
+                    await _DiceSessions.child(sessionID)
+                        .child("gameLock")
+                        .set(true);
                   }
                 }
               }
             }
 
-
-            if(addedToGame == 0){//create new session game if none are open
+            if (addedToGame == 0) {
+              //create new session game if none are open
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DiceSessions.push();
               await newGameSessionRef.set({
@@ -519,119 +521,112 @@ class QueueDeck {
                 "currentPlayer": userId,
                 "lastPlayer": "",
                 "chat": ["Starting Game Chat....."],
-                "betDeclared": [0,0],// 2 dice of 3 this is how it would go
+                "betDeclared": [0, 0], // 2 dice of 3 this is how it would go
                 "gameLock": false,
                 "timestamp": ServerValue.timestamp,
-                "playersAndDice":{
-                  userId: [0,0,0,0,0]
+                "playersAndDice": {
+                  userId: [0, 0, 0, 0, 0]
                 },
-                "playersLife":{
-                  userId: 3
-                }
-              }
-              );
+                "playersLife": {userId: 3}
+              });
 
               final booleanSession = newGameSessionRef.key;
-              if(booleanSession != null){
+              if (booleanSession != null) {
                 return booleanSession;
               }
               return "error";
             }
-
-            }finally{
-                await _lockRefDICE.set(false);
-              }
+          } finally {
+            await _lockRefDICE.set(false);
+          }
         }
-      }else if(gameChosen == "deck"){////////////////////////////////////////////////////////////////////////////////////////////////////////
+      } else if (gameChosen == "deck") {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
         if (!lockAcquired) {
           print("Still locked");
           await Future.delayed(const Duration(seconds: 5));
-        }
-
-        else {
+        } else {
           try {
-            final snapshot = await _DeckSessions.orderByChild("timestamp").limitToLast(5).get();
+            final snapshot = await _DeckSessions.orderByChild("timestamp")
+                .limitToLast(5)
+                .get();
 
             int addedToGame = 0;
             //this is to see if a session van be added_____________________________________________________
-            for(final session in snapshot.children){
+            for (final session in snapshot.children) {
               //loop through last 5 games to check to see if a spot is open for the players by checkin the lock
-              final data = session.value as Map<dynamic,dynamic>;
+              final data = session.value as Map<dynamic, dynamic>;
               final sessionID = session.key;
 
-              if(data["gameLock"] == true){
+              if (data["gameLock"] == true) {
                 print("gameLock found true continue to next game_>.>>>>>>>");
-              }else{
+              } else {
                 print("game lock false try adding player");
-                if(sessionID != null){
-
-                  final DatabaseReference playerList = _DeckSessions.child(sessionID).child("playersAndCards");
+                if (sessionID != null) {
+                  final DatabaseReference playerList =
+                      _DeckSessions.child(sessionID).child("playersAndCards");
                   final playerSnap = await playerList.get();
                   print("got player list");
 
                   int players = 0;
-                  if(playerSnap.exists && playerSnap.value is Map){
+                  if (playerSnap.exists && playerSnap.value is Map) {
                     final data = playerSnap.value as Map;
                     players = data.length;
-
                   }
 
-                  if( players< 2){
+                  if (players < 2) {
                     print("Found game -> checking game to add player");
-                    await playerList.child(userId).set([0,0,0]);
+                    await playerList.child(userId).set([0, 0, 0]);
 
-
-                    if((players+1)>= 2){
-                      await _DeckSessions.child(sessionID).child("gameLock").set(true);
+                    if ((players + 1) >= 2) {
+                      await _DeckSessions.child(sessionID)
+                          .child("gameLock")
+                          .set(true);
                     }
 
                     addedToGame = 1;
-                    print("player added to game "+ sessionID);
+                    print("player added to game " + sessionID);
                     return sessionID;
-
-                  }else{
+                  } else {
                     print("game full cant add to game players");
-                    await _DeckSessions.child(sessionID).child("gameLock").set(true);
+                    await _DeckSessions.child(sessionID)
+                        .child("gameLock")
+                        .set(true);
                   }
                 }
               }
             }
 
-
-            if(addedToGame == 0){//create new session game if none are open
+            if (addedToGame == 0) {
+              //create new session game if none are open
               print("no game sessions available now creating new one");
               final newGameSessionRef = _DeckSessions.push();
               await newGameSessionRef.set({
                 "createdBy": userId,
                 'playerTurn': "",
                 "chat": [],
-              'gameLock': false,
-              "playersAndCards":{
-                userId: [0,0,0,0]
-              },
-                "playerLives": {
-                  userId: 3
+                'gameLock': false,
+                "playersAndCards": {
+                  userId: [0, 0, 0, 0]
                 },
-              'cardDeclared': '',
-              'cardDownStack': '',
-              'timeStamp': ServerValue.timestamp,
+                "playerLives": {userId: 3},
+                'cardDeclared': '',
+                'cardDownStack': '',
+                'timeStamp': ServerValue.timestamp,
               });
 
-
               final booleanSession = newGameSessionRef.key;
-              if(booleanSession != null){
+              if (booleanSession != null) {
                 return booleanSession;
               }
               return "error";
             }
-
-          }finally{
+          } finally {
             await _lockRefDECK.set(false);
           }
         }
       }
     }
-
   }
 }
 //
