@@ -73,10 +73,16 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     print("🔄 Loading initial data...");
     await _refreshDice();
     await _refreshLives();
+
     final cp = await _dbService.getCurrentTurnPlayer(widget.gameID);
     print("🎯 Current player from DB: $cp");
-    setState(() => _currentPlayer = cp);
+
+    setState(() {
+      _currentPlayer = cp;
+      _isFirstRoll = (cp == widget.userID);  // ✅ Only true if you are the first to play
+    });
   }
+
 
   Future<void> _refreshDice() async {
     print("🎲 Refreshing dice...");
@@ -118,17 +124,29 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
       setState(() => _currentPlayer = cp);
       print("📍 Current player updated: $cp");
 
-        if (cp == widget.userID) {
-          _hasRolled = false;
-        await _refreshLives(); // updates _lives and _previousLives
+      if (cp == widget.userID) {
+        await _refreshLives();
 
         if (_lives < _previousLives) {
           _justLostLife = true;
-          _isFirstRoll = true;
+          _isFirstRoll = false;
+          _hasRolled = false; // Must roll
           print("⚠️ You lost a life — need to roll before betting");
+        } else if (_isFirstRoll) {
+          _justLostLife = false;
+          _hasRolled = false; // Must roll
+          print("🎯 First player must roll");
+        } else {
+          // Normal turn: no need to roll again
+          _justLostLife = false;
+          _isFirstRoll = false;
+          _hasRolled = true;
+          print("✅ Normal turn — you can bet or call");
         }
-        }
-      });
+      }
+
+
+    });
   }
 
   void _listenToBetChanges() {
@@ -184,49 +202,37 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   Future<void> _resolveCall() async {
-    final qty = _bidQuantity!;
-    final face = _bidFace!;
-    print("🧾 Resolving call: bet was $qty × $face");
+    print("🧾 Resolving call with checkDiceCall");
 
-    final refPlayers = FirebaseDatabase.instance
-        .ref("dice/gameSessions/${widget.gameID}/playersAndDice");
-    final snap = await refPlayers.once();
-    final data = snap.snapshot.value;
-    if (data is! Map) return;
+    final wasValidBet = await _dbService.checkDiceCall(widget.userID, widget.gameID);
 
-    int actualCount = 0;
-    for (var entry in (data as Map).entries) {
-      final diceList = entry.value;
-      if (diceList is List) {
-        for (var d in List<int>.from(diceList)) {
-          if (d == face) actualCount++;
-        }
-      }
-    }
-    print("📊 Actual count of face $face: $actualCount");
-
-  final lastSnap = await FirebaseDatabase.instance
-      .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
-      .once();
+    final lastSnap = await FirebaseDatabase.instance
+        .ref("dice/gameSessions/${widget.gameID}/lastPlayer")
+        .once();
     final bettorId = lastSnap.snapshot.value?.toString();
     final callerId = widget.userID;
-    final loserId = (actualCount >= qty) ? callerId : bettorId;
-  if (loserId == null) return;
+
+    final loserId = wasValidBet ? callerId : bettorId;
+    if (loserId == null) return;
 
     final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
     print("☠️ $loserId lost a life. Remaining: $livesLeft");
 
-    if (loserId == widget.userID) {
-      _justLostLife = true;
-    }
+    // Make loser the current player (so they can roll + bet again manually)
+    await FirebaseDatabase.instance
+        .ref("dice/gameSessions/${widget.gameID}/currentPlayer")
+        .set(loserId);
 
-  setState(() {
+    setState(() {
       _bidQuantity = null;
       _bidFace = null;
-    _hasRolled       = false;
-  });
-    await _dbService.setPlayer(widget.userID, widget.gameID);
+      _hasRolled = false;
+      _justLostLife = (loserId == widget.userID); // enables button in UI
+      _isFirstRoll = false;
+    });
   }
+
+
 
   void _userBet() {
   if (!_hasRolled) return;
@@ -343,13 +349,16 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
                     style: const TextStyle(color: Colors.amber, fontSize: 16),
                   ),
                 ),
-              if (_currentPlayer == widget.userID && !_isRolling && !_hasRolled)
-                ElevatedButton(
-                  onPressed: _rollDice,
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent),
-                  child: const Text("Roll Dice"),
-                ),
+              if (_currentPlayer == widget.userID &&
+                  !_isRolling &&
+                  !_hasRolled &&
+                  (_justLostLife || _isFirstRoll))
+                  ElevatedButton(
+                    onPressed: _rollDice,
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent),
+                    child: const Text("Roll Dice"),
+                  ),
               const SizedBox(height: 12),
               if (_showBetControls) _buildInlineBetControls()
               else if (_currentPlayer == widget.userID && _hasRolled)
