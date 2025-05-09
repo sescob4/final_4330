@@ -160,9 +160,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   bool gameOver = false; // true when full game ends, not just round
   bool showRevealedCards = false;
 
-  bool showRouletteGif = false;
-  String? rouletteGifPath;
-
   bool started = false, aiBusy = false;
   static const aiDelay = Duration(seconds: 3);
 
@@ -200,44 +197,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
     // Preload PNG table background
     await precacheImage(const AssetImage('assets/tab2.png'), context);
-
-    // Preload roulette GIFs
-    for (int i = 1; i <= 6; i++) {
-      await precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
-      if (i < 6) {
-        await precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
-      }
-    }
-  }
-
-  void _precacheSvgs() {
-    const svgAssets = [
-      'assets/cardback.svg',
-      'assets/ace.svg',
-      'assets/queen.svg',
-      'assets/king.svg',
-      'assets/joker.svg',
-      'assets/splat1.svg',
-      'assets/splat2.svg',
-      'assets/splat3.svg',
-    ];
-
-    for (final path in svgAssets) {
-      final loader = SvgAssetLoader(path);
-      svg.cache.putIfAbsent(
-        loader.cacheKey(null),
-        () => loader.loadBytes(null),
-      );
-    }
-
-    // Raster images and GIFs still use precacheImage:
-    for (int i = 1; i <= 6; i++) {
-      precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
-      if (i < 6) {
-        precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
-      }
-    }
-    precacheImage(const AssetImage('assets/tab2.png'), context);
   }
 
   void _addLog(String s) {
@@ -255,19 +214,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
         );
       }
     });
-  }
-
-  Widget _rouletteImage() {
-    if (rouletteGifPath == null) return const SizedBox.shrink();
-
-    return Image.asset(
-      rouletteGifPath!,
-      width: 275,
-      height: 275,
-      fit: BoxFit.cover,
-      gaplessPlayback: true,
-      filterQuality: FilterQuality.none, // prevents smoothing on every frame
-    );
   }
 
   void _showOverlay(String msg) {
@@ -331,47 +277,38 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   }
 
   void _handleBluffResult(String msg, Player spinner) {
-    final chamberUsed = spinner.rouletteChambers.clamp(1, 6);
-    final isLoss = msg.contains('ELIMINATED');
-    final gifName = 'chamber${chamberUsed}${isLoss ? "loss" : "win"}.gif';
-
+    // 1) Reveal the cards immediately
     setState(() {
-      showRevealedCards = false;
-      showRouletteGif = false;
-      rouletteGifPath = null;
+      showRevealedCards = true;
     });
 
-    // Flip cards face-up after short delay
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (!mounted) return;
-      setState(() => showRevealedCards = true);
-    });
+    // Split the full message into "called bluff" and result parts
+    final parts = msg.split('. ');
+    final calledText = parts[0]; // e.g. "You correctly called bluff"
+    final resultText = parts.length > 1
+        ? parts[1].replaceAll(RegExp(r'[.!]'), '') // e.g. "Bob was ELIMINATED"
+        : '';
 
-    // Show GIF after a bit more delay
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
-      setState(() {
-        rouletteGifPath = 'assets/$gifName';
-        showRouletteGif = true;
+    // 2) Show "<Player> called bluff"
+    _showOverlay(calledText);
+
+    // 3) After 2 seconds, show "<Player> survived" or "…was eliminated"
+    Future.delayed(const Duration(seconds: 3), () {
+      _showOverlay(resultText);
+
+      // 4) After another short pause, apply the outcome + log + check
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        if (!mounted) return;
+        setState(() {
+          if (resultText.contains('ELIMINATED')) {
+            spinner.eliminated = true;
+          } else {
+            spinner.rouletteChambers = min(6, spinner.rouletteChambers + 1);
+          }
+          _addLog(msg); // full sentence in the console
+          _checkWinner();
+        });
       });
-    });
-
-    // After full animation, log result and check winner
-    Future.delayed(const Duration(milliseconds: 30000), () {
-      if (!mounted) return;
-      setState(() {
-        showRouletteGif = false;
-        rouletteGifPath = null;
-        _addLog(msg);
-      });
-
-      if (msg.contains('ELIMINATED')) {
-        spinner.eliminated = true;
-      } else {
-        spinner.rouletteChambers = min(6, spinner.rouletteChambers + 1);
-      }
-
-      _checkWinner();
     });
   }
 
@@ -906,32 +843,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                     ),
                   ),
                 ),
-              ),
-            ),
-
-          // Roulette GIF overlay with a vector skull icon above
-          if (showRouletteGif && rouletteGifPath != null)
-            Positioned.fill(
-              child: Stack(
-                children: [
-                  // darkened background
-                  Container(color: Colors.black87),
-                  // skull icon at top center
-                  Positioned(
-                    top: 40,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: FaIcon(
-                        FontAwesomeIcons.skull,
-                        size: 48,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  // the roulette GIF itself
-                  Center(child: _rouletteImage()),
-                ],
               ),
             ),
 

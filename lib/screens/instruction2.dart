@@ -21,7 +21,7 @@ class Instruction2 extends StatelessWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -66,7 +66,7 @@ class Instruction2 extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color.fromRGBO(33, 17, 0, 0.8),
                       borderRadius: BorderRadius.circular(20),
@@ -80,7 +80,7 @@ class Instruction2 extends StatelessWidget {
                       ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -156,7 +156,7 @@ class Instruction2 extends StatelessWidget {
             content,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 12,
+              fontSize: 11.5,
               height: 1.4,
               letterSpacing: 0.5,
             ),
