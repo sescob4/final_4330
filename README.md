@@ -3,7 +3,7 @@ A social party game built with Flutter, that is designed for bluffing and decept
 deceive others while uncovering the truth. This game is able to be played with multiplayer or with AI.
 
 ## Features
--**Game Modes:** Liars Deck and Liars Dice
+- **Game Modes:** Liars Deck and Liars Dice
 - **Role Selection:** Choose from four different roles
 - **User Stats:** Track wins, games played, and win percentage
 - **Multiplayer and AI support**
