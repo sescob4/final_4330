@@ -84,10 +84,13 @@ class GameSelectionPage extends StatelessWidget {
             top: MediaQuery.of(context).padding.top + 8,
             left: 8,
             child: IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white, size: 32),
-              onPressed: () => _showGameMenu(context),
-              tooltip: 'Game Menu',
-            ),
+                icon: const Icon(Icons.menu, color: Colors.white, size: 32),
+                tooltip: 'Game Menu',
+                onPressed: () async {
+                  final player = AudioPlayer();
+                  await player.play(AssetSource('sound/click-4.mp3'));
+                  _showGameMenu(context);
+                }),
           ),
           // Game selection container
           Center(
