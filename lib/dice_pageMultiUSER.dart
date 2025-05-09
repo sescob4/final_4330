@@ -78,20 +78,19 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
   }
 
   void _listenToTurnChanges() {
-    final ref = FirebaseDatabase.instance
-        .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
-    _turnSubscription = ref.onValue.listen((evt) {
-      final cp = evt.snapshot.value?.toString();
-      setState(() {
-        _currentPlayer = cp;
-        _hasRolled = false; // reset when turn changes
-      });
+  final ref = FirebaseDatabase.instance
+      .ref("dice/gameSessions/${widget.gameID}/currentPlayer");
+  _turnSubscription = ref.onValue.listen((evt) {
+    final cp = evt.snapshot.value?.toString();
+    setState(() {
+      _currentPlayer = cp;
       if (cp == widget.userID) {
-        _refreshDice();
-        _refreshLives();
+        // it's your turn to roll *once*
+        
       }
     });
-  }
+  });
+}
 
   void _listenToBetChanges() {
     final ref = FirebaseDatabase.instance
@@ -110,21 +109,25 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
     });
   }
 
-  Future<void> _rollDice() async {
-    if (_currentPlayer != widget.userID) return;
-    setState(() => _isRolling = true);
-    _controller.forward(from: 0);
-    await Future.delayed(const Duration(milliseconds: 800));
+ Future<void> _rollDice() async {
+  if (_currentPlayer != widget.userID) return;
+  setState(() => _isRolling = true);
 
-    await _dbService.writeDiceForAll(widget.userID, widget.gameID);
-    await _refreshDice();
+  _controller.forward(from: 0);
+  await Future.delayed(const Duration(milliseconds: 800));
 
-    await _dbService.setPlayer(widget.userID, widget.gameID);
-    setState(() {
-      _isRolling = false;
-      _hasRolled = true;
-    });
-  }
+  // 1) creator randomizes everyone
+  await _dbService.writeDiceForAll(widget.userID, widget.gameID);
+  // 2) everyone fetches their own dice
+  final mine = await _dbService.getDice(widget.userID, widget.gameID);
+
+  setState(() {
+    _diceValues = mine;
+    _hasRolled  = true;
+    _isRolling = false;
+    _hasRolled = true;   // hide Roll button till next turn
+  });
+}
 
   Future<void> _callBluff() async {
     if (_currentPlayer != widget.userID || _bidQuantity == null) return;

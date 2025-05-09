@@ -121,7 +121,7 @@ class GameSelectionPage2 extends StatelessWidget {
                   "Choose Your Game",
                   style: TextStyle(
                     color: Colors.amber,
-                    fontSize: 24,
+                    fontSize: 36,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

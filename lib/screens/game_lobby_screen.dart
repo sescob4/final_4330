@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../Databaseservice.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class GameLobbyScreen extends StatefulWidget {
   const GameLobbyScreen({super.key});
@@ -10,7 +9,6 @@ class GameLobbyScreen extends StatefulWidget {
 }
 
 class _GameLobbyScreenState extends State<GameLobbyScreen> {
-  final AudioPlayer player = AudioPlayer();
   final DatabaseService dbService = DatabaseService();
   String? gameId;
 
@@ -59,17 +57,11 @@ class _GameLobbyScreenState extends State<GameLobbyScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () async {
-                await player.play(AssetSource('sound/click-4.mp3'));
-                await dbService.lockGame(gameId!);
-              },
+              onPressed: () => dbService.lockGame(gameId!),
               child: const Text('Lock Game'),
             ),
             ElevatedButton(
-              onPressed: () async {
-                await player.play(AssetSource('sound/click-4.mp3'));
-                await dbService.unlockGame(gameId!);
-              },
+              onPressed: () => dbService.unlockGame(gameId!),
               child: const Text('Unlock Game'),
             ),
           ],

@@ -448,7 +448,7 @@ class _DicePageState extends State<DicePage> with SingleTickerProviderStateMixin
           
         Positioned.fill(
         child: Image.asset(
-          'assets/dicen.png',
+          'assets/table1.png',
           fit: BoxFit.cover,
         ),
       ),

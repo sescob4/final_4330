@@ -4,14 +4,11 @@ import 'settings.dart';
 import '/dice_page.dart';
 import 'roles_screen.dart';
 import '../Databaseservice.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage extends StatelessWidget {
   const GameSelectionPage({super.key});
 
   void _showGameMenu(BuildContext context) {
-    final AudioPlayer _player = AudioPlayer();
-    final player = AudioPlayer();
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -30,13 +27,11 @@ class GameSelectionPage extends StatelessWidget {
                 Navigator.pop(context, '/resume');
               },
             ), */
-
             TextButton.icon(
               icon: const Icon(Icons.settings, color: Colors.white),
               label:
                   const Text('Settings', style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                await player.play(AssetSource('sound/click-4.mp3'));
+              onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/settings');
                 // Navigate to settings page when implemented
@@ -46,8 +41,7 @@ class GameSelectionPage extends StatelessWidget {
               icon: const Icon(Icons.home, color: Colors.white),
               label: const Text('Main Menu',
                   style: TextStyle(color: Colors.white)),
-              onPressed: () async {
-                await player.play(AssetSource('sound/click-4.mp3'));
+              onPressed: () {
                 Navigator.pop(context);
                 Navigator.pushReplacementNamed(context, '/home');
               },
@@ -65,8 +59,7 @@ class GameSelectionPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Choose Your Game',
+        title: const Text('Choose Your Game',
           style: TextStyle(
             color: Colors.amber,
             fontSize: 24,

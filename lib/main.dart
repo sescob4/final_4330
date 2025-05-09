@@ -75,7 +75,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
         '/home': (context) => HomePage(),
-        '/roles': (context) => RolesScreen(),
+        '/roles': (context) => const RolesScreen(),
         '/gameselection': (context) => const GameSelectionPage(),
         '/userstats': (context) => const UserStatsScreen(),
         '/settings': (context) => const SettingsPage(),
@@ -108,7 +108,7 @@ class AuthWrapper extends StatelessWidget {
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
-  final AudioPlayer clickPlayer = AudioPlayer();
+
   // Create an instance of DatabaseService
   final DatabaseService _databaseService = DatabaseService();
 
@@ -125,6 +125,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildButtons(BuildContext context) {
+    final AudioPlayer clickPlayer = AudioPlayer();
     return Container(
       decoration: BoxDecoration(
         color: const Color.fromRGBO(33, 17, 0, .8),
@@ -245,22 +246,32 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
               ),
-              // Logout button in the top-right
+              // Logout + Settings buttons in the top-right
               if (FirebaseAuth.instance.currentUser != null)
                 SafeArea(
                   child: Align(
                     alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                      onPressed: () async {
-                        await clickPlayer
-                            .play(AssetSource('sound/click-4.mp3'));
-                        await FirebaseAuth.instance.signOut();
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.settings, color: Colors.white),
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/settings');
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.white),
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
+                            Navigator.pushReplacementNamed(context, '/login');
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
+
               // User Stats button in the top-left
               if (FirebaseAuth.instance.currentUser != null)
                 SafeArea(
@@ -274,9 +285,7 @@ class HomePage extends StatelessWidget {
                           shadowColor: Colors.transparent,
                           padding: EdgeInsets.zero,
                         ),
-                        onPressed: () async {
-                          await clickPlayer
-                              .play(AssetSource('sound/click-4.mp3'));
+                        onPressed: () {
                           Navigator.pushNamed(context, '/userstats');
                         },
                         child: const Text(
