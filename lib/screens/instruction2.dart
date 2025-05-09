@@ -26,7 +26,7 @@ class Instruction2 extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.home, color: Colors.amber),
+                        icon: const Icon(Icons.home, color: Colors.amber, size: 32),
                         onPressed: () {
                           final player = AudioPlayer();
                           player.play(AssetSource('sound/click-4.mp3'));
