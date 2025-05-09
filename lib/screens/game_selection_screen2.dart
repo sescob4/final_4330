@@ -16,7 +16,8 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage2 extends StatelessWidget {
-  GameSelectionPage2({super.key});
+  final int role;
+  GameSelectionPage2({super.key,required  this.role});
   final AudioPlayer player = AudioPlayer();
   void _showGameMenu(BuildContext context) {
     showDialog(
@@ -88,6 +89,7 @@ class GameSelectionPage2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("game"+ role.toString());
     final double topPadding = MediaQuery.of(context).padding.top + 8;
     final double buttonPadding =
         MediaQuery.of(context).size.width * 0.05; // 5% of screen width
@@ -146,7 +148,7 @@ class GameSelectionPage2 extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                UserClassification(gameChosen: "deck"),
+                                UserClassification(gameChosen: "deck", role: role),
                           ),
                         );
                       },
@@ -165,7 +167,7 @@ class GameSelectionPage2 extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                               builder: (context) => UserClassification(
-                                  gameChosen: "dice")), //CHANGE T
+                                  gameChosen: "dice", role: role)), //CHANGE T
                         );
                       },
                     ),
@@ -183,7 +185,8 @@ class GameSelectionPage2 extends StatelessWidget {
 /////////////////////////////////////working database do not touch below this pretty please !
 class UserClassification extends StatelessWidget {
   final String gameChosen;
-  const UserClassification({super.key, required this.gameChosen});
+  final int role;
+  const UserClassification({super.key, required this.gameChosen, required this.role});
 
   void _showUserClasses(BuildContext context) {
     showDialog(
@@ -270,7 +273,7 @@ class UserClassification extends StatelessWidget {
                       label: "Multiple\nUsers",
                       crownImagePath: "assets/group.png",
                       onTap: () async {
-                        final info = await GameSelectionPage2().getUserInfo();
+                        final info = await GameSelectionPage2(role: 0).getUserInfo();
                         //final user = FirebaseAuth.instance.currentUser;
                         final userId = info['uid']!;
                         //"guest_${DateTime.now().millisecondsSinceEpoch}";
@@ -282,6 +285,7 @@ class UserClassification extends StatelessWidget {
                               gameChosen: gameChosen,
                               userID: userId,
                               userName: userName,
+                              role: role
                             ),
                           ),
                         );
@@ -295,7 +299,7 @@ class UserClassification extends StatelessWidget {
                       label: "AI Bot",
                       crownImagePath: "assets/single.png",
                       onTap: () async {
-                        final info = await GameSelectionPage2().getUserInfo();
+                        final info = await GameSelectionPage2(role: 0).getUserInfo();
                         final userId = info['uid']!;
                         final userName = info['username']!;
                         if (gameChosen == "deck") {
@@ -331,12 +335,14 @@ class GameQUEUE extends StatefulWidget {
   final gameChosen;
   final userID;
   final userName;
+  final int role;
 
   const GameQUEUE(
       {super.key,
       required this.gameChosen,
       required this.userID,
-      required this.userName});
+      required this.userName,
+      required this.role});
 
   @override
   State<GameQUEUE> createState() => _GameLoadingQueue();
@@ -358,6 +364,7 @@ class _GameLoadingQueue extends State<GameQUEUE> {
       widget.userID,
       widget.userName,
       widget.gameChosen,
+      widget.role
     );
     print("queue process ENDSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
     // Listen to the queue path
@@ -385,7 +392,7 @@ class _GameLoadingQueue extends State<GameQUEUE> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  DicePageMultiUSER(userID: widget.userID, gameID: sessionID),
+                  DicePageMultiUSER(userID: widget.userID, gameID: sessionID, role: widget.role),
             ),
           );
           //////////////////////////////////////////////////////////////////////
@@ -408,15 +415,11 @@ class _GameLoadingQueue extends State<GameQUEUE> {
 
 //class with functions to get lock and add to a game/queue
 class QueueDeck {
-  final DatabaseReference _lockRefDECK =
-      FirebaseDatabase.instance.ref("deck/queueLock");
-  final DatabaseReference _lockRefDICE =
-      FirebaseDatabase.instance.ref("dice/queueLock");
+  final DatabaseReference _lockRefDECK = FirebaseDatabase.instance.ref("deck/queueLock");
+  final DatabaseReference _lockRefDICE = FirebaseDatabase.instance.ref("dice/queueLock");
 
-  final DatabaseReference _DeckSessions =
-      FirebaseDatabase.instance.ref("deck/gameSessions");
-  final DatabaseReference _DiceSessions =
-      FirebaseDatabase.instance.ref("dice/gameSessions");
+  final DatabaseReference _DeckSessions = FirebaseDatabase.instance.ref("deck/gameSessions");
+  final DatabaseReference _DiceSessions = FirebaseDatabase.instance.ref("dice/gameSessions");
 
   Future<bool> acquireQueueLock(String gameChosen) async {
     if (gameChosen == "dice") {
@@ -446,8 +449,7 @@ class QueueDeck {
     return false;
   }
 
-  Future<String> tryJoinQueue(
-      String userId, String name, String gameChosen) async {
+  Future<String> tryJoinQueue(String userId, String name, String gameChosen, int role) async {
     bool joined = false;
     Map<String, dynamic> newplayer = {"userName": name};
     while (!joined) {
@@ -475,10 +477,9 @@ class QueueDeck {
               } else {
                 print("game lock false try adding player");
                 if (sessionID != null) {
-                  final DatabaseReference playerList =
-                      _DiceSessions.child(sessionID).child("playersAndDice");
-                  final DatabaseReference playersLIFEList =
-                      _DiceSessions.child(sessionID).child("playersLife");
+                  final DatabaseReference playerList = _DiceSessions.child(sessionID).child("playersAndDice");
+                  final DatabaseReference playersLIFEList = _DiceSessions.child(sessionID).child("playersLife");
+                  final DatabaseReference playersRoles = _DiceSessions.child(sessionID).child("playersRole");
                   final playerSnap = await playerList.get();
                   print("got player list");
 
@@ -492,6 +493,7 @@ class QueueDeck {
                     print("Found game -> checking game to add player");
                     await playerList.child(userId).set([0, 0, 0, 0, 0]);
                     await playersLIFEList.child(userId).set(3);
+                    await playersRoles.child(userId).set(role);
 
                     if ((players + 1) >= 2) {
                       await _DiceSessions.child(sessionID)
@@ -527,7 +529,8 @@ class QueueDeck {
                 "playersAndDice": {
                   userId: [0, 0, 0, 0, 0]
                 },
-                "playersLife": {userId: 3}
+                "playersLife": {userId: 3},
+                "playersRole":{userId: role}
               });
 
               final booleanSession = newGameSessionRef.key;
