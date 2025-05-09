@@ -1,16 +1,20 @@
-# final_4330
+# Liars Bar
+A game that is designed for bluffing, where players take turns drawing cards or rolling dice and trying to 
+deceive others while uncovering the truth.
 
-A new Flutter project.
+## Features
+- Game Modes: Liars Deck and Liars Dice
+- Play with AI or Multiplayer
+- Firebase or anonymous login
+- Works on Android, IOS, and Web
+- Audio and SFX settings
 
 ## Getting Started
+### Prerequisites 
+- Flutter SDK
+- Dart
+- Firebase project
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Installation
+1. Close the repository:
+   git clone https://github.com/sescob4/final_4330
