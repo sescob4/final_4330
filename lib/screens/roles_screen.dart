@@ -77,13 +77,12 @@ class RolesScreen extends StatelessWidget {
                       children: roles.map((role) {
                         return GestureDetector(
                           onTap: () {
-                            DatabaseService dp = new DatabaseService();
                             characterID = roles.indexOf(role);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 //pass the selected role if needed
-                                builder: (context) => GameSelectionPage2(),
+                                builder: (context) => GameSelectionPage2(role: characterID),
                               ),
                             );
                           },
