@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
+=======
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'dart:typed_data';
+>>>>>>> 881a019168a236547753b68dfa8077d847348431
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:final_4330/screens/settings.dart';
@@ -34,16 +39,8 @@ class Player {
   Player(this.name, {this.isAI = false, required this.roleNumber});
 
   bool spin(Random rng) {
-    bool shot;
-
-    if (rouletteChambers >= 6) {
-      shot = true;
-    } else {
-      shot = rng.nextInt(6) < rouletteChambers;
-    }
-
-    rouletteChambers = min(6, rouletteChambers + 1);
-    return shot; // don't set `eliminated` here anymore
+    if (rouletteChambers >= 6) return true;
+    return rng.nextInt(6) < rouletteChambers;
   }
 }
 
@@ -163,6 +160,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   final Set<DeckCard> selected = {};
   final List<String> history = [];
   final ScrollController _scroll = ScrollController();
+  final Map<String, Uint8List> _gifCache = {};
 
   bool gameOver = false; // true when full game ends, not just round
   bool showRevealedCards = false;
@@ -181,13 +179,9 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
     super.initState();
     game = LiarsDeckGameState();
 
-    // Precache roulette GIFs
-    for (var i = 1; i <= 6; i++) {
-      if (i < 6) {
-        precacheImage(AssetImage('assets/chamber${i}win.gif'), context);
-      }
-      precacheImage(AssetImage('assets/chamber${i}loss.gif'), context);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadRouletteGifs();
+    });
   }
 
   void _addLog(String s) {
@@ -206,6 +200,20 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
       }
     });
   }
+
+  Widget _rouletteImage() {
+  if (rouletteGifPath == null) return const SizedBox.shrink();
+
+  return Image.asset(
+    rouletteGifPath!,
+    width: 300,
+    height: 300,
+    fit: BoxFit.cover,
+    gaplessPlayback: true,
+  );
+}
+
+
 
   void _showOverlay(String msg) {
     setState(() {
@@ -304,6 +312,8 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
 
       if (msg.contains('ELIMINATED')) {
         spinner.eliminated = true;
+      } else {
+        spinner.rouletteChambers = min(6, spinner.rouletteChambers + 1);
       }
 
       _checkWinner();
@@ -862,13 +872,7 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
                         ),
                       ],
                     ),
-                    child: Image.asset(
-                      rouletteGifPath!,
-                      width: 240,
-                      height: 240,
-                      fit: BoxFit.cover,
-                      gaplessPlayback: true,
-                    ),
+                    child: _rouletteImage(),
                   ),
                 ),
               ),

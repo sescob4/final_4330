@@ -1,4 +1,3 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import '../liars_deck_game_ai.dart';
 import 'settings.dart';
@@ -79,13 +78,10 @@ class GameSelectionPage extends StatelessWidget {
             top: MediaQuery.of(context).padding.top + 8,
             left: 8,
             child: IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white, size: 32),
-                tooltip: 'Game Menu',
-                onPressed: () async {
-                  final player = AudioPlayer();
-                  await player.play(AssetSource('sound/click-4.mp3'));
-                  _showGameMenu(context);
-                }),
+              icon: const Icon(Icons.menu, color: Colors.white, size: 32),
+              onPressed: () => _showGameMenu(context),
+              tooltip: 'Game Menu',
+            ),
           ),
           // Game selection container
           Center(
