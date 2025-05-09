@@ -17,7 +17,7 @@ import 'package:audioplayers/audioplayers.dart';
 
 class GameSelectionPage2 extends StatelessWidget {
   final int role;
-  GameSelectionPage2({super.key,required  this.role});
+  GameSelectionPage2({super.key, required this.role});
   final AudioPlayer player = AudioPlayer();
   void _showGameMenu(BuildContext context) {
     showDialog(
@@ -89,7 +89,7 @@ class GameSelectionPage2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("game"+ role.toString());
+    print("game" + role.toString());
     final double topPadding = MediaQuery.of(context).padding.top + 8;
     final double buttonPadding =
         MediaQuery.of(context).size.width * 0.05; // 5% of screen width
@@ -268,32 +268,6 @@ class UserClassification extends StatelessWidget {
               padding: EdgeInsets.all(buttonPadding),
               child: Row(
                 children: [
-                  Expanded(
-                    child: ImageButton(
-                      label: "Multiple\nUsers",
-                      crownImagePath: "assets/group.png",
-                      onTap: () async {
-                        final info = await GameSelectionPage2(role: 0).getUserInfo();
-                        //final user = FirebaseAuth.instance.currentUser;
-                        final userId = info['uid']!;
-                        //"guest_${DateTime.now().millisecondsSinceEpoch}";
-                        final userName = info['username']!;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GameQUEUE(
-                              gameChosen: gameChosen,
-                              userID: userId,
-                              userName: userName,
-                              role: role
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(width: buttonPadding),
-                  // AI Bot
                   Expanded(
                     child: ImageButton(
                       label: "AI Bot",

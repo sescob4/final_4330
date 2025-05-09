@@ -178,7 +178,7 @@ class _DicePageMultiUSERState extends State<DicePageMultiUSER>
 
 
 
-    final livesLeft = await _dbService.loseLifeDB(loserId, widget.gameID);
+    final livesLeft = await _dbService.loseLifeDB(loserId ?? '', widget.gameID);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
         loserId == callerId
