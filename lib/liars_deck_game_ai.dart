@@ -1,12 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-=======
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
-import 'dart:typed_data';
->>>>>>> 881a019168a236547753b68dfa8077d847348431
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:final_4330/screens/settings.dart';
@@ -146,7 +140,7 @@ class LiarsDeckGameState {
         attempts < players.length);
   }
 }
-
+// Test
 // UI PAGE
 class LiarsDeckGamePage extends StatefulWidget {
   final String gameId;
@@ -160,7 +154,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   final Set<DeckCard> selected = {};
   final List<String> history = [];
   final ScrollController _scroll = ScrollController();
-  final Map<String, Uint8List> _gifCache = {};
 
   bool gameOver = false; // true when full game ends, not just round
   bool showRevealedCards = false;
@@ -178,10 +171,6 @@ class _LiarsDeckGamePageState extends State<LiarsDeckGamePage> {
   void initState() {
     super.initState();
     game = LiarsDeckGameState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadRouletteGifs();
-    });
   }
 
   void _addLog(String s) {
